@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 )
@@ -19,12 +20,13 @@ type Config struct {
 	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
 }
 
-func New() (Config, error) {
+func New(log *zap.Logger) Config {
 	cfg := Config{}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return cfg, err
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
 	envPath := filepath.Join(wd, ".env")
@@ -32,8 +34,9 @@ func New() (Config, error) {
 	_ = godotenv.Load(envPath)
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		return cfg, err
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
-	return cfg, nil
+	return cfg
 }

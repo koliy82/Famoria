@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"go.uber.org/zap"
 	"go_tg_bot/internal/config"
+	"os"
 )
 
-func Connect(cfg config.Config) (driver.Conn, error) {
+func New(log *zap.Logger, cfg config.Config) driver.Conn {
 	var (
 		ctx       = context.Background()
 		conn, err = clickhouse.Open(&clickhouse.Options{
@@ -34,15 +36,17 @@ func Connect(cfg config.Config) (driver.Conn, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		log.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := conn.Ping(ctx); err != nil {
 		var exception *clickhouse.Exception
 		if errors.As(err, &exception) {
 			fmt.Printf("Exception [%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+			log.Error(err.Error())
+			os.Exit(1)
 		}
-		return nil, err
 	}
-	return conn, nil
+	return conn
 }
