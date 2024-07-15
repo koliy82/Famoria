@@ -5,13 +5,32 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
+	"go_tg_bot/internal/bot/callback"
 )
 
-func Register(bh *th.BotHandler, log *zap.Logger) {
+func Register(bh *th.BotHandler, log *zap.Logger, cm *callback.CallbacksManager) {
+
 	bh.Handle(func(bot *telego.Bot, update telego.Update) {
+		data := cm.DynamicCallback("profile", callback.OneClick, []int64{update.Message.From.ID}, 5, "", func(query telego.CallbackQuery) {
+			_, err := bot.SendMessage(tu.Messagef(
+				telego.ChatID{ID: query.Message.GetChat().ID},
+				"Hello %s!", query.From.FirstName,
+			))
+			if err != nil {
+				log.Sugar().Error(err)
+				return
+			}
+		})
 		_, _ = bot.SendMessage(tu.Messagef(
 			tu.ID(update.Message.Chat.ID),
 			"Hello %s!", update.Message.From.FirstName,
+		).WithReplyMarkup(
+			tu.InlineKeyboard(
+				tu.InlineKeyboardRow(
+					tu.InlineKeyboardButton("profile").
+						WithCallbackData(data),
+				),
+			),
 		))
 	}, th.Or(th.CommandEqual("profile"), th.TextEqual("👤 Профиль")))
 

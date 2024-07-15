@@ -4,6 +4,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot"
+	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/command"
 	"go_tg_bot/internal/bot/command/admin"
 	"go_tg_bot/internal/bot/command/family"
@@ -27,11 +28,13 @@ var App = fx.Options(
 	fx.Provide(
 		bot.New,
 		command.New,
+		callback.New,
 	),
 	fx.Invoke(
 		admin.Register,
 		family.Register,
 		minecraft.Register,
+		callback.Register,
 		command.StartHandle,
 	),
 )

@@ -30,14 +30,14 @@ func Register(bh *th.BotHandler, log *zap.Logger, ch user.Repository) {
 		_, _ = bot.SendMessage(
 			tu.Messagef(
 				chatID,
-				args[1],
+				strings.Join(args[1:], " "),
 			),
 		)
 		if err != nil {
 			return
 		}
 	}, th.And(
-		th.CommandEqualArgc("text", 1),
+		th.CommandEqual("text"),
 		predicate.AdminCommand(),
 	))
 
