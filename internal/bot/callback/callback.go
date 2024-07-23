@@ -3,7 +3,7 @@ package callback
 import (
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
-	"go.uber.org/zap"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 type ContextType string
@@ -24,10 +24,15 @@ type Callback struct {
 	Callback   func(query telego.CallbackQuery)
 }
 
-func Register(bh *th.BotHandler, log *zap.Logger, cm *CallbacksManager) {
+func (callback *Callback) Inline() telego.InlineKeyboardButton {
+	return tu.InlineKeyboardButton(callback.Label).
+		WithCallbackData(callback.Data)
+}
+
+func Register(bh *th.BotHandler, cm *CallbacksManager) {
 	bh.HandleCallbackQuery(
 		func(bot *telego.Bot, query telego.CallbackQuery) {
-			cm.HandleCallback(bot, query, log)
+			cm.HandleCallback(bot, query)
 		},
 		th.AnyCallbackQuery(),
 	)

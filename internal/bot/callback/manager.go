@@ -1,32 +1,33 @@
 package callback
 
 import (
-	"fmt"
+	"github.com/google/uuid"
 	"github.com/mymmrac/telego"
 	"go.uber.org/zap"
-	"log"
 	"sync"
 	"time"
 )
 
 type CallbacksManager struct {
 	mu        sync.Mutex
-	callbacks map[string]Callback
+	Callbacks map[string]Callback
+	log       *zap.Logger
 }
 
-func New() *CallbacksManager {
+func New(log *zap.Logger) *CallbacksManager {
 	return &CallbacksManager{
-		callbacks: make(map[string]Callback),
+		Callbacks: make(map[string]Callback),
+		log:       log,
 	}
 }
 
 func (cm *CallbacksManager) StaticCallback(data string, callback func(query telego.CallbackQuery)) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-	if _, exists := cm.callbacks[data]; exists {
-		log.Fatalf("Callback with data %s already exists", data)
+	if _, exists := cm.Callbacks[data]; exists {
+		cm.log.Sugar().Fatalf("Callback with data %s already exists", data)
 	}
-	cm.callbacks[data] = Callback{
+	cm.Callbacks[data] = Callback{
 		Data:     data,
 		Type:     Static,
 		OwnerIDs: []int64{},
@@ -34,32 +35,45 @@ func (cm *CallbacksManager) StaticCallback(data string, callback func(query tele
 	}
 }
 
-func (cm *CallbacksManager) DynamicCallback(label string, ctype ContextType, ownerIDs []int64, minutes int32, answerText string, callback func(query telego.CallbackQuery)) string {
-	cm.mu.Lock()
-	defer cm.mu.Unlock()
-	data := fmt.Sprintf("%d", time.Now().UnixNano())
-	if _, exists := cm.callbacks[data]; exists {
-		log.Fatalf("Callback with data %s already exists", data)
-	}
-	cm.callbacks[data] = Callback{
-		Data:       data,
-		Type:       ctype,
-		OwnerIDs:   ownerIDs,
-		Label:      label,
-		AnswerText: answerText,
-		Callback:   callback,
-	}
-
-	go cm.cleanupCallback(data, minutes)
-
-	return data
+type DynamicOpts struct {
+	Label      string
+	CtxType    ContextType
+	OwnerIDs   []int64
+	Time       time.Duration
+	AnswerText string
+	Callback   func(query telego.CallbackQuery)
 }
 
-func (cm *CallbacksManager) cleanupCallback(data string, minutes int32) {
-	time.Sleep(time.Duration(minutes) * time.Minute)
+func (cm *CallbacksManager) DynamicCallback(opts DynamicOpts) Callback {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-	delete(cm.callbacks, data)
+	uid, _ := uuid.NewUUID()
+	data := uid.String()
+	if _, exists := cm.Callbacks[data]; exists {
+		cm.log.Sugar().Fatalf("Callback with data %s already exists", data)
+	}
+
+	newCallback := Callback{
+		Data:       data,
+		Type:       opts.CtxType,
+		OwnerIDs:   opts.OwnerIDs,
+		Label:      opts.Label,
+		AnswerText: opts.AnswerText,
+		Callback:   opts.Callback,
+	}
+
+	cm.Callbacks[data] = newCallback
+
+	go cm.cleanupCallback(data, opts.Time)
+
+	return newCallback
+}
+
+func (cm *CallbacksManager) cleanupCallback(data string, duration time.Duration) {
+	time.Sleep(duration)
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+	delete(cm.Callbacks, data)
 }
 
 func contains(slice []int64, item int64) bool {
@@ -71,12 +85,12 @@ func contains(slice []int64, item int64) bool {
 	return false
 }
 
-func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.CallbackQuery, log *zap.Logger) {
-	log.Sugar().Debug(query)
+func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.CallbackQuery) {
+	cm.log.Sugar().Debug(query)
 
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-	callback, exists := cm.callbacks[query.Data]
+	callback, exists := cm.Callbacks[query.Data]
 
 	if !exists {
 		err := bot.AnswerCallbackQuery(
@@ -86,7 +100,7 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 			},
 		)
 		if err != nil {
-			log.Sugar().Error(err)
+			cm.log.Sugar().Error(err)
 		}
 		return
 	}
@@ -99,7 +113,7 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 			},
 		)
 		if err != nil {
-			log.Sugar().Error(err)
+			cm.log.Sugar().Error(err)
 		}
 		return
 	}
@@ -114,30 +128,29 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 			},
 		)
 		if err != nil {
-			log.Sugar().Error(err)
+			cm.log.Sugar().Error(err)
 		}
-		return
+	} else {
+		err := bot.AnswerCallbackQuery(
+			&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+			},
+		)
+
+		if err != nil {
+			cm.log.Sugar().Error(err)
+		}
 	}
 
 	switch callback.Type {
 	case Static, Temporary:
 	case OneClick:
-		delete(cm.callbacks, query.Data)
+		delete(cm.Callbacks, query.Data)
 	case ChooseOne:
-		for data, cb := range cm.callbacks {
+		for data, cb := range cm.Callbacks {
 			if cb.Type == ChooseOne && contains(cb.OwnerIDs, query.From.ID) {
-				delete(cm.callbacks, data)
+				delete(cm.Callbacks, data)
 			}
 		}
-	}
-
-	err := bot.AnswerCallbackQuery(
-		&telego.AnswerCallbackQueryParams{
-			CallbackQueryID: query.ID,
-		},
-	)
-
-	if err != nil {
-		log.Sugar().Error(err)
 	}
 }
