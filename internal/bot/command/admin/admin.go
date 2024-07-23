@@ -1,44 +1,35 @@
 package admin
 
 import (
-	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
-	tu "github.com/mymmrac/telego/telegoutil"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/predicate"
-	"go_tg_bot/internal/repositories/user"
-	"strings"
+	"go_tg_bot/internal/database/clickhouse/repositories/message"
+	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
-func Register(bh *th.BotHandler, log *zap.Logger, ch user.Repository) {
-	if ch == nil {
-		panic("user repository is nil")
-	}
-	bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		chatID := tu.ID(update.Message.Chat.ID)
-		args := strings.Split(update.Message.Text, " ")
-		err := bot.DeleteMessage(
-			&telego.DeleteMessageParams{
-				ChatID:    chatID,
-				MessageID: update.Message.MessageID,
-			},
-		)
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-		_, _ = bot.SendMessage(
-			tu.Messagef(
-				chatID,
-				strings.Join(args[1:], " "),
-			),
-		)
-		if err != nil {
-			return
-		}
-	}, th.And(
+type Opts struct {
+	fx.In
+	Bh          *th.BotHandler
+	Log         *zap.Logger
+	Cm          *callback.CallbacksManager
+	MessageRepo message.Repository
+	UserRepo    user.Repository
+}
+
+func Register(opts Opts) {
+	opts.Bh.Handle(sendText{
+		log: opts.Log,
+	}.Handle, th.And(
 		th.CommandEqual("text"),
 		predicate.AdminCommand(),
 	))
+
+	opts.Bh.Handle(messageLogger{
+		messages: opts.MessageRepo,
+		users:    opts.UserRepo,
+	}.Handle, th.AnyMessage())
 
 }
