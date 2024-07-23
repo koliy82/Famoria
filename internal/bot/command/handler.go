@@ -13,7 +13,7 @@ func New(bot *telego.Bot, log *zap.Logger) *th.BotHandler {
 	bh, err := th.NewBotHandler(bot, updates)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Sugar().Error(err)
 		os.Exit(1)
 	}
 
