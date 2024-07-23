@@ -18,6 +18,8 @@ type Config struct {
 	ClickhouseUser     string `envconfig:"CLICKHOUSE_USER" required:"true"`
 	ClickhousePassword string `envconfig:"CLICKHOUSE_PASSWORD" required:"true"`
 	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
+
+	MongoURI string `envconfig:"MONGO_URI" required:"true"`
 }
 
 func New(log *zap.Logger) Config {
