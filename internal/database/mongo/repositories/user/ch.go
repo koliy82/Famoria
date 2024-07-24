@@ -18,8 +18,8 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 	model := &User{
 		ID:           user.ID,
 		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Username:     user.Username,
+		LastName:     &user.LastName,
+		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
 		IsAdmin:      false,
 	}

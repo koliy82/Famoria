@@ -6,7 +6,7 @@ import (
 )
 
 type Brak struct {
-	_ID            primitive.ObjectID `bson:"_id"`
+	BID            primitive.ObjectID `bson:"_id"`
 	FirstUserID    int64              `ch:"first_user_id"`
 	SecondUserID   int64              `ch:"second_user_id"`
 	CreateDate     time.Time          `ch:"create_date"`

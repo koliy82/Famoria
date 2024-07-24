@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
+	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type Opts struct {
@@ -15,6 +16,7 @@ type Opts struct {
 	Bh       *th.BotHandler
 	Log      *zap.Logger
 	BrakRepo brak.Repository
+	UserRepo user.Repository
 	Cm       *callback.CallbacksManager
 }
 
@@ -27,10 +29,13 @@ func Register(opts Opts) {
 	opts.Bh.Handle(goFamily{
 		cm:    opts.Cm,
 		braks: opts.BrakRepo,
+		log:   opts.Log,
 	}.Handle, th.CommandEqual("gobrak"))
 
 	opts.Bh.Handle(endFamily{
-		cm: opts.Cm,
+		cm:    opts.Cm,
+		braks: opts.BrakRepo,
+		users: opts.UserRepo,
 	}.Handle, th.CommandEqual("endbrak"))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {

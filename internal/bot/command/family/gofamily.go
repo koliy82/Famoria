@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
+	"go_tg_bot/internal/utils/html"
 	"time"
 )
 
@@ -22,8 +23,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 
 	if reply == nil {
 		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(update.Message.Chat.ID),
-			Text:   fmt.Sprintf("@%s, ответь на любое сообщение партнёра. 😘💬", update.Message.From.Username),
+			ChatID:    tu.ID(update.Message.Chat.ID),
+			ParseMode: telego.ModeHTML,
+			Text: fmt.Sprintf(
+				"%s, ответь на любое сообщение партнёра. 😘💬",
+				html.UserMention(fUser),
+			),
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.GetMessageID(),
 			},
@@ -37,8 +42,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	tUser := reply.From
 	if tUser.ID == fUser.ID {
 		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(update.Message.Chat.ID),
-			Text:   fmt.Sprintf("@%s, брак с собой нельзя, придётся искать пару. 😥", update.Message.From.Username),
+			ChatID:    tu.ID(update.Message.Chat.ID),
+			ParseMode: telego.ModeHTML,
+			Text: fmt.Sprintf(
+				"%s, брак с собой нельзя, придётся искать пару. 😥",
+				html.UserMention(fUser),
+			),
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.GetMessageID(),
 			},
@@ -51,8 +60,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 
 	if tUser.IsBot {
 		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(update.Message.Chat.ID),
-			Text:   fmt.Sprintf("@%s, бота не трогай. 👿", update.Message.From.Username),
+			ChatID:    tu.ID(update.Message.Chat.ID),
+			ParseMode: telego.ModeHTML,
+			Text: fmt.Sprintf(
+				"%s, бота не трогай. 👿",
+				html.UserMention(fUser),
+			),
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.GetMessageID(),
 			},
@@ -67,8 +80,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 
 	if fbrak != nil {
 		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(update.Message.Chat.ID),
-			Text:   fmt.Sprintf("@%s, у вас уже есть брак! 💍", update.Message.From.Username),
+			ChatID:    tu.ID(update.Message.Chat.ID),
+			ParseMode: telego.ModeHTML,
+			Text: fmt.Sprintf(
+				"%s, у вас уже есть брак! 💍",
+				html.UserMention(fUser),
+			),
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.GetMessageID(),
 			},
@@ -83,8 +100,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 
 	if tbrak != nil {
 		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(update.Message.Chat.ID),
-			Text:   fmt.Sprintf("@%s, у вашего партнёра уже есть брак! 💍", update.Message.From.Username),
+			ChatID:    tu.ID(update.Message.Chat.ID),
+			ParseMode: telego.ModeHTML,
+			Text: fmt.Sprintf(
+				"%s, у вашего партнёра уже есть брак! 💍",
+				html.UserMention(fUser),
+			),
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.GetMessageID(),
 			},
@@ -101,20 +122,24 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			g.braks.Insert(&brak.Brak{
+			_ = g.braks.Insert(&brak.Brak{
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
 				Score:        0,
 			})
-			_, err := bot.SendMessage(tu.Messagef(
-				telego.ChatID{ID: query.Message.GetChat().ID},
-				"Hello %s!", query.From.FirstName,
-			))
-			if err != nil {
-				g.log.Sugar().Error(err)
-				return
-			}
+
+			_, _ = bot.SendMessage(&telego.SendMessageParams{
+				ChatID:    tu.ID(update.Message.Chat.ID),
+				ParseMode: telego.ModeHTML,
+				Text: fmt.Sprintf(
+					"Внимание! ⚠️\n%s и %s теперь вместе ❤️‍🔥",
+					html.UserMention(fUser), html.UserMention(tUser),
+				),
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: query.Message.GetMessageID(),
+				},
+			})
 		},
 	})
 
@@ -139,20 +164,20 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	from := update.Message.From
-	_, _ = bot.SendMessage(
-		tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"💍 @%s, минуточку внимания.\n"+
-				"💖 @%s сделал вам предложение руки и сердца.",
-			from.Username,
-			from.Username,
-		).WithReplyMarkup(
-			tu.InlineKeyboard(
-				tu.InlineKeyboardRow(
-					yesCallback.Inline(),
-					noCallback.Inline(),
-				),
+	_, _ = bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    tu.ID(update.Message.Chat.ID),
+		ParseMode: telego.ModeHTML,
+		Text: fmt.Sprintf(
+			"💍 %s, минуточку внимания.\n"+
+				"💖 %s сделал вам предложение руки и сердца.",
+			html.UserMention(tUser), html.UserMention(fUser),
+		),
+		ReplyMarkup: tu.InlineKeyboard(
+			tu.InlineKeyboardRow(
+				yesCallback.Inline(),
+				noCallback.Inline(),
 			),
-		))
+		),
+	})
+
 }

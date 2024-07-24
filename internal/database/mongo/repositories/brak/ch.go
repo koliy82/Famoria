@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -33,6 +34,14 @@ func (c *Ch) FindByUserID(id int64) (*Brak, error) {
 
 func (c *Ch) Insert(brak *Brak) error {
 	_, err := c.coll.InsertOne(context.TODO(), brak)
+	if err != nil {
+		c.log.Sugar().Error(err)
+	}
+	return nil
+}
+
+func (c *Ch) Delete(id primitive.ObjectID) error {
+	_, err := c.coll.DeleteOne(context.TODO(), bson.D{{"_id", id}})
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
