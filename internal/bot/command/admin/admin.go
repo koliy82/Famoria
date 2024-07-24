@@ -26,10 +26,4 @@ func Register(opts Opts) {
 		th.CommandEqual("text"),
 		predicate.AdminCommand(),
 	))
-
-	opts.Bh.Handle(messageLogger{
-		messages: opts.MessageRepo,
-		users:    opts.UserRepo,
-	}.Handle, th.AnyMessage())
-
 }

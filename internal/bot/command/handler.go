@@ -20,12 +20,6 @@ func New(bot *telego.Bot, log *zap.Logger) *th.BotHandler {
 	return bh
 }
 
-//func RegisterHandles(bh *th.BotHandler, log *zap.Logger) {
-//	admin.Register(bh, log)
-//	family.Register(bh, log)
-//	minecraft.Register(bh, log)
-//}
-
 func StartHandle(bot *telego.Bot, bh *th.BotHandler) {
 
 	defer bh.Stop()

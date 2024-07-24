@@ -10,6 +10,7 @@ import (
 	"go_tg_bot/internal/bot/command/admin"
 	"go_tg_bot/internal/bot/command/family"
 	"go_tg_bot/internal/bot/command/minecraft"
+	"go_tg_bot/internal/bot/logger"
 	"go_tg_bot/internal/config"
 	"go_tg_bot/internal/database/clickhouse"
 	"go_tg_bot/internal/database/clickhouse/repositories/message"
@@ -44,6 +45,7 @@ var App = fx.Options(
 		minecraft.Register,
 		callback.Register,
 		static.Register,
+		logger.Register,
 		command.StartHandle,
 	),
 )
