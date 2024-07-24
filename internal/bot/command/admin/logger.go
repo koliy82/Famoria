@@ -17,6 +17,10 @@ func (l messageLogger) Handle(bot *telego.Bot, update telego.Update) {
 	if from == nil {
 		return
 	}
+	err := l.users.ValidateInfo(update.Message.From)
+	if err != nil {
+		return
+	}
 
 	newMessage := &message.Message{
 		ID:      msg.MessageID,

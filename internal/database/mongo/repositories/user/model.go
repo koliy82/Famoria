@@ -11,3 +11,11 @@ type User struct {
 	LanguageCode string             `ch:"language_code"`
 	IsAdmin      bool               `ch:"is_admin"`
 }
+
+func (u *User) IsEquals(other *User) bool {
+	return u.ID == other.ID &&
+		u.FirstName == other.FirstName &&
+		u.LastName == other.LastName &&
+		u.Username == other.Username &&
+		u.LanguageCode == other.LanguageCode
+}
