@@ -2,45 +2,46 @@ package brak
 
 import (
 	"context"
-	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	sq "github.com/Masterminds/squirrel"
+	"errors"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
 type Ch struct {
-	conn driver.Conn
+	coll *mongo.Collection
+	log  *zap.Logger
 }
 
 func (c *Ch) FindByUserID(id int64) (*Brak, error) {
-
-	sql, args, err := sq.StatementBuilder.
-		PlaceholderFormat(sq.Dollar).
-		Select("*").
-		From("koliy82.family").
-		Where(sq.Or{
-			sq.Eq{"first_user_id": id},
-			sq.Eq{"second_user_id": id},
-		}).
-		Limit(1).
-		ToSql()
-
-	brak := &Brak{}
-
-	err = c.conn.QueryRow(context.Background(), sql, args...).Scan(
-		&brak.UUID,
-		&brak.FirstUserID,
-		&brak.SecondUserID,
-		&brak.CreateDate,
-		&brak.BabyUserID,
-		&brak.BabyCreateDate,
-		&brak.Score,
-	)
-	if err != nil {
-		return nil, err
+	result := &Brak{}
+	filter := bson.D{
+		{"$or", []interface{}{
+			bson.D{{"firstuserid", id}},
+			bson.D{{"seconduserid", id}},
+		}},
 	}
-
-	return brak, nil
+	err := c.coll.FindOne(context.TODO(), filter).Decode(result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, err
+		}
+		c.log.Sugar().Error(err)
+	}
+	return result, nil
 }
 
-func New(conn driver.Conn) *Ch {
-	return &Ch{conn: conn}
+func (c *Ch) Insert(brak *Brak) error {
+	_, err := c.coll.InsertOne(context.TODO(), brak)
+	if err != nil {
+		c.log.Sugar().Error(err)
+	}
+	return nil
+}
+
+func New(client *mongo.Client, log *zap.Logger) *Ch {
+	return &Ch{
+		coll: client.Database("test").Collection("braks"),
+		log:  log,
+	}
 }

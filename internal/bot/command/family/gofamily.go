@@ -6,11 +6,14 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
+	"go_tg_bot/internal/database/mongo/repositories/brak"
+	"time"
 )
 
 type goFamily struct {
-	cm  *callback.CallbacksManager
-	log *zap.Logger
+	cm    *callback.CallbacksManager
+	braks brak.Repository
+	log   *zap.Logger
 }
 
 func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
@@ -60,37 +63,50 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	//fbrak, err := g.brakRepo.FindByUserID(fUser.ID)
-	//
-	//if err != nil {
-	//	g.log.Sugar().Error(err)
-	//	return
-	//}
-	//
-	//if fbrak != nil {
-	//	_, err := bot.SendMessage(&telego.SendMessageParams{
-	//		ChatID: tu.ID(update.Message.Chat.ID),
-	//		Text:   fmt.Sprintf("@%s, у вас уже есть брак! 💍", update.Message.From.Username),
-	//		ReplyParameters: &telego.ReplyParameters{
-	//			MessageID: update.Message.GetMessageID(),
-	//		},
-	//	})
-	//	if err != nil {
-	//		g.log.Sugar().Error(err)
-	//	}
-	//	return
-	//}
+	fbrak, _ := g.braks.FindByUserID(fUser.ID)
 
-	// TODO if fUser not brak
+	if fbrak != nil {
+		_, err := bot.SendMessage(&telego.SendMessageParams{
+			ChatID: tu.ID(update.Message.Chat.ID),
+			Text:   fmt.Sprintf("@%s, у вас уже есть брак! 💍", update.Message.From.Username),
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: update.Message.GetMessageID(),
+			},
+		})
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
+		return
+	}
 
-	// TODO if tUser not brak
+	tbrak, _ := g.braks.FindByUserID(tUser.ID)
+
+	if tbrak != nil {
+		_, err := bot.SendMessage(&telego.SendMessageParams{
+			ChatID: tu.ID(update.Message.Chat.ID),
+			Text:   fmt.Sprintf("@%s, у вашего партнёра уже есть брак! 💍", update.Message.From.Username),
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: update.Message.GetMessageID(),
+			},
+		})
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
+		return
+	}
 
 	yesCallback := g.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Да!❤️‍🔥",
 		CtxType:  callback.ChooseOne,
-		OwnerIDs: []int64{update.Message.From.ID},
-		Time:     5,
+		OwnerIDs: []int64{tUser.ID},
+		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
+			g.braks.Insert(&brak.Brak{
+				FirstUserID:  fUser.ID,
+				SecondUserID: tUser.ID,
+				CreateDate:   time.Now(),
+				Score:        0,
+			})
 			_, err := bot.SendMessage(tu.Messagef(
 				telego.ChatID{ID: query.Message.GetChat().ID},
 				"Hello %s!", query.From.FirstName,
@@ -105,8 +121,8 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	noCallback := g.cm.DynamicCallback(callback.DynamicOpts{
 		Label:      "Нет!💔",
 		CtxType:    callback.ChooseOne,
-		OwnerIDs:   []int64{update.Message.From.ID},
-		Time:       5,
+		OwnerIDs:   []int64{tUser.ID},
+		Time:       time.Duration(60) * time.Minute,
 		AnswerText: "Отказ 🖤",
 		Callback: func(query telego.CallbackQuery) {
 			_, err := bot.SendMessage(&telego.SendMessageParams{

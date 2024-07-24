@@ -15,6 +15,7 @@ import (
 	"go_tg_bot/internal/database/clickhouse"
 	"go_tg_bot/internal/database/clickhouse/repositories/message"
 	"go_tg_bot/internal/database/mongo"
+	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
@@ -32,7 +33,7 @@ var App = fx.Options(
 		fx.Annotate(message.New, fx.As(new(message.Repository))),
 		mongo.New,
 		fx.Annotate(user.New, fx.As(new(user.Repository))),
-		//fx.Annotate(brak.New, fx.As(new(brak.Repository))),
+		fx.Annotate(brak.New, fx.As(new(brak.Repository))),
 	),
 	fx.Provide(
 		bot.New,
