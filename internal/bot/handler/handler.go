@@ -1,10 +1,9 @@
-package command
+package handler
 
 import (
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/zap"
-	"os"
 )
 
 func New(bot *telego.Bot, log *zap.Logger) *th.BotHandler {
@@ -13,8 +12,7 @@ func New(bot *telego.Bot, log *zap.Logger) *th.BotHandler {
 	bh, err := th.NewBotHandler(bot, updates)
 
 	if err != nil {
-		log.Sugar().Error(err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	return bh

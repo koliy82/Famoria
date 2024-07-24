@@ -27,8 +27,7 @@ func New(log *zap.Logger) Config {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
+		panic(err)
 	}
 
 	envPath := filepath.Join(wd, ".env")
@@ -36,8 +35,7 @@ func New(log *zap.Logger) Config {
 	_ = godotenv.Load(envPath)
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
+		panic(err)
 	}
 
 	return cfg

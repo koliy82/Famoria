@@ -6,11 +6,11 @@ import (
 	"go_tg_bot/internal/bot"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/callback/static"
-	"go_tg_bot/internal/bot/command"
 	"go_tg_bot/internal/bot/command/admin"
 	"go_tg_bot/internal/bot/command/family"
 	"go_tg_bot/internal/bot/command/minecraft"
-	"go_tg_bot/internal/bot/logger"
+	"go_tg_bot/internal/bot/handler"
+	"go_tg_bot/internal/bot/handler/logger"
 	"go_tg_bot/internal/config"
 	"go_tg_bot/internal/database/clickhouse"
 	"go_tg_bot/internal/database/clickhouse/repositories/message"
@@ -28,15 +28,15 @@ var App = fx.Options(
 		config.New,
 	),
 	fx.Provide(
-		mongo.New,
 		clickhouse.New,
-		fx.Annotate(user.New, fx.As(new(user.Repository))),
 		fx.Annotate(message.New, fx.As(new(message.Repository))),
+		mongo.New,
+		fx.Annotate(user.New, fx.As(new(user.Repository))),
 		//fx.Annotate(brak.New, fx.As(new(brak.Repository))),
 	),
 	fx.Provide(
 		bot.New,
-		command.New,
+		handler.New,
 		callback.New,
 	),
 	fx.Invoke(
@@ -46,6 +46,6 @@ var App = fx.Options(
 		callback.Register,
 		static.Register,
 		logger.Register,
-		command.StartHandle,
+		handler.StartHandle,
 	),
 )
