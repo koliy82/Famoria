@@ -6,12 +6,14 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/database/clickhouse/repositories/message"
+	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type MessageLogger struct {
 	messages message.Repository
 	users    user.Repository
+	braks    brak.Repository
 }
 
 func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
@@ -49,11 +51,13 @@ type Opts struct {
 	Log         *zap.Logger
 	MessageRepo message.Repository
 	UserRepo    user.Repository
+	BrakRepo    brak.Repository
 }
 
 func Register(opts Opts) {
 	opts.Bh.Handle(MessageLogger{
 		messages: opts.MessageRepo,
 		users:    opts.UserRepo,
+		braks:    opts.BrakRepo,
 	}.Handle, th.AnyMessage())
 }

@@ -24,7 +24,7 @@ func (s sendText) Handle(bot *telego.Bot, update telego.Update) {
 		s.log.Error(err.Error())
 		return
 	}
-	_, _ = bot.SendMessage(
+	_, err = bot.SendMessage(
 		tu.Messagef(
 			chatID,
 			strings.Join(args[1:], " "),

@@ -15,6 +15,7 @@ type Ch struct {
 }
 
 func (c *Ch) ValidateInfo(user *telego.User) error {
+	actual, err := c.FindByID(user.ID)
 	model := &User{
 		ID:           user.ID,
 		FirstName:    user.FirstName,
@@ -22,26 +23,56 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
 		IsAdmin:      false,
+		MessageCount: 1,
 	}
-	actual, _ := c.FindByID(model.ID)
-	if actual == nil {
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		err := c.Insert(model)
 		if err != nil {
+			c.log.Sugar().Error(err)
 			return err
 		}
 		return nil
 	}
+
+	filter := bson.M{"id": user.ID}
 	if !model.IsEquals(actual) {
-		_ = c.Replace(model)
+		_, err := c.coll.UpdateOne(context.TODO(), filter,
+			bson.M{
+				"$set": bson.M{
+					"first_name":    user.FirstName,
+					"last_name":     user.LastName,
+					"username":      user.Username,
+					"language_code": user.LanguageCode,
+				},
+				"$inc": bson.M{
+					"message_count": 1,
+				},
+			},
+		)
+		if err != nil {
+			c.log.Sugar().Error(err)
+			return err
+		}
+	} else {
+		_, err := c.coll.UpdateOne(
+			context.TODO(), filter,
+			bson.M{"$inc": bson.M{"message_count": 1}},
+		)
+		if err != nil {
+			c.log.Sugar().Error(err)
+			return err
+		}
 	}
 	return nil
 }
 
 func (c *Ch) Replace(user *User) error {
-	filter := bson.D{{"id", user.ID}}
+	filter := bson.M{"id": user.ID}
 	_, err := c.coll.ReplaceOne(context.TODO(), filter, user)
 	if err != nil {
 		c.log.Sugar().Error(err)
+		return err
 	}
 	return nil
 }
@@ -50,6 +81,7 @@ func (c *Ch) Insert(user *User) error {
 	_, err := c.coll.InsertOne(context.TODO(), user)
 	if err != nil {
 		c.log.Sugar().Error(err)
+		return err
 	}
 	return nil
 }
@@ -60,10 +92,7 @@ func (c *Ch) FindByID(id int64) (*User, error) {
 	//var result User
 	err := c.coll.FindOne(context.TODO(), filter).Decode(user)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, err
-		}
-		c.log.Sugar().Error(err)
+		return nil, err
 	}
 
 	return user, nil
