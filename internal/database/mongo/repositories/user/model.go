@@ -8,12 +8,13 @@ import (
 
 type User struct {
 	_ID          primitive.ObjectID `bson:"_id"`
-	ID           int64              `ch:"id"`
-	FirstName    string             `ch:"first_name"`
-	LastName     *string            `ch:"last_name"`
-	Username     *string            `ch:"username"`
-	LanguageCode string             `ch:"language_code"`
-	IsAdmin      bool               `ch:"is_admin"`
+	ID           int64              `bson:"id"`
+	FirstName    string             `bson:"first_name"`
+	LastName     *string            `bson:"last_name"`
+	Username     *string            `bson:"username"`
+	LanguageCode string             `bson:"language_code"`
+	IsAdmin      bool               `bson:"is_admin"`
+	MessageCount uint64             `bson:"message_count"`
 }
 
 func (u *User) IsEquals(other *User) bool {

@@ -7,10 +7,10 @@ import (
 
 type Brak struct {
 	BID            primitive.ObjectID `bson:"_id"`
-	FirstUserID    int64              `ch:"first_user_id"`
-	SecondUserID   int64              `ch:"second_user_id"`
-	CreateDate     time.Time          `ch:"create_date"`
-	BabyUserID     *int64             `ch:"baby_user_id"`
-	BabyCreateDate *time.Time         `ch:"baby_create_date"`
-	Score          int64              `ch:"score"`
+	FirstUserID    int64              `bson:"first_user_id"`
+	SecondUserID   int64              `bson:"second_user_id"`
+	CreateDate     time.Time          `bson:"create_date"`
+	BabyUserID     *int64             `bson:"baby_user_id"`
+	BabyCreateDate *time.Time         `bson:"baby_create_date"`
+	Score          int64              `bson:"score"`
 }
