@@ -36,7 +36,7 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{from.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.braks.Delete(brak.BID)
+			err := e.braks.Delete(brak.OID)
 			if err != nil {
 				_, _ = bot.SendMessage(&telego.SendMessageParams{
 					ChatID:    tu.ID(update.Message.Chat.ID),
@@ -58,11 +58,8 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 				ParseMode: telego.ModeHTML,
 				Text: fmt.Sprintf(
 					"Брак между %s и %s распался. 💔\nОни прожили вместе %s",
-					fuser.Mention(), tuser.Mention(), brak.CreateDate.String(),
+					fuser.Mention(), tuser.Mention(), brak.Duration(),
 				),
-				ReplyParameters: &telego.ReplyParameters{
-					MessageID: update.Message.GetMessageID(),
-				},
 			})
 		},
 	})

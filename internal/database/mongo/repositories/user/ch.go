@@ -25,8 +25,10 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 		IsAdmin:      false,
 		MessageCount: 1,
 	}
-
-	if errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil {
+		c.log.Sugar().Error(err)
+	}
+	if errors.Is(err, mongo.ErrNoDocuments) && actual == nil {
 		err := c.Insert(model)
 		if err != nil {
 			c.log.Sugar().Error(err)
@@ -35,7 +37,7 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 		return nil
 	}
 
-	filter := bson.M{"id": user.ID}
+	filter := bson.M{"id": actual.ID}
 	if !model.IsEquals(actual) {
 		_, err := c.coll.UpdateOne(context.TODO(), filter,
 			bson.M{
@@ -89,13 +91,11 @@ func (c *Ch) Insert(user *User) error {
 func (c *Ch) FindByID(id int64) (*User, error) {
 	user := &User{}
 	filter := bson.D{{"id", id}}
-	//var result User
 	err := c.coll.FindOne(context.TODO(), filter).Decode(user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	//if err != nil {
+	//	return nil, err
+	//}
+	return user, err
 }
 
 func New(client *mongo.Client, log *zap.Logger) *Ch {

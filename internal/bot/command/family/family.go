@@ -7,23 +7,29 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
+	"go_tg_bot/internal/database/clickhouse/repositories/message"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type Opts struct {
 	fx.In
-	Bh       *th.BotHandler
-	Log      *zap.Logger
-	BrakRepo brak.Repository
-	UserRepo user.Repository
-	Cm       *callback.CallbacksManager
+	Bh          *th.BotHandler
+	Log         *zap.Logger
+	BrakRepo    brak.Repository
+	UserRepo    user.Repository
+	MessageRepo message.Repository
+	Cm          *callback.CallbacksManager
 }
 
 func Register(opts Opts) {
 
 	opts.Bh.Handle(profile{
-		cm: opts.Cm,
+		cm:       opts.Cm,
+		braks:    opts.BrakRepo,
+		users:    opts.UserRepo,
+		messages: opts.MessageRepo,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("profile"), th.TextEqual("👤 Профиль")))
 
 	opts.Bh.Handle(goFamily{

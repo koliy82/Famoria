@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	_ID          primitive.ObjectID `bson:"_id"`
+	OID          primitive.ObjectID `bson:"_id"`
 	ID           int64              `bson:"id"`
 	FirstName    string             `bson:"first_name"`
 	LastName     *string            `bson:"last_name"`
@@ -26,11 +26,8 @@ func (u *User) IsEquals(other *User) bool {
 }
 
 func (u *User) Mention() string {
-	if u.Username != nil {
-		return html.Mention(u.ID, *u.Username)
-	}
 	if u.LastName != nil {
-		return html.Mention(u.ID, fmt.Sprintf("%s %s", u.FirstName, u.LastName))
+		return html.Mention(u.ID, fmt.Sprintf("%s %s", u.FirstName, *u.LastName))
 	}
 	return html.Mention(u.ID, u.FirstName)
 }

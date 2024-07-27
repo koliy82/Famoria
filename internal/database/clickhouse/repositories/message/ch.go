@@ -26,6 +26,25 @@ func (c Ch) Insert(message *Message) {
 	c.log.Sugar().Debug("New Message: ", message)
 }
 
+func (c Ch) MessageCount(userID int64, chatID int64) (count uint64, err error) {
+	sql, args, err := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("count(*)").
+		From("koliy82.message").
+		Where(sq.Eq{"user_id": userID, "chat_id": chatID}).
+		ToSql()
+	if err != nil {
+		c.log.Error("Error building sql", zap.Error(err))
+		return 0, err
+	}
+	err = c.conn.QueryRow(context.Background(), sql, args...).Scan(&count)
+	if err != nil {
+		c.log.Error("Error getting message count", zap.Error(err))
+		return 0, err
+	}
+	return count, nil
+}
+
 func New(conn driver.Conn, log *zap.Logger) *Ch {
 	return &Ch{
 		conn: conn,
