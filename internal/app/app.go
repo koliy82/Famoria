@@ -41,6 +41,9 @@ var App = fx.Options(
 		callback.New,
 	),
 	fx.Invoke(
+		static.ProfileCallbacks,
+	),
+	fx.Invoke(
 		admin.Register,
 		family.Register,
 		minecraft.Register,

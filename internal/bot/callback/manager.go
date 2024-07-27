@@ -130,13 +130,12 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 		if err != nil {
 			cm.log.Sugar().Error(err)
 		}
-	} else {
+	} else if callback.Type != Static {
 		err := bot.AnswerCallbackQuery(
 			&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			},
 		)
-
 		if err != nil {
 			cm.log.Sugar().Error(err)
 		}

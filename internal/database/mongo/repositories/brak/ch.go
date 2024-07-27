@@ -2,7 +2,6 @@ package brak
 
 import (
 	"context"
-	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,20 +13,28 @@ type Ch struct {
 	log  *zap.Logger
 }
 
+func (c *Ch) UpdateScore(brakID primitive.ObjectID, score int) error {
+	filter := bson.M{"_id": brakID}
+	// score can be negative
+	update := bson.M{"$inc": bson.M{"score": score}}
+	_, err := c.coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		c.log.Sugar().Error(err)
+	}
+	return err
+}
+
 func (c *Ch) FindByUserID(id int64) (*Brak, error) {
 	result := &Brak{}
 	filter := bson.D{
 		{"$or", []interface{}{
-			bson.D{{"firstuserid", id}},
-			bson.D{{"seconduserid", id}},
+			bson.D{{"first_user_id", id}},
+			bson.D{{"second_user_id", id}},
 		}},
 	}
 	err := c.coll.FindOne(context.TODO(), filter).Decode(result)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, err
-		}
-		c.log.Sugar().Error(err)
+		return nil, err
 	}
 	return result, nil
 }
