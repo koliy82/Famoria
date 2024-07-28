@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
@@ -30,7 +31,6 @@ func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(CasinoData, func(query telego.CallbackQuery) {
 		b, err := opts.Braks.FindByUserID(query.From.ID)
 		if err != nil {
-			opts.Log.Sugar().Error(err)
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для использования казино необходимо жениться.",
@@ -38,8 +38,13 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		}
+
+		//TODO check lastCasinoPlay if < time.Now()
 		score := rand.Intn(200) - 100
-		err = opts.Braks.UpdateScore(b.OID, score)
+		err = opts.Braks.Update(
+			bson.M{"_id": b.OID},
+			bson.M{"$inc": bson.M{"score": score}},
+		)
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
@@ -71,6 +76,58 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(GrowKidData, func(query telego.CallbackQuery) {
+		b, err := opts.Braks.FindByUserID(query.From.ID)
+		if err != nil {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Для кормления ребёнка необходимо жениться.",
+				ShowAlert:       true,
+			})
+			return
+		}
 
+		if b.BabyUserID == nil {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Для кормления ребёнка его необходимо родить.",
+				ShowAlert:       true,
+			})
+			return
+		}
+
+		//TODO check lastGrowKid if < time.Now()
+		score := rand.Intn(70) - 20
+		err = opts.Braks.Update(
+			bson.M{"_id": b.OID},
+			bson.M{"$inc": bson.M{"score": score}},
+		)
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Ошибка при обновлении счёта.",
+				ShowAlert:       true,
+			})
+			return
+		}
+		text := ""
+		switch {
+		case score > 0:
+			text = fmt.Sprintf("You win %d!", score)
+		case score < 0:
+			text = fmt.Sprintf("You lose %d!", score)
+		default:
+			text = "You don't win or lose."
+		}
+		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
+			ChatID: tu.ID(query.Message.GetChat().ID),
+			Text:   text,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: query.Message.GetMessageID(),
+			},
+		})
+		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: query.ID,
+		})
 	})
 }

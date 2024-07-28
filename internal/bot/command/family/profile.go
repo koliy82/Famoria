@@ -40,9 +40,13 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	keyboard := tu.InlineKeyboardRow()
 
 	b, _ := p.braks.FindByUserID(from.ID)
-	tUser, err := p.users.FindByID(b.PartnerID(fUser.ID))
-	if b != nil && tUser != nil {
-		score := fUser.MessageCount + uint64(b.Score)
+
+	if b != nil {
+		tUser, _ := p.users.FindByID(b.PartnerID(fUser.ID))
+		if tUser == nil {
+			return
+		}
+		score := int64(fUser.MessageCount) + b.Score
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🧊").WithCallbackData(static.CasinoData))
 
 		text += fmt.Sprintf("\n❤️‍🔥👨🏻‍🦱❤️‍🔥 %s ❤️‍🔥👩🏻‍🦱❤️‍🔥\n", html.Bold("Партнёр"))

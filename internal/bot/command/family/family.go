@@ -44,6 +44,25 @@ func Register(opts Opts) {
 		users: opts.UserRepo,
 	}.Handle, th.CommandEqual("endbrak"))
 
+	opts.Bh.Handle(goKid{
+		cm:    opts.Cm,
+		braks: opts.BrakRepo,
+		users: opts.UserRepo,
+		log:   opts.Log,
+	}.Handle, th.CommandEqual("kid"))
+
+	opts.Bh.Handle(endKid{
+		cm:    opts.Cm,
+		braks: opts.BrakRepo,
+		users: opts.UserRepo,
+	}.Handle, th.CommandEqual("kidannihilate"))
+
+	opts.Bh.Handle(leaveKid{
+		cm:    opts.Cm,
+		braks: opts.BrakRepo,
+		users: opts.UserRepo,
+	}.Handle, th.CommandEqual("detdom"))
+
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(tu.Messagef(
 			tu.ID(update.Message.Chat.ID),
@@ -57,27 +76,6 @@ func Register(opts Opts) {
 			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
 		))
 	}, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
-
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.CommandEqual("kid"))
-
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.CommandEqual("kidannihilate"))
-
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.CommandEqual("detdom"))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(tu.Messagef(

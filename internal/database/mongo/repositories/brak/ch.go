@@ -13,10 +13,7 @@ type Ch struct {
 	log  *zap.Logger
 }
 
-func (c *Ch) UpdateScore(brakID primitive.ObjectID, score int) error {
-	filter := bson.M{"_id": brakID}
-	// score can be negative
-	update := bson.M{"$inc": bson.M{"score": score}}
+func (c *Ch) Update(filter interface{}, update interface{}) error {
 	_, err := c.coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -32,6 +29,16 @@ func (c *Ch) FindByUserID(id int64) (*Brak, error) {
 			bson.D{{"second_user_id", id}},
 		}},
 	}
+	err := c.coll.FindOne(context.TODO(), filter).Decode(result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *Ch) FindByKidID(id int64) (*Brak, error) {
+	result := &Brak{}
+	filter := bson.D{{"baby_user_id", id}}
 	err := c.coll.FindOne(context.TODO(), filter).Decode(result)
 	if err != nil {
 		return nil, err

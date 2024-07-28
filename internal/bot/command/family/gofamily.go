@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
@@ -123,6 +124,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
 			_ = g.braks.Insert(&brak.Brak{
+				OID:          primitive.NewObjectID(),
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
