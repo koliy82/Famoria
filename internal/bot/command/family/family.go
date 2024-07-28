@@ -61,6 +61,7 @@ func Register(opts Opts) {
 		cm:    opts.Cm,
 		braks: opts.BrakRepo,
 		users: opts.UserRepo,
+		log:   opts.Log,
 	}.Handle, th.CommandEqual("detdom"))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {

@@ -104,9 +104,13 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
+			//baby_create_date := time.Now()
 			err := g.braks.Update(
 				bson.M{"_id": b.OID},
-				bson.M{"$set": bson.M{"baby_user_id": tUser.ID}},
+				bson.M{"$set": bson.D{
+					{"baby_user_id", tUser.ID},
+					{"baby_create_date", time.Now()},
+				}},
 			)
 			if err != nil {
 				g.log.Sugar().Error(err)
@@ -126,7 +130,6 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-
 			_, _ = bot.SendMessage(params.
 				WithText(fmt.Sprintf("%s отказался появляться на этот свет. 💀", html.UserMention(tUser))).
 				WithReplyMarkup(nil),
@@ -135,7 +138,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 	})
 
 	_, _ = bot.SendMessage(params.
-		WithText(fmt.Sprintf("%s, тебе предложили родиться в семье %s и %s. 🧑🏽‍👩🏽‍🧒🏿",
+		WithText(fmt.Sprintf("%s, тебе предложили родиться в семье %s и %s. 🏠",
 			html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(yesCallback.Inline(), noCallback.Inline()),
