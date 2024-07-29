@@ -27,7 +27,8 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,
 		ReplyParameters: &telego.ReplyParameters{
-			MessageID: update.Message.GetMessageID(),
+			MessageID:                update.Message.GetMessageID(),
+			AllowSendingWithoutReply: true,
 		},
 	}
 	b, _ := e.braks.FindByKidID(from.ID)

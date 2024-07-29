@@ -22,18 +22,21 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	fUser := update.Message.From
 	reply := update.Message.ReplyToMessage
 
+	params := &telego.SendMessageParams{
+		ChatID:    tu.ID(update.Message.Chat.ID),
+		ParseMode: telego.ModeHTML,
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID:                update.Message.GetMessageID(),
+			AllowSendingWithoutReply: true,
+		},
+	}
+
 	if reply == nil {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text: fmt.Sprintf(
+		_, err := bot.SendMessage(params.
+			WithText(fmt.Sprintf(
 				"%s, ответь на любое сообщение партнёра. 😘💬",
 				html.UserMention(fUser),
-			),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.GetMessageID(),
-			},
-		})
+			)))
 		if err != nil {
 			g.log.Sugar().Error(err)
 		}
@@ -42,17 +45,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 
 	tUser := reply.From
 	if tUser.ID == fUser.ID {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text: fmt.Sprintf(
-				"%s, брак с собой нельзя, придётся искать пару. 😥",
-				html.UserMention(fUser),
-			),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.GetMessageID(),
-			},
-		})
+		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+			"%s, брак с собой нельзя, придётся искать пару. 😥",
+			html.UserMention(fUser),
+		)))
 		if err != nil {
 			g.log.Sugar().Error(err)
 		}
@@ -60,17 +56,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if tUser.IsBot {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text: fmt.Sprintf(
-				"%s, бота не трогай. 👿",
-				html.UserMention(fUser),
-			),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.GetMessageID(),
-			},
-		})
+		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+			"%s, бота не трогай. 👿",
+			html.UserMention(fUser),
+		)))
 		if err != nil {
 			g.log.Sugar().Error(err)
 		}
@@ -80,17 +69,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	fbrak, _ := g.braks.FindByUserID(fUser.ID)
 
 	if fbrak != nil {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text: fmt.Sprintf(
-				"%s, у вас уже есть брак! 💍",
-				html.UserMention(fUser),
-			),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.GetMessageID(),
-			},
-		})
+		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+			"%s, у вас уже есть брак! 💍",
+			html.UserMention(fUser),
+		)))
 		if err != nil {
 			g.log.Sugar().Error(err)
 		}
@@ -100,17 +82,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 	tbrak, _ := g.braks.FindByUserID(tUser.ID)
 
 	if tbrak != nil {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text: fmt.Sprintf(
-				"%s, у вашего партнёра уже есть брак! 💍",
-				html.UserMention(fUser),
-			),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.GetMessageID(),
-			},
-		})
+		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+			"%s, у вашего партнёра уже есть брак! 💍",
+			html.UserMention(fUser),
+		)))
 		if err != nil {
 			g.log.Sugar().Error(err)
 		}
@@ -166,20 +141,15 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, _ = bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    tu.ID(update.Message.Chat.ID),
-		ParseMode: telego.ModeHTML,
-		Text: fmt.Sprintf(
-			"💍 %s, минуточку внимания.\n"+
-				"💖 %s сделал вам предложение руки и сердца.",
-			html.UserMention(tUser), html.UserMention(fUser),
+	_, _ = bot.SendMessage(params.WithText(fmt.Sprintf(
+		"💍 %s, минуточку внимания.\n"+
+			"💖 %s сделал вам предложение руки и сердца.",
+		html.UserMention(tUser), html.UserMention(fUser),
+	)).WithReplyMarkup(tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			yesCallback.Inline(),
+			noCallback.Inline(),
 		),
-		ReplyMarkup: tu.InlineKeyboard(
-			tu.InlineKeyboardRow(
-				yesCallback.Inline(),
-				noCallback.Inline(),
-			),
-		),
-	})
+	)))
 
 }

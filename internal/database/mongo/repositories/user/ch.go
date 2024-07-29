@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/mymmrac/telego"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -23,12 +24,9 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
 		IsAdmin:      false,
-		MessageCount: 1,
-	}
-	if err != nil {
-		c.log.Sugar().Error(err)
 	}
 	if errors.Is(err, mongo.ErrNoDocuments) && actual == nil {
+		model.OID = primitive.NewObjectID()
 		err := c.Insert(model)
 		if err != nil {
 			c.log.Sugar().Error(err)
@@ -47,19 +45,7 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 					"username":      user.Username,
 					"language_code": user.LanguageCode,
 				},
-				"$inc": bson.M{
-					"message_count": 1,
-				},
 			},
-		)
-		if err != nil {
-			c.log.Sugar().Error(err)
-			return err
-		}
-	} else {
-		_, err := c.coll.UpdateOne(
-			context.TODO(), filter,
-			bson.M{"$inc": bson.M{"message_count": 1}},
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
@@ -92,9 +78,9 @@ func (c *Ch) FindByID(id int64) (*User, error) {
 	user := &User{}
 	filter := bson.D{{"id", id}}
 	err := c.coll.FindOne(context.TODO(), filter).Decode(user)
-	//if err != nil {
-	//	return nil, err
-	//}
+	if err != nil {
+		return nil, err
+	}
 	return user, err
 }
 

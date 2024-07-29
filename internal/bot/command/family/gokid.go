@@ -28,17 +28,15 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,
 		ReplyParameters: &telego.ReplyParameters{
-			MessageID: update.Message.GetMessageID(),
+			MessageID:                update.Message.GetMessageID(),
+			AllowSendingWithoutReply: true,
 		},
 	}
 
 	if reply == nil {
-		_, err := bot.SendMessage(params.WithText(
+		_, _ = bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ответь на любое сообщение ребёнка.", html.UserMention(from))),
 		)
-		if err != nil {
-			g.log.Sugar().Error(err)
-		}
 		return
 	}
 
@@ -95,6 +93,9 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 	sUser, _ := g.users.FindByID(b.PartnerID(from.ID))
 
 	if sUser == nil {
+		_, _ = bot.SendMessage(params.WithText(
+			fmt.Sprintf("%s, ваш партнёр не найден. 😥", html.UserMention(from))),
+		)
 		return
 	}
 
@@ -104,7 +105,6 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			//baby_create_date := time.Now()
 			err := g.braks.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
@@ -117,7 +117,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 				return
 			}
 			_, _ = bot.SendMessage(params.
-				WithText(fmt.Sprintf("Внимание! ⚠️\n%s родился у %s и %s. 🧑🏽‍👩🏽‍🧒🏿",
+				WithText(fmt.Sprintf("Внимание! ⚠️\n%s родился у %s и %s. 🤱",
 					html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
 				WithReplyMarkup(nil),
 			)

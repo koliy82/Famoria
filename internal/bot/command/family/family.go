@@ -30,7 +30,7 @@ func Register(opts Opts) {
 		users:    opts.UserRepo,
 		messages: opts.MessageRepo,
 		log:      opts.Log,
-	}.Handle, th.Or(th.CommandEqual("profile"), th.TextEqual("👤 Профиль")))
+	}.Handle, th.Or(th.CommandEqual("profile"), th.TextEqual("👤 Профиль"), th.CommandEqual("mybrak")))
 
 	opts.Bh.Handle(goFamily{
 		cm:    opts.Cm,
@@ -56,7 +56,7 @@ func Register(opts Opts) {
 		braks: opts.BrakRepo,
 		users: opts.UserRepo,
 		log:   opts.Log,
-	}.Handle, th.CommandEqual("kidannihilate"))
+	}.Handle, th.Or(th.CommandEqual("kidannihilate"), th.TextEqual("👶 Аннигиляция")))
 
 	opts.Bh.Handle(leaveKid{
 		cm:    opts.Cm,

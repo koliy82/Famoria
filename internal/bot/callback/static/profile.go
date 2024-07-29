@@ -11,6 +11,7 @@ import (
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
 	"go_tg_bot/internal/utils/date"
+	"go_tg_bot/internal/utils/html"
 	"math/rand"
 	"time"
 )
@@ -51,7 +52,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		score := rand.Intn(200) - 100
+		score := rand.Intn(500) - 300
 		err = opts.Braks.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
@@ -71,15 +72,16 @@ func ProfileCallbacks(opts Opts) {
 		text := ""
 		switch {
 		case score > 0:
-			text = fmt.Sprintf("You win %d!", score)
+			text = fmt.Sprintf("%s выйграл в казино %d хинкалей!", html.UserMention(&query.From), score)
 		case score < 0:
-			text = fmt.Sprintf("You lose %d!", score)
+			text = fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&query.From), score)
 		default:
-			text = "You don't win or lose."
+			text = "%s играл сегодня в казино, но остался в нуле."
 		}
 		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(query.Message.GetChat().ID),
-			Text:   text,
+			ChatID:    tu.ID(query.Message.GetChat().ID),
+			ParseMode: telego.ModeHTML,
+			Text:      text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
@@ -138,15 +140,16 @@ func ProfileCallbacks(opts Opts) {
 		text := ""
 		switch {
 		case score > 0:
-			text = fmt.Sprintf("You win %d!", score)
+			text = fmt.Sprintf("%s покормил своего ребёнка и получил от жены %d хинкалей!", html.UserMention(&query.From), score)
 		case score < 0:
 			text = fmt.Sprintf("You lose %d!", score)
 		default:
 			text = "You don't win or lose."
 		}
 		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
-			ChatID: tu.ID(query.Message.GetChat().ID),
-			Text:   text,
+			ChatID:    tu.ID(query.Message.GetChat().ID),
+			ParseMode: telego.ModeHTML,
+			Text:      text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},

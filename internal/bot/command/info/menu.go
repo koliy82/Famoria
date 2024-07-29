@@ -14,18 +14,10 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 	var rows [][]telego.KeyboardButton
 	userBrak, _ := braks.FindByUserID(userID)
 	if userBrak != nil {
-		if userBrak.BabyUserID == nil {
-			rows = append(rows, []telego.KeyboardButton{
-				tu.KeyboardButton("👤 Профиль"),
-				tu.KeyboardButton("💔 Развод"),
-			})
-		} else {
-			rows = append(rows, []telego.KeyboardButton{
-				tu.KeyboardButton("👤 Профиль"),
-				tu.KeyboardButton("💔 Развод"),
-				tu.KeyboardButton("👶 Аннигиляция"),
-			})
-		}
+		rows = append(rows, []telego.KeyboardButton{
+			tu.KeyboardButton("👤 Профиль"),
+			tu.KeyboardButton("💔 Развод"),
+		})
 	} else {
 		rows = append(rows, []telego.KeyboardButton{
 			tu.KeyboardButton("👤 Профиль"),
@@ -34,8 +26,19 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 
 	kidBrak, _ := braks.FindByKidID(userID)
 	if kidBrak != nil {
+		if userBrak != nil && userBrak.BabyUserID != nil {
+			rows = append(rows, []telego.KeyboardButton{
+				tu.KeyboardButton("👶 Аннигиляция"),
+				tu.KeyboardButton("🏠 Детдом"),
+			})
+		} else {
+			rows = append(rows, []telego.KeyboardButton{
+				tu.KeyboardButton("🏠 Детдом"),
+			})
+		}
+	} else if userBrak != nil && userBrak.BabyUserID != nil {
 		rows = append(rows, []telego.KeyboardButton{
-			tu.KeyboardButton("🏠 Детдом"),
+			tu.KeyboardButton("👶 Аннигиляция"),
 		})
 	}
 	rows = append(rows, tu.KeyboardRow(
@@ -48,7 +51,7 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 	return &telego.ReplyKeyboardMarkup{
 		Keyboard:              rows,
 		ResizeKeyboard:        true,
-		InputFieldPlaceholder: "123",
+		InputFieldPlaceholder: "zxc",
 		Selective:             true,
 	}
 }
@@ -64,7 +67,7 @@ func (m menu) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, _ = bot.SendMessage(&telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
-		Text:   "Меню показано",
+		Text:   "Меню показано ✅",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID:                update.Message.MessageID,
 			AllowSendingWithoutReply: true,

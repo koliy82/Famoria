@@ -33,9 +33,13 @@ func Register(opts Opts) {
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      tu.ID(update.Message.Chat.ID),
-			Text:        "Меню закрыто, повторно открыть его можно написав /menu.",
-			ReplyMarkup: tu.ReplyKeyboardRemove(),
+			ChatID: tu.ID(update.Message.Chat.ID),
+			Text:   "Меню закрыто, повторно открыть его можно написав /menu.",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID:                update.Message.GetMessageID(),
+				AllowSendingWithoutReply: true,
+			},
+			ReplyMarkup: tu.ReplyKeyboardRemove().WithSelective(),
 		})
 	}, th.And(
 		th.Or(th.CommandEqual("closemenu"), th.TextEqual("❌ Закрыть")),

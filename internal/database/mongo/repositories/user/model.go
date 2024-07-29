@@ -14,7 +14,6 @@ type User struct {
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
 	IsAdmin      bool               `bson:"is_admin"`
-	MessageCount uint64             `bson:"message_count"`
 }
 
 func (u *User) IsEquals(other *User) bool {
@@ -26,6 +25,9 @@ func (u *User) IsEquals(other *User) bool {
 }
 
 func (u *User) Mention() string {
+	if u.Username != nil {
+		return html.Mention(u.ID, *u.Username)
+	}
 	if u.LastName != nil {
 		return html.Mention(u.ID, fmt.Sprintf("%s %s", u.FirstName, *u.LastName))
 	}
