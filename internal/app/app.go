@@ -8,6 +8,7 @@ import (
 	"go_tg_bot/internal/bot/callback/static"
 	"go_tg_bot/internal/bot/command/admin"
 	"go_tg_bot/internal/bot/command/family"
+	"go_tg_bot/internal/bot/command/info"
 	"go_tg_bot/internal/bot/command/minecraft"
 	"go_tg_bot/internal/bot/handler"
 	"go_tg_bot/internal/bot/handler/logger"
@@ -44,6 +45,7 @@ var App = fx.Options(
 		static.ProfileCallbacks,
 	),
 	fx.Invoke(
+		info.Register,
 		admin.Register,
 		family.Register,
 		minecraft.Register,

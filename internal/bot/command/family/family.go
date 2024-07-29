@@ -42,7 +42,7 @@ func Register(opts Opts) {
 		cm:    opts.Cm,
 		braks: opts.BrakRepo,
 		users: opts.UserRepo,
-	}.Handle, th.CommandEqual("endbrak"))
+	}.Handle, th.Or(th.CommandEqual("endbrak"), th.TextEqual("💔 Развод")))
 
 	opts.Bh.Handle(goKid{
 		cm:    opts.Cm,
@@ -63,7 +63,7 @@ func Register(opts Opts) {
 		braks: opts.BrakRepo,
 		users: opts.UserRepo,
 		log:   opts.Log,
-	}.Handle, th.CommandEqual("detdom"))
+	}.Handle, th.Or(th.CommandEqual("detdom"), th.TextEqual("🏠 Детдом")))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(tu.Messagef(
