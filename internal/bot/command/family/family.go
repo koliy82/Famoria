@@ -55,6 +55,7 @@ func Register(opts Opts) {
 		cm:    opts.Cm,
 		braks: opts.BrakRepo,
 		users: opts.UserRepo,
+		log:   opts.Log,
 	}.Handle, th.CommandEqual("kidannihilate"))
 
 	opts.Bh.Handle(leaveKid{

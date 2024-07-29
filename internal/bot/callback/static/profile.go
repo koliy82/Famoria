@@ -10,12 +10,15 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
+	"go_tg_bot/internal/utils/date"
 	"math/rand"
+	"time"
 )
 
 const (
 	GrowKidData = "grow_kid"
 	CasinoData  = "casino"
+	HamsterData = "hamster"
 )
 
 type Opts struct {
@@ -39,11 +42,22 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		//TODO check lastCasinoPlay if < time.Now()
+		if date.HasUpdated(b.LastCasinoPlay) {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Играть в казино можно раз в сутки.",
+				ShowAlert:       true,
+			})
+			return
+		}
+
 		score := rand.Intn(200) - 100
 		err = opts.Braks.Update(
 			bson.M{"_id": b.OID},
-			bson.M{"$inc": bson.M{"score": score}},
+			bson.M{
+				"$inc": bson.M{"score": score},
+				"$set": bson.M{"last_casino_play": time.Now()},
+			},
 		)
 		if err != nil {
 			opts.Log.Sugar().Error(err)
@@ -95,11 +109,22 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		//TODO check lastGrowKid if < time.Now()
-		score := rand.Intn(70) - 20
+		if date.HasUpdated(b.LastGrowKid) {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Кормить ребёнка можно раз в сутки.",
+				ShowAlert:       true,
+			})
+			return
+		}
+
+		score := rand.Intn(30) + 20
 		err = opts.Braks.Update(
 			bson.M{"_id": b.OID},
-			bson.M{"$inc": bson.M{"score": score}},
+			bson.M{
+				"$inc": bson.M{"score": score},
+				"$set": bson.M{"last_grow_kid": time.Now()},
+			},
 		)
 		if err != nil {
 			opts.Log.Sugar().Error(err)
@@ -129,5 +154,61 @@ func ProfileCallbacks(opts Opts) {
 		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
+	})
+
+	opts.Cm.StaticCallback(HamsterData, func(query telego.CallbackQuery) {
+		b, err := opts.Braks.FindByUserID(query.From.ID)
+		if err != nil {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Для использования казино необходимо жениться.",
+				ShowAlert:       true,
+			})
+			return
+		}
+
+		if !date.HasUpdated(b.LastHamsterUpdate) {
+			err = opts.Braks.Update(
+				bson.M{"_id": b.OID},
+				bson.M{
+					"$inc": bson.M{"score": 1},
+					"$set": bson.M{
+						"tap_count":           49,
+						"last_hamster_update": time.Now(),
+					},
+				},
+			)
+		} else if b.TapCount == 0 {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Хомяк устал, он разрешит себя тапать завтра.",
+				ShowAlert:       true,
+			})
+			return
+		} else {
+			err = opts.Braks.Update(
+				bson.M{"_id": b.OID},
+				bson.M{
+					"$inc": bson.M{"score": 1, "tap_count": -1},
+				},
+			)
+		}
+
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Ошибка при обновлении счёта.",
+				ShowAlert:       true,
+			})
+			return
+		}
+
+		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: query.ID,
+			Text:            "Успешный тап по хомяку",
+		})
+		return
+
 	})
 }

@@ -28,14 +28,12 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	text := fmt.Sprintf("🍞🍞🍞 %s 🍞🍞🍞\n", html.Bold("Профиль"))
-	text += fmt.Sprintf("%s\n", fUser.Mention())
-	text += fmt.Sprintf("Хинкали: %v\n", fUser.MessageCount)
+	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
+	text += fmt.Sprintf("👤 %s\n", fUser.Mention())
 	messageCount, err := p.messages.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
-		text += fmt.Sprintf("Сообщений в чате: %v\n", messageCount)
+		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
-	text += fmt.Sprintf("Сообщений всего: %v\n", fUser.MessageCount)
 
 	keyboard := tu.InlineKeyboardRow()
 
@@ -46,22 +44,21 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		if tUser == nil {
 			return
 		}
-		score := int64(fUser.MessageCount) + b.Score
-		keyboard = append(keyboard, tu.InlineKeyboardButton("🧊").WithCallbackData(static.CasinoData))
+		keyboard = append(keyboard, tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
+		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
-		text += fmt.Sprintf("\n❤️‍🔥👨🏻‍🦱❤️‍🔥 %s ❤️‍🔥👩🏻‍🦱❤️‍🔥\n", html.Bold("Партнёр"))
-		text += fmt.Sprintf("%s\n", tUser.Mention())
+		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
+		text += fmt.Sprintf("🫂 %s [%s]\n", tUser.Mention(), b.Duration())
 
 		if b.BabyUserID != nil {
-			keyboard = append(keyboard, tu.InlineKeyboardButton("👶🏻").WithCallbackData(static.GrowKidData))
+			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
 			bUser, err := p.users.FindByID(*b.BabyUserID)
 			if err == nil {
-				text += fmt.Sprintf("Ребёнок: %s\n", bUser.Mention())
+				text += fmt.Sprintf("👼 %s [%s]\n", bUser.Mention(), b.DurationKid())
 			}
 		}
 
-		text += fmt.Sprintf("Вместе: %s\n", b.Duration())
-		text += fmt.Sprintf("Хинкали: %v\n", score)
+		text += fmt.Sprintf("💰 %v\n", b.Score)
 	}
 
 	params := &telego.SendMessageParams{
