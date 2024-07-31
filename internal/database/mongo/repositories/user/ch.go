@@ -7,7 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"go_tg_bot/internal/config"
 )
 
 type Ch struct {
@@ -51,6 +53,7 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 			c.log.Sugar().Error(err)
 			return err
 		}
+		c.log.Sugar().Info("User updated: ", user)
 	}
 	return nil
 }
@@ -84,9 +87,17 @@ func (c *Ch) FindByID(id int64) (*User, error) {
 	return user, err
 }
 
-func New(client *mongo.Client, log *zap.Logger) *Ch {
+func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
+	coll := client.Database(cfg.MongoDatabase).Collection("users")
+	_, err := coll.Indexes().CreateOne(context.TODO(), mongo.IndexModel{
+		Keys:    bson.M{"id": 1},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		log.Sugar().Error(err)
+	}
 	return &Ch{
-		coll: client.Database("test").Collection("users"),
+		coll: coll,
 		log:  log,
 	}
 }

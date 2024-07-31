@@ -12,7 +12,7 @@ type Brak struct {
 	OID               primitive.ObjectID `bson:"_id"`
 	FirstUserID       int64              `bson:"first_user_id"`
 	SecondUserID      int64              `bson:"second_user_id"`
-	ChatID            int64              `bson:"chat_id"`
+	ChatID            int64              `bson:"chat_id,omitempty"`
 	CreateDate        time.Time          `bson:"create_date"`
 	BabyUserID        *int64             `bson:"baby_user_id"`
 	BabyCreateDate    *time.Time         `bson:"baby_create_date"`

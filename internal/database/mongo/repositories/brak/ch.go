@@ -5,7 +5,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"go_tg_bot/internal/config"
 )
 
 type Ch struct {
@@ -155,9 +157,27 @@ func (c *Ch) Count(filter interface{}) (int64, error) {
 	return count, nil
 }
 
-func New(client *mongo.Client, log *zap.Logger) *Ch {
+func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
+	coll := client.Database(cfg.MongoDatabase).Collection("braks")
+	_, err := coll.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{"first_user_id", 1},
+				{"second_user_id", 1},
+			},
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys: bson.M{"baby_user_id": 1},
+			Options: options.Index().
+				SetPartialFilterExpression(bson.M{"baby_user_id": bson.M{"$exists": true}}),
+		},
+	})
+	if err != nil {
+		log.Sugar().Error(err)
+	}
 	return &Ch{
-		coll: client.Database("test").Collection("braks"),
+		coll: coll,
 		log:  log,
 	}
 }
