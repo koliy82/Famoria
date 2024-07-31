@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 )
@@ -19,10 +18,11 @@ type Config struct {
 	ClickhousePassword string `envconfig:"CLICKHOUSE_PASSWORD" required:"true"`
 	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
 
-	MongoURI string `envconfig:"MONGO_URI" required:"true"`
+	MongoURI      string `envconfig:"MONGO_URI" required:"true"`
+	MongoDatabase string `envconfig:"MONGO_DATABASE" required:"true"`
 }
 
-func New(log *zap.Logger) Config {
+func New() Config {
 	cfg := Config{}
 
 	wd, err := os.Getwd()
