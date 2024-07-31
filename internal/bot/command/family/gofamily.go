@@ -105,6 +105,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		Callback: func(query telego.CallbackQuery) {
 			_ = g.braks.Insert(&brak.Brak{
 				OID:          primitive.NewObjectID(),
+				ChatID:       update.Message.Chat.ID,
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),

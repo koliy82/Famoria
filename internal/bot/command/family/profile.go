@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/callback/static"
@@ -40,6 +41,10 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	b, _ := p.braks.FindByUserID(from.ID)
 
 	if b != nil {
+		if b.ChatID == 0 {
+			b.ChatID = update.Message.Chat.ID
+			_ = p.braks.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
+		}
 		tUser, _ := p.users.FindByID(b.PartnerID(fUser.ID))
 		if tUser == nil {
 			return
