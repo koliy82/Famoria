@@ -30,3 +30,7 @@ go.work.sum
 /build/
 /dist/
 /out/
+*.key
+
+database-compose/mongo/data
+database-compose/clickhouse/data
