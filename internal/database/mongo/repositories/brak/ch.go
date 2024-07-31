@@ -146,13 +146,8 @@ func (c *Ch) FindBraksByPage(page int64, limit int64, filter interface{}) ([]*Us
 	return braks, brakCount, nil
 }
 
-func (c *Ch) Count(id int64) (int64, error) {
-	count, err := c.coll.CountDocuments(context.TODO(),
-		bson.M{"$or": []interface{}{
-			bson.M{"first_user_id": id},
-			bson.M{"second_user_id": id},
-		}},
-	)
+func (c *Ch) Count(filter interface{}) (int64, error) {
+	count, err := c.coll.CountDocuments(context.TODO(), filter)
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return 0, err

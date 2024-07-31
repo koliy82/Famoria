@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
@@ -66,7 +67,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	fBrakCount, _ := g.braks.Count(fUser.ID)
+	fBrakCount, _ := g.braks.Count(bson.M{"$or": []interface{}{
+		bson.M{"first_user_id": fUser.ID},
+		bson.M{"second_user_id": fUser.ID},
+	}})
 	if fBrakCount != 0 {
 		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
 			"%s, у вас уже есть брак! 💍",
@@ -78,7 +82,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	tBrakCount, _ := g.braks.Count(tUser.ID)
+	tBrakCount, _ := g.braks.Count(bson.M{"$or": []interface{}{
+		bson.M{"first_user_id": tUser.ID},
+		bson.M{"second_user_id": tUser.ID},
+	}})
 	if tBrakCount != 0 {
 		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
 			"%s, у вашего партнёра уже есть брак! 💍",

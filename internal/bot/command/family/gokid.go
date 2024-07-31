@@ -75,8 +75,8 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	kidBrak, _ := g.braks.FindByKidID(tUser.ID)
-	if kidBrak != nil {
+	kidBrakCount, _ := g.braks.Count(bson.M{"baby_user_id": tUser.ID})
+	if kidBrakCount != 0 {
 		_, _ = bot.SendMessage(params.WithDisableNotification().WithText(
 			fmt.Sprintf("%s уже родился у кого-то в браке. 😥", html.UserMention(tUser))),
 		)
