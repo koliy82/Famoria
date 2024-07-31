@@ -65,19 +65,19 @@ func Register(opts Opts) {
 		log:   opts.Log,
 	}.Handle, th.Or(th.CommandEqual("detdom"), th.TextEqual("🏠 Детдом")))
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.Or(th.CommandEqual("braks"), th.TextEqual("💬 Браки чата")))
+	opts.Bh.Handle(brakPages{
+		cm:      opts.Cm,
+		braks:   opts.BrakRepo,
+		isLocal: true,
+		log:     opts.Log,
+	}.Handle, th.Or(th.CommandEqual("braks"), th.TextEqual("💬 Браки чата")))
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
+	opts.Bh.Handle(brakPages{
+		cm:      opts.Cm,
+		braks:   opts.BrakRepo,
+		isLocal: false,
+		log:     opts.Log,
+	}.Handle, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(tu.Messagef(

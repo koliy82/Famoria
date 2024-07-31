@@ -83,12 +83,12 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	//if time.Now().Unix() < b.CreateDate.Add(7*24*time.Hour).Unix() {
-	//	_, _ = bot.SendMessage(params.WithText(
-	//		fmt.Sprintf("%s, для рождения ребёнка вы должны быть женаты неделю. ⌚", html.UserMention(from))),
-	//	)
-	//	return
-	//}
+	if time.Now().Unix() < b.CreateDate.Add(7*24*time.Hour).Unix() {
+		_, _ = bot.SendMessage(params.WithText(
+			fmt.Sprintf("%s, для рождения ребёнка вы должны быть женаты неделю. ⌚", html.UserMention(from))),
+		)
+		return
+	}
 
 	sUser, _ := g.users.FindByID(b.PartnerID(from.ID))
 

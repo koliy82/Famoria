@@ -66,9 +66,8 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	fbrak, _ := g.braks.FindByUserID(fUser.ID)
-
-	if fbrak != nil {
+	fBrakCount, _ := g.braks.Count(fUser.ID)
+	if fBrakCount != 0 {
 		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
 			"%s, у вас уже есть брак! 💍",
 			html.UserMention(fUser),
@@ -79,9 +78,8 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	tbrak, _ := g.braks.FindByUserID(tUser.ID)
-
-	if tbrak != nil {
+	tBrakCount, _ := g.braks.Count(tUser.ID)
+	if tBrakCount != 0 {
 		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
 			"%s, у вашего партнёра уже есть брак! 💍",
 			html.UserMention(fUser),

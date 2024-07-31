@@ -1,6 +1,8 @@
 package brak
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Repository interface {
 	FindByUserID(id int64) (*Brak, error)
@@ -8,4 +10,6 @@ type Repository interface {
 	Insert(brak *Brak) error
 	Delete(id primitive.ObjectID) error
 	Update(filter interface{}, update interface{}) error
+	FindBraksByPage(page int64, limit int64, filter interface{}) ([]*UsersBrak, int64, error)
+	Count(id int64) (int64, error)
 }

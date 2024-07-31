@@ -3,6 +3,7 @@ package brak
 import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go_tg_bot/internal/database/mongo/repositories/user"
 	"go_tg_bot/internal/utils/date"
 	"time"
 )
@@ -11,6 +12,7 @@ type Brak struct {
 	OID               primitive.ObjectID `bson:"_id"`
 	FirstUserID       int64              `bson:"first_user_id"`
 	SecondUserID      int64              `bson:"second_user_id"`
+	ChatID            int64              `bson:"chat_id"`
 	CreateDate        time.Time          `bson:"create_date"`
 	BabyUserID        *int64             `bson:"baby_user_id"`
 	BabyCreateDate    *time.Time         `bson:"baby_create_date"`
@@ -19,6 +21,13 @@ type Brak struct {
 	LastGrowKid       time.Time          `bson:"last_grow_kid"`
 	LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
 	TapCount          int                `bson:"tap_count"`
+}
+
+type UsersBrak struct {
+	Brak   *Brak
+	First  *user.User
+	Second *user.User
+	Baby   *user.User
 }
 
 // PartnerID returns the partner's ID by the user's ID
