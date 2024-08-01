@@ -3,10 +3,9 @@ package handler
 import (
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
-	"go.uber.org/zap"
 )
 
-func New(bot *telego.Bot, log *zap.Logger) *th.BotHandler {
+func New(bot *telego.Bot) *th.BotHandler {
 	updates, _ := bot.UpdatesViaLongPolling(nil)
 
 	bh, err := th.NewBotHandler(bot, updates)
