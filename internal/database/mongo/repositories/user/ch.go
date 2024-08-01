@@ -34,6 +34,7 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 			c.log.Sugar().Error(err)
 			return err
 		}
+		c.log.Sugar().Info("Insert new user:", model)
 		return nil
 	}
 

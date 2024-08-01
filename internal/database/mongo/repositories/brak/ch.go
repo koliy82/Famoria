@@ -2,12 +2,15 @@ package brak
 
 import (
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"go_tg_bot/internal/config"
+	"strconv"
+	"time"
 )
 
 type Ch struct {
@@ -176,8 +179,77 @@ func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
 	if err != nil {
 		log.Sugar().Error(err)
 	}
+	_ = TransferBraks(client, log, cfg)
 	return &Ch{
 		coll: coll,
 		log:  log,
 	}
+}
+
+type TransferBrak struct {
+	OID          primitive.ObjectID `bson:"_id"`
+	FirstUserID  int64              `bson:"firstUserID"`
+	SecondUserID int64              `bson:"secondUserID"`
+	CreateDate   int64              `bson:"time"`
+	Baby         *TransferBrakBaby  `bson:"baby"`
+}
+
+type TransferBrakBaby struct {
+	BabyUserID int64 `bson:"userID"`
+	time       int64 `bson:"time"`
+}
+
+func TransferBraks(client *mongo.Client, log *zap.Logger, cfg config.Config) error {
+	transferColl := client.Database("aratossik").Collection("braks")
+	coll := client.Database(cfg.MongoDatabase).Collection("braks")
+	braksCount, _ := coll.CountDocuments(context.TODO(), bson.D{})
+
+	if braksCount != 0 {
+		return errors.New("braks already exists")
+	}
+
+	var transferBraks []TransferBrak
+	cursor, err := transferColl.Find(context.TODO(), bson.D{})
+	if err != nil {
+		log.Sugar().Error(err)
+		return nil
+	}
+
+	err = cursor.All(context.TODO(), &transferBraks)
+	if err != nil {
+		log.Sugar().Error(err)
+		return nil
+	}
+
+	newBraks := make([]interface{}, len(transferBraks))
+	log.Info(strconv.Itoa(len(transferBraks)))
+	for i := range transferBraks {
+		brak := Brak{
+			OID:          transferBraks[i].OID,
+			FirstUserID:  transferBraks[i].FirstUserID,
+			SecondUserID: transferBraks[i].SecondUserID,
+			ChatID:       0,
+			CreateDate:   time.UnixMilli(transferBraks[i].CreateDate),
+			Score:        0,
+			TapCount:     50,
+		}
+
+		log.Sugar().Info("transfer brak: ", zap.Any("brak", transferBraks[i]))
+		if transferBraks[i].Baby != nil {
+			brak.BabyUserID = &transferBraks[i].Baby.BabyUserID
+			date := time.Unix(transferBraks[i].Baby.time, 0)
+			brak.BabyCreateDate = &date
+			log.Sugar().Info("transfer baby: ", zap.Any("baby", transferBraks[i].Baby.BabyUserID))
+		}
+		newBraks[i] = brak
+	}
+
+	_, err = coll.InsertMany(context.TODO(), newBraks)
+	if err != nil && len(transferBraks) != 0 {
+		log.Sugar().Error(err)
+		panic(err)
+		return nil
+	}
+
+	return nil
 }
