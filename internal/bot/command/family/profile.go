@@ -41,7 +41,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	b, _ := p.braks.FindByUserID(from.ID)
 
 	if b != nil {
-		if b.ChatID == 0 {
+		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
 			b.ChatID = update.Message.Chat.ID
 			_ = p.braks.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
 		}
