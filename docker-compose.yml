@@ -1,0 +1,6 @@
+services:
+  app:
+    container_name: telegram_bot
+    build:
+      context: .
+    restart: unless-stopped

@@ -1,0 +1,21 @@
+services:
+  mongodb:
+    container_name: mongo
+    build: .
+    image: mongo:7.0.5-jammy
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017","--keyFile","/data/replica.key" ]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # healthcheck:
+    #   test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
+    #   interval: 5s
+    #   timeout: 30s
+    #   start_period: 0s
+    #   start_interval: 1s
+    #   retries: 30
+    env_file: ".env"
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./data:/data/db
+    restart: always

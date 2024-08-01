@@ -17,14 +17,17 @@ type Config struct {
 	ClickhouseUser     string `envconfig:"CLICKHOUSE_USER" required:"true"`
 	ClickhousePassword string `envconfig:"CLICKHOUSE_PASSWORD" required:"true"`
 	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
+
+	MongoURI      string `envconfig:"MONGO_URI" required:"true"`
+	MongoDatabase string `envconfig:"MONGO_DATABASE" required:"true"`
 }
 
-func New() (Config, error) {
+func New() Config {
 	cfg := Config{}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return cfg, err
+		panic(err)
 	}
 
 	envPath := filepath.Join(wd, ".env")
@@ -32,8 +35,8 @@ func New() (Config, error) {
 	_ = godotenv.Load(envPath)
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		return cfg, err
+		panic(err)
 	}
 
-	return cfg, nil
+	return cfg
 }
