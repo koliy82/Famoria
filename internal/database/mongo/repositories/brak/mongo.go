@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-type Ch struct {
+type Mongo struct {
 	coll *mongo.Collection
 	log  *zap.Logger
 }
 
-func (c *Ch) Update(filter interface{}, update interface{}) error {
+func (c *Mongo) Update(filter interface{}, update interface{}) error {
 	_, err := c.coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -26,7 +26,7 @@ func (c *Ch) Update(filter interface{}, update interface{}) error {
 	return err
 }
 
-func (c *Ch) FindByUserID(id int64) (*Brak, error) {
+func (c *Mongo) FindByUserID(id int64) (*Brak, error) {
 	result := &Brak{}
 	filter := bson.D{
 		{"$or", []interface{}{
@@ -41,7 +41,7 @@ func (c *Ch) FindByUserID(id int64) (*Brak, error) {
 	return result, nil
 }
 
-func (c *Ch) FindByKidID(id int64) (*Brak, error) {
+func (c *Mongo) FindByKidID(id int64) (*Brak, error) {
 	result := &Brak{}
 	filter := bson.D{{"baby_user_id", id}}
 	err := c.coll.FindOne(context.TODO(), filter).Decode(result)
@@ -51,7 +51,7 @@ func (c *Ch) FindByKidID(id int64) (*Brak, error) {
 	return result, nil
 }
 
-func (c *Ch) Insert(brak *Brak) error {
+func (c *Mongo) Insert(brak *Brak) error {
 	_, err := c.coll.InsertOne(context.TODO(), brak)
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -59,7 +59,7 @@ func (c *Ch) Insert(brak *Brak) error {
 	return nil
 }
 
-func (c *Ch) Delete(id primitive.ObjectID) error {
+func (c *Mongo) Delete(id primitive.ObjectID) error {
 	_, err := c.coll.DeleteOne(context.TODO(), bson.D{{"_id", id}})
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -67,7 +67,7 @@ func (c *Ch) Delete(id primitive.ObjectID) error {
 	return nil
 }
 
-func (c *Ch) FindBraksByPage(page int64, limit int64, filter interface{}) ([]*UsersBrak, int64, error) {
+func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]*UsersBrak, int64, error) {
 	var braks []*UsersBrak
 	skip := (page - 1) * limit
 	brakCount, err := c.coll.CountDocuments(context.TODO(), filter)
@@ -151,7 +151,7 @@ func (c *Ch) FindBraksByPage(page int64, limit int64, filter interface{}) ([]*Us
 	return braks, brakCount, nil
 }
 
-func (c *Ch) Count(filter interface{}) (int64, error) {
+func (c *Mongo) Count(filter interface{}) (int64, error) {
 	count, err := c.coll.CountDocuments(context.TODO(), filter)
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -160,7 +160,7 @@ func (c *Ch) Count(filter interface{}) (int64, error) {
 	return count, nil
 }
 
-func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
+func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Mongo {
 	coll := client.Database(cfg.MongoDatabase).Collection("braks")
 	_, err := coll.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{
@@ -180,7 +180,7 @@ func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
 		log.Sugar().Error(err)
 	}
 	_ = TransferBraks(client, log, cfg)
-	return &Ch{
+	return &Mongo{
 		coll: coll,
 		log:  log,
 	}

@@ -7,19 +7,19 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 	"time"
 )
 
 type endFamily struct {
-	cm    *callback.CallbacksManager
-	braks brak.Repository
-	users user.Repository
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	userRepo user.Repository
 }
 
 func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	brak, _ := e.braks.FindByUserID(from.ID)
+	brak, _ := e.brakRepo.FindByUserID(from.ID)
 
 	if brak == nil {
 		_, _ = bot.SendMessage(&telego.SendMessageParams{
@@ -36,7 +36,7 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{from.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.braks.Delete(brak.OID)
+			err := e.brakRepo.Delete(brak.OID)
 			if err != nil {
 				_, _ = bot.SendMessage(&telego.SendMessageParams{
 					ChatID:    tu.ID(update.Message.Chat.ID),
@@ -45,11 +45,11 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 				})
 				return
 			}
-			fuser, err := e.users.FindByID(brak.FirstUserID)
+			fuser, err := e.userRepo.FindByID(brak.FirstUserID)
 			if err != nil {
 				return
 			}
-			tuser, err := e.users.FindByID(brak.SecondUserID)
+			tuser, err := e.userRepo.FindByID(brak.SecondUserID)
 			if err != nil {
 				return
 			}

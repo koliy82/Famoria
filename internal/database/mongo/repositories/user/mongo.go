@@ -12,12 +12,12 @@ import (
 	"go_tg_bot/internal/config"
 )
 
-type Ch struct {
+type Mongo struct {
 	coll *mongo.Collection
 	log  *zap.Logger
 }
 
-func (c *Ch) ValidateInfo(user *telego.User) error {
+func (c *Mongo) ValidateInfo(user *telego.User) error {
 	actual, err := c.FindByID(user.ID)
 	model := &User{
 		ID:           user.ID,
@@ -59,7 +59,7 @@ func (c *Ch) ValidateInfo(user *telego.User) error {
 	return nil
 }
 
-func (c *Ch) Replace(user *User) error {
+func (c *Mongo) Replace(user *User) error {
 	filter := bson.M{"id": user.ID}
 	_, err := c.coll.ReplaceOne(context.TODO(), filter, user)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *Ch) Replace(user *User) error {
 	return nil
 }
 
-func (c *Ch) Insert(user *User) error {
+func (c *Mongo) Insert(user *User) error {
 	_, err := c.coll.InsertOne(context.TODO(), user)
 	if err != nil {
 		c.log.Sugar().Error(err)
@@ -78,7 +78,7 @@ func (c *Ch) Insert(user *User) error {
 	return nil
 }
 
-func (c *Ch) FindByID(id int64) (*User, error) {
+func (c *Mongo) FindByID(id int64) (*User, error) {
 	user := &User{}
 	filter := bson.D{{"id", id}}
 	err := c.coll.FindOne(context.TODO(), filter).Decode(user)
@@ -88,7 +88,7 @@ func (c *Ch) FindByID(id int64) (*User, error) {
 	return user, err
 }
 
-func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
+func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Mongo {
 	coll := client.Database(cfg.MongoDatabase).Collection("users")
 	_, err := coll.Indexes().CreateOne(context.TODO(), mongo.IndexModel{
 		Keys:    bson.M{"id": 1},
@@ -97,7 +97,7 @@ func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Ch {
 	if err != nil {
 		log.Sugar().Error(err)
 	}
-	return &Ch{
+	return &Mongo{
 		coll: coll,
 		log:  log,
 	}

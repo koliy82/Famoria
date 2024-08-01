@@ -11,9 +11,9 @@ import (
 )
 
 type MessageLogger struct {
-	messages message.Repository
-	users    user.Repository
-	braks    brak.Repository
+	messageRepo message.Repository
+	userRepo    user.Repository
+	brakRepo    brak.Repository
 }
 
 func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
@@ -22,7 +22,7 @@ func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
 	if from == nil {
 		return
 	}
-	err := l.users.ValidateInfo(update.Message.From)
+	err := l.userRepo.ValidateInfo(update.Message.From)
 	if err != nil {
 		return
 	}
@@ -40,7 +40,7 @@ func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
 		newMessage.ReplyID = &msg.ReplyToMessage.MessageID
 	}
 
-	l.messages.Insert(
+	l.messageRepo.Insert(
 		newMessage,
 	)
 }
@@ -56,8 +56,8 @@ type Opts struct {
 
 func Register(opts Opts) {
 	opts.Bh.Handle(MessageLogger{
-		messages: opts.MessageRepo,
-		users:    opts.UserRepo,
-		braks:    opts.BrakRepo,
+		messageRepo: opts.MessageRepo,
+		userRepo:    opts.UserRepo,
+		brakRepo:    opts.BrakRepo,
 	}.Handle, th.AnyMessage())
 }

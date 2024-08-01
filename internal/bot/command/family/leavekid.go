@@ -9,16 +9,16 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 	"math/rand/v2"
 	"time"
 )
 
 type leaveKid struct {
-	cm    *callback.CallbacksManager
-	braks brak.Repository
-	users user.Repository
-	log   *zap.Logger
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	userRepo user.Repository
+	log      *zap.Logger
 }
 
 func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
@@ -31,7 +31,7 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 			AllowSendingWithoutReply: true,
 		},
 	}
-	b, _ := e.braks.FindByKidID(from.ID)
+	b, _ := e.brakRepo.FindByKidID(from.ID)
 	if b == nil {
 		_, _ = bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ты ещё не родился. ⌚", html.UserMention(from))),
@@ -45,7 +45,7 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{from.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.braks.Update(
+			err := e.brakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
 					{"baby_user_id", nil},

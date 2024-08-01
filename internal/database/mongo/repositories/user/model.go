@@ -3,7 +3,7 @@ package user
 import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 )
 
 type User struct {

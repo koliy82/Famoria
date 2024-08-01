@@ -1,8 +1,7 @@
-package date
+package utils
 
 import (
 	"golang.org/x/exp/constraints"
-	"time"
 )
 
 // Declension returns the correct declension of the word depending on the number
@@ -15,11 +14,4 @@ func Declension[N constraints.Integer](count N, singular, few, many string) stri
 	} else {
 		return many
 	}
-}
-
-func HasUpdated(lastUpdate time.Time) bool {
-	now := time.Now()
-	year, month, day := now.Date()
-	todayMidnight := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
-	return lastUpdate.After(todayMidnight)
 }

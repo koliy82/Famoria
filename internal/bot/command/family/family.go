@@ -25,58 +25,58 @@ type Opts struct {
 func Register(opts Opts) {
 
 	opts.Bh.Handle(profile{
-		cm:       opts.Cm,
-		braks:    opts.BrakRepo,
-		users:    opts.UserRepo,
-		messages: opts.MessageRepo,
-		log:      opts.Log,
+		cm:          opts.Cm,
+		brakRepo:    opts.BrakRepo,
+		userRepo:    opts.UserRepo,
+		messageRepo: opts.MessageRepo,
+		log:         opts.Log,
 	}.Handle, th.Or(th.CommandEqual("profile"), th.TextEqual("👤 Профиль"), th.CommandEqual("mybrak")))
 
 	opts.Bh.Handle(goFamily{
-		cm:    opts.Cm,
-		braks: opts.BrakRepo,
-		log:   opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		log:      opts.Log,
 	}.Handle, th.CommandEqual("gobrak"))
 
 	opts.Bh.Handle(endFamily{
-		cm:    opts.Cm,
-		braks: opts.BrakRepo,
-		users: opts.UserRepo,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		userRepo: opts.UserRepo,
 	}.Handle, th.Or(th.CommandEqual("endbrak"), th.TextEqual("💔 Развод")))
 
 	opts.Bh.Handle(goKid{
-		cm:    opts.Cm,
-		braks: opts.BrakRepo,
-		users: opts.UserRepo,
-		log:   opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		userRepo: opts.UserRepo,
+		log:      opts.Log,
 	}.Handle, th.CommandEqual("kid"))
 
 	opts.Bh.Handle(endKid{
-		cm:    opts.Cm,
-		braks: opts.BrakRepo,
-		users: opts.UserRepo,
-		log:   opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		userRepo: opts.UserRepo,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("kidannihilate"), th.TextEqual("👶 Аннигиляция")))
 
 	opts.Bh.Handle(leaveKid{
-		cm:    opts.Cm,
-		braks: opts.BrakRepo,
-		users: opts.UserRepo,
-		log:   opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		userRepo: opts.UserRepo,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("detdom"), th.TextEqual("🏠 Детдом")))
 
 	opts.Bh.Handle(brakPages{
-		cm:      opts.Cm,
-		braks:   opts.BrakRepo,
-		isLocal: true,
-		log:     opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		isLocal:  true,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("braks"), th.TextEqual("💬 Браки чата")))
 
 	opts.Bh.Handle(brakPages{
-		cm:      opts.Cm,
-		braks:   opts.BrakRepo,
-		isLocal: false,
-		log:     opts.Log,
+		cm:       opts.Cm,
+		brakRepo: opts.BrakRepo,
+		isLocal:  false,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {

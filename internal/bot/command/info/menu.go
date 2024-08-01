@@ -7,7 +7,7 @@ import (
 )
 
 type menu struct {
-	braks brak.Repository
+	brakRepo brak.Repository
 }
 
 func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardMarkup {
@@ -57,14 +57,6 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 }
 
 func (m menu) Handle(bot *telego.Bot, update telego.Update) {
-	//if update.Message.Chat.Type != "private" {
-	//	_, _ = bot.SendMessage(&telego.SendMessageParams{
-	//		ChatID: update.Message.Chat.ChatID(),
-	//		Text:   "Меню работает только в личных сообщениях.",
-	//	})
-	//	return
-	//}
-
 	_, _ = bot.SendMessage(&telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   "Меню показано ✅",
@@ -72,6 +64,6 @@ func (m menu) Handle(bot *telego.Bot, update telego.Update) {
 			MessageID:                update.Message.MessageID,
 			AllowSendingWithoutReply: true,
 		},
-		ReplyMarkup: GenerateButtons(m.braks, update.Message.From.ID),
+		ReplyMarkup: GenerateButtons(m.brakRepo, update.Message.From.ID),
 	})
 }

@@ -6,17 +6,13 @@ import (
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/predicate"
-	"go_tg_bot/internal/database/clickhouse/repositories/message"
-	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type Opts struct {
 	fx.In
-	Bh          *th.BotHandler
-	Log         *zap.Logger
-	Cm          *callback.CallbacksManager
-	MessageRepo message.Repository
-	UserRepo    user.Repository
+	Bh  *th.BotHandler
+	Log *zap.Logger
+	Cm  *callback.CallbacksManager
 }
 
 func Register(opts Opts) {

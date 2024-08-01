@@ -8,18 +8,18 @@ import (
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/utils/date"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
+	"go_tg_bot/internal/pkg/utils"
 	"math"
 	"strconv"
 	"time"
 )
 
 type brakPages struct {
-	cm      *callback.CallbacksManager
-	braks   brak.Repository
-	isLocal bool
-	log     *zap.Logger
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	isLocal  bool
+	log      *zap.Logger
 }
 
 func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
@@ -46,7 +46,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		filter = bson.M{}
 	}
 
-	braks, count, err := p.braks.FindBraksByPage(page, limit, filter)
+	braks, count, err := p.brakRepo.FindBraksByPage(page, limit, filter)
 
 	pages = int64(math.Ceil(float64(count) / float64(limit)))
 
@@ -57,11 +57,11 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 
 	if p.isLocal {
 		header = fmt.Sprintf("💍 %d %s В ГРУППЕ 💍\n",
-			count, date.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
+			count, utils.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
 		)
 	} else {
 		header = fmt.Sprintf("💍 %d %s В ЧАТАХ 💍\n",
-			count, date.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
+			count, utils.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
 		)
 	}
 
@@ -77,7 +77,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				page--
 			}
 
-			braks, count, err = p.braks.FindBraksByPage(page, limit, filter)
+			braks, count, err = p.brakRepo.FindBraksByPage(page, limit, filter)
 			if err != nil {
 				return
 			}
@@ -119,7 +119,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				page++
 			}
 
-			braks, count, err = p.braks.FindBraksByPage(page, limit, filter)
+			braks, count, err = p.brakRepo.FindBraksByPage(page, limit, filter)
 			if err != nil {
 				return
 			}

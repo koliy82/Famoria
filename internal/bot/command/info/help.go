@@ -8,7 +8,7 @@ import (
 )
 
 type help struct {
-	braks brak.Repository
+	brakRepo brak.Repository
 }
 
 func (h help) Handle(bot *telego.Bot, update telego.Update) {
@@ -20,13 +20,6 @@ func (h help) Handle(bot *telego.Bot, update telego.Update) {
 	for _, command := range commands {
 		text += "/" + command.Command + " - " + command.Description + "\n"
 	}
-	//params := &telego.SendMessageParams{
-	//	ChatID: tu.ID(update.Message.Chat.ID),
-	//	Text:   strings.TrimSpace(text),
-	//}
-	//if update.Message.Chat.Type == "private" {
-	//	params.WithReplyMarkup(GenerateButtons(h.braks, update.Message.From.ID))
-	//}
 	_, _ = bot.SendMessage(&telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   strings.TrimSpace(text),
@@ -35,6 +28,6 @@ func (h help) Handle(bot *telego.Bot, update telego.Update) {
 			ChatID:                   tu.ID(update.Message.Chat.ID),
 			AllowSendingWithoutReply: true,
 		},
-		ReplyMarkup: GenerateButtons(h.braks, update.Message.From.ID),
+		ReplyMarkup: GenerateButtons(h.brakRepo, update.Message.From.ID),
 	})
 }

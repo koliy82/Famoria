@@ -9,20 +9,20 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 	"time"
 )
 
 type endKid struct {
-	cm    *callback.CallbacksManager
-	braks brak.Repository
-	users user.Repository
-	log   *zap.Logger
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	userRepo user.Repository
+	log      *zap.Logger
 }
 
 func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	b, _ := e.braks.FindByUserID(from.ID)
+	b, _ := e.brakRepo.FindByUserID(from.ID)
 
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -43,11 +43,11 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	sUser, _ := e.users.FindByID(b.PartnerID(from.ID))
+	sUser, _ := e.userRepo.FindByID(b.PartnerID(from.ID))
 	if sUser == nil {
 		return
 	}
-	bUser, _ := e.users.FindByID(*b.BabyUserID)
+	bUser, _ := e.userRepo.FindByID(*b.BabyUserID)
 	if bUser == nil {
 		return
 	}
@@ -58,7 +58,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{sUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.braks.Update(
+			err := e.brakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
 					{"baby_user_id", nil},

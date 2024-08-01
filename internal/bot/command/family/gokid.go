@@ -9,15 +9,15 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 	"time"
 )
 
 type goKid struct {
-	cm    *callback.CallbacksManager
-	braks brak.Repository
-	users user.Repository
-	log   *zap.Logger
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	userRepo user.Repository
+	log      *zap.Logger
 }
 
 func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
@@ -40,7 +40,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	b, _ := g.braks.FindByUserID(from.ID)
+	b, _ := g.brakRepo.FindByUserID(from.ID)
 
 	if b == nil {
 		_, _ = bot.SendMessage(params.WithText(
@@ -75,7 +75,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	kidBrakCount, _ := g.braks.Count(bson.M{"baby_user_id": tUser.ID})
+	kidBrakCount, _ := g.brakRepo.Count(bson.M{"baby_user_id": tUser.ID})
 	if kidBrakCount != 0 {
 		_, _ = bot.SendMessage(params.WithDisableNotification().WithText(
 			fmt.Sprintf("%s уже родился у кого-то в браке. 😥", html.UserMention(tUser))),
@@ -90,7 +90,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	sUser, _ := g.users.FindByID(b.PartnerID(from.ID))
+	sUser, _ := g.userRepo.FindByID(b.PartnerID(from.ID))
 
 	if sUser == nil {
 		_, _ = bot.SendMessage(params.WithText(
@@ -105,7 +105,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := g.braks.Update(
+			err := g.brakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
 					{"baby_user_id", tUser.ID},

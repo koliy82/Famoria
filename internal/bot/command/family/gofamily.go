@@ -9,14 +9,14 @@ import (
 	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/utils/html"
+	"go_tg_bot/internal/pkg/html"
 	"time"
 )
 
 type goFamily struct {
-	cm    *callback.CallbacksManager
-	braks brak.Repository
-	log   *zap.Logger
+	cm       *callback.CallbacksManager
+	brakRepo brak.Repository
+	log      *zap.Logger
 }
 
 func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
@@ -67,7 +67,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	fBrakCount, _ := g.braks.Count(bson.M{"$or": []interface{}{
+	fBrakCount, _ := g.brakRepo.Count(bson.M{"$or": []interface{}{
 		bson.M{"first_user_id": fUser.ID},
 		bson.M{"second_user_id": fUser.ID},
 	}})
@@ -82,7 +82,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	tBrakCount, _ := g.braks.Count(bson.M{"$or": []interface{}{
+	tBrakCount, _ := g.brakRepo.Count(bson.M{"$or": []interface{}{
 		bson.M{"first_user_id": tUser.ID},
 		bson.M{"second_user_id": tUser.ID},
 	}})
@@ -103,7 +103,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_ = g.braks.Insert(&brak.Brak{
+			_ = g.brakRepo.Insert(&brak.Brak{
 				OID:          primitive.NewObjectID(),
 				ChatID:       update.Message.Chat.ID,
 				FirstUserID:  fUser.ID,

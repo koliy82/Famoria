@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/utils/date"
+	"go_tg_bot/internal/pkg/utils"
 	"time"
 )
 
@@ -52,18 +52,18 @@ func (b Brak) Duration() string {
 	years := days / 365
 
 	if years > 0 {
-		return fmt.Sprintf("%d %s", years, date.Declension(years, "год", "года", "лет"))
+		return fmt.Sprintf("%d %s", years, utils.Declension(years, "год", "года", "лет"))
 	}
 
 	if months > 0 {
-		return fmt.Sprintf("%d %s", months, date.Declension(months, "месяц", "месяца", "месяцев"))
+		return fmt.Sprintf("%d %s", months, utils.Declension(months, "месяц", "месяца", "месяцев"))
 	}
 
 	if days > 0 {
-		return fmt.Sprintf("%d %s", days, date.Declension(days, "день", "дня", "дней"))
+		return fmt.Sprintf("%d %s", days, utils.Declension(days, "день", "дня", "дней"))
 	}
 
-	return fmt.Sprintf("%d %s", hours, date.Declension(hours, "час", "часа", "часов"))
+	return fmt.Sprintf("%d %s", hours, utils.Declension(hours, "час", "часа", "часов"))
 }
 
 func (b Brak) DurationKid() string {
@@ -81,16 +81,16 @@ func (b Brak) DurationKid() string {
 
 	switch {
 	case years > 0:
-		return fmt.Sprintf("%d %s", years, date.Declension(years, "год", "года", "лет"))
+		return fmt.Sprintf("%d %s", years, utils.Declension(years, "год", "года", "лет"))
 	case months > 0:
-		return fmt.Sprintf("%d %s", months, date.Declension(months, "месяц", "месяца", "месяцев"))
+		return fmt.Sprintf("%d %s", months, utils.Declension(months, "месяц", "месяца", "месяцев"))
 	case days > 0:
-		return fmt.Sprintf("%d %s", days, date.Declension(days, "день", "дня", "дней"))
+		return fmt.Sprintf("%d %s", days, utils.Declension(days, "день", "дня", "дней"))
 	case hours > 0:
-		return fmt.Sprintf("%d %s", hours, date.Declension(hours, "час", "часа", "часов"))
+		return fmt.Sprintf("%d %s", hours, utils.Declension(hours, "час", "часа", "часов"))
 	case minutes > 0:
-		return fmt.Sprintf("%d %s", minutes, date.Declension(minutes, "минута", "минуты", "минут"))
+		return fmt.Sprintf("%d %s", minutes, utils.Declension(minutes, "минута", "минуты", "минут"))
 	default:
-		return fmt.Sprintf("%d %s", seconds, date.Declension(seconds, "секунда", "секунды", "секунд"))
+		return fmt.Sprintf("%d %s", seconds, utils.Declension(seconds, "секунда", "секунды", "секунд"))
 	}
 }
