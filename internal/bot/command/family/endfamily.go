@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.uber.org/zap"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
@@ -13,6 +14,7 @@ import (
 
 type endFamily struct {
 	cm       *callback.CallbacksManager
+	log      *zap.Logger
 	brakRepo brak.Repository
 	userRepo user.Repository
 }
@@ -20,13 +22,18 @@ type endFamily struct {
 func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
 	brak, _ := e.brakRepo.FindByUserID(from.ID)
+	params := &telego.SendMessageParams{
+		ChatID:    tu.ID(update.Message.Chat.ID),
+		ParseMode: telego.ModeHTML,
+	}
 
 	if brak == nil {
-		_, _ = bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    tu.ID(update.Message.Chat.ID),
-			ParseMode: telego.ModeHTML,
-			Text:      fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from)),
-		})
+		_, err := bot.SendMessage(params.
+			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
+		)
+		if err != nil {
+			e.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -38,11 +45,13 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 		Callback: func(query telego.CallbackQuery) {
 			err := e.brakRepo.Delete(brak.OID)
 			if err != nil {
-				_, _ = bot.SendMessage(&telego.SendMessageParams{
-					ChatID:    tu.ID(update.Message.Chat.ID),
-					ParseMode: telego.ModeHTML,
-					Text:      fmt.Sprintf("%s, произошла ошибка при разводе. 😥", html.UserMention(from)),
-				})
+				_, err := bot.SendMessage(params.
+					WithText(fmt.Sprintf("%s, произошла ошибка при разводе. 😥", html.UserMention(from))).
+					WithReplyMarkup(nil),
+				)
+				if err != nil {
+					e.log.Sugar().Error(err)
+				}
 				return
 			}
 			fuser, err := e.userRepo.FindByID(brak.FirstUserID)
@@ -53,25 +62,27 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 			if err != nil {
 				return
 			}
-			_, _ = bot.SendMessage(&telego.SendMessageParams{
-				ChatID:    tu.ID(update.Message.Chat.ID),
-				ParseMode: telego.ModeHTML,
-				Text: fmt.Sprintf(
+			_, err = bot.SendMessage(params.
+				WithText(fmt.Sprintf(
 					"Брак между %s и %s распался. 💔\nОни прожили вместе %s",
 					fuser.Mention(), tuser.Mention(), brak.Duration(),
-				),
-			})
+				)).WithReplyMarkup(nil),
+			)
+			if err != nil {
+				e.log.Sugar().Error(err)
+			}
 		},
 	})
 
-	_, _ = bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    tu.ID(update.Message.Chat.ID),
-		ParseMode: telego.ModeHTML,
-		Text:      fmt.Sprintf("%s, ты уверен? 💔", html.UserMention(from)),
-		ReplyMarkup: tu.InlineKeyboard(
+	_, err := bot.SendMessage(params.
+		WithText(fmt.Sprintf("%s, ты уверен? 💔", html.UserMention(from))).
+		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(
 				yesCallback.Inline(),
 			),
-		),
-	})
+		)),
+	)
+	if err != nil {
+		e.log.Sugar().Error(err)
+	}
 }

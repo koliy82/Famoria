@@ -51,7 +51,10 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 	pages = int64(math.Ceil(float64(count) / float64(limit)))
 
 	if err != nil {
-		_, _ = bot.SendMessage(params.WithText("Произошла ошибка при получении списка браков"))
+		_, err = bot.SendMessage(params.WithText("Произошла ошибка при получении списка браков"))
+		if err != nil {
+			p.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -143,10 +146,13 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		),
 	)
 
-	_, _ = bot.SendMessage(params.
+	_, err = bot.SendMessage(params.
 		WithText(header + fillPage(braks, page, limit)).
 		WithReplyMarkup(keyboard),
 	)
+	if err != nil {
+		p.log.Sugar().Error(err)
+	}
 }
 
 func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {

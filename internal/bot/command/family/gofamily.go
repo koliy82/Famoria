@@ -112,7 +112,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 				Score:        0,
 			})
 
-			_, _ = bot.SendMessage(&telego.SendMessageParams{
+			_, err := bot.SendMessage(&telego.SendMessageParams{
 				ChatID:    tu.ID(update.Message.Chat.ID),
 				ParseMode: telego.ModeHTML,
 				Text: fmt.Sprintf(
@@ -123,6 +123,9 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 					MessageID: query.Message.GetMessageID(),
 				},
 			})
+			if err != nil {
+				g.log.Sugar().Error(err)
+			}
 		},
 	})
 
@@ -147,7 +150,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, _ = bot.SendMessage(params.WithText(fmt.Sprintf(
+	_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
 		"💍 %s, минуточку внимания.\n"+
 			"💖 %s сделал вам предложение руки и сердца.",
 		html.UserMention(tUser), html.UserMention(fUser),
@@ -157,5 +160,8 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 			noCallback.Inline(),
 		),
 	)))
+	if err != nil {
+		g.log.Sugar().Error(err)
+	}
 
 }

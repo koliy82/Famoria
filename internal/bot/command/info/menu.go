@@ -3,16 +3,18 @@ package info
 import (
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.uber.org/zap"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 )
 
 type menu struct {
 	brakRepo brak.Repository
+	log      *zap.Logger
 }
 
-func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardMarkup {
+func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboardMarkup {
 	var rows [][]telego.KeyboardButton
-	userBrak, _ := braks.FindByUserID(userID)
+	userBrak, _ := brakRepo.FindByUserID(userID)
 	if userBrak != nil {
 		rows = append(rows, []telego.KeyboardButton{
 			tu.KeyboardButton("👤 Профиль"),
@@ -24,7 +26,7 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 		})
 	}
 
-	kidBrak, _ := braks.FindByKidID(userID)
+	kidBrak, _ := brakRepo.FindByKidID(userID)
 	if kidBrak != nil {
 		if userBrak != nil && userBrak.BabyUserID != nil {
 			rows = append(rows, []telego.KeyboardButton{
@@ -57,7 +59,7 @@ func GenerateButtons(braks brak.Repository, userID int64) *telego.ReplyKeyboardM
 }
 
 func (m menu) Handle(bot *telego.Bot, update telego.Update) {
-	_, _ = bot.SendMessage(&telego.SendMessageParams{
+	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   "Меню показано ✅",
 		ReplyParameters: &telego.ReplyParameters{
@@ -66,4 +68,7 @@ func (m menu) Handle(bot *telego.Bot, update telego.Update) {
 		},
 		ReplyMarkup: GenerateButtons(m.brakRepo, update.Message.From.ID),
 	})
+	if err != nil {
+		m.log.Sugar().Error(err)
+	}
 }

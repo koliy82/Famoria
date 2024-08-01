@@ -24,16 +24,16 @@ const (
 
 type Opts struct {
 	fx.In
-	Log   *zap.Logger
-	Braks brak.Repository
-	Users user.Repository
-	Cm    *callback.CallbacksManager
-	Bot   *telego.Bot
+	Log      *zap.Logger
+	BrakRepo brak.Repository
+	UserRepo user.Repository
+	Cm       *callback.CallbacksManager
+	Bot      *telego.Bot
 }
 
 func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(CasinoData, func(query telego.CallbackQuery) {
-		b, err := opts.Braks.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -53,7 +53,7 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		score := rand.Intn(500) - 300
-		err = opts.Braks.Update(
+		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
 				"$inc": bson.M{"score": score},
@@ -78,7 +78,7 @@ func ProfileCallbacks(opts Opts) {
 		default:
 			text = "%s играл сегодня в казино, но остался в нуле."
 		}
-		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
+		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
 			Text:      text,
@@ -86,13 +86,19 @@ func ProfileCallbacks(opts Opts) {
 				MessageID: query.Message.GetMessageID(),
 			},
 		})
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
+		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
 	})
 
 	opts.Cm.StaticCallback(GrowKidData, func(query telego.CallbackQuery) {
-		b, err := opts.Braks.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -121,7 +127,7 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		score := rand.Intn(30) + 20
-		err = opts.Braks.Update(
+		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
 				"$inc": bson.M{"score": score},
@@ -160,7 +166,7 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(HamsterData, func(query telego.CallbackQuery) {
-		b, err := opts.Braks.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -171,7 +177,7 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if !utils.HasUpdated(b.LastHamsterUpdate) {
-			err = opts.Braks.Update(
+			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
 					"$inc": bson.M{"score": 1},
@@ -189,7 +195,7 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		} else {
-			err = opts.Braks.Update(
+			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
 					"$inc": bson.M{"score": 1, "tap_count": -1},

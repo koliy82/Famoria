@@ -34,25 +34,34 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if reply == nil {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ответь на любое сообщение ребёнка.", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	b, _ := g.brakRepo.FindByUserID(from.ID)
 
 	if b == nil {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	if b.BabyUserID != nil {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, в вашем браке уже рождён ребёнок.", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -69,33 +78,45 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if tUser.IsBot {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, бот не может быть ребёнком.", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	kidBrakCount, _ := g.brakRepo.Count(bson.M{"baby_user_id": tUser.ID})
 	if kidBrakCount != 0 {
-		_, _ = bot.SendMessage(params.WithDisableNotification().WithText(
+		_, err := bot.SendMessage(params.WithDisableNotification().WithText(
 			fmt.Sprintf("%s уже родился у кого-то в браке. 😥", html.UserMention(tUser))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	if time.Now().Unix() < b.CreateDate.Add(7*24*time.Hour).Unix() {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, для рождения ребёнка вы должны быть женаты неделю. ⌚", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	sUser, _ := g.userRepo.FindByID(b.PartnerID(from.ID))
 
 	if sUser == nil {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ваш партнёр не найден. 😥", html.UserMention(from))),
 		)
+		if err != nil {
+			g.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -116,11 +137,14 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 				g.log.Sugar().Error(err)
 				return
 			}
-			_, _ = bot.SendMessage(params.
+			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf("Внимание! ⚠️\n%s родился у %s и %s. 🤱",
 					html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
 				WithReplyMarkup(nil),
 			)
+			if err != nil {
+				g.log.Sugar().Error(err)
+			}
 		},
 	})
 
@@ -130,19 +154,25 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, _ = bot.SendMessage(params.
+			_, err := bot.SendMessage(params.
 				WithText(fmt.Sprintf("%s отказался появляться на этот свет. 💀", html.UserMention(tUser))).
 				WithReplyMarkup(nil),
 			)
+			if err != nil {
+				g.log.Sugar().Error(err)
+			}
 		},
 	})
 
-	_, _ = bot.SendMessage(params.
+	_, err := bot.SendMessage(params.
 		WithText(fmt.Sprintf("%s, тебе предложили родиться в семье %s и %s. 🏠",
 			html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(yesCallback.Inline(), noCallback.Inline()),
 		)),
 	)
+	if err != nil {
+		g.log.Sugar().Error(err)
+	}
 
 }

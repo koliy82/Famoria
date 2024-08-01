@@ -21,18 +21,20 @@ type Opts struct {
 func Register(opts Opts) {
 	opts.Bh.Handle(help{
 		brakRepo: opts.BrakRepo,
+		log:      opts.Log,
 	}.Handle, th.And(
 		th.Or(th.CommandEqual("help"), th.CommandEqual("start")),
 	))
 
 	opts.Bh.Handle(menu{
 		brakRepo: opts.BrakRepo,
+		log:      opts.Log,
 	}.Handle, th.And(
 		th.CommandEqual("menu"),
 	))
 
 	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(&telego.SendMessageParams{
+		_, err := bot.SendMessage(&telego.SendMessageParams{
 			ChatID: tu.ID(update.Message.Chat.ID),
 			Text:   "Меню закрыто, повторно открыть его можно написав /menu.",
 			ReplyParameters: &telego.ReplyParameters{
@@ -41,6 +43,9 @@ func Register(opts Opts) {
 			},
 			ReplyMarkup: tu.ReplyKeyboardRemove().WithSelective(),
 		})
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
 	}, th.And(
 		th.Or(th.CommandEqual("closemenu"), th.TextEqual("❌ Закрыть")),
 	))

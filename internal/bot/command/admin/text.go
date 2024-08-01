@@ -31,6 +31,7 @@ func (s sendText) Handle(bot *telego.Bot, update telego.Update) {
 		),
 	)
 	if err != nil {
+		s.log.Sugar().Error(err)
 		return
 	}
 }

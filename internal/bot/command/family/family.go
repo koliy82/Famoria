@@ -42,6 +42,7 @@ func Register(opts Opts) {
 		cm:       opts.Cm,
 		brakRepo: opts.BrakRepo,
 		userRepo: opts.UserRepo,
+		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("endbrak"), th.TextEqual("💔 Развод")))
 
 	opts.Bh.Handle(goKid{

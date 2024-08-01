@@ -30,16 +30,22 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if b == nil {
-		_, _ = bot.SendMessage(params.
+		_, err := bot.SendMessage(params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
+		if err != nil {
+			e.log.Sugar().Error(err)
+		}
 		return
 	}
 
 	if b.BabyUserID == nil {
-		_, _ = bot.SendMessage(params.
+		_, err := bot.SendMessage(params.
 			WithText(fmt.Sprintf("%s, у вас нет детей. 🤔", html.UserMention(from))),
 		)
+		if err != nil {
+			e.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -70,20 +76,26 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 				return
 			}
 
-			_, _ = bot.SendMessage(params.
+			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf("Внимание! ⚠️\n%s был аннигилирован %s и %s!\n Он прожил %s",
 					bUser.Mention(), html.UserMention(from), sUser.Mention(), b.DurationKid())).
 				WithReplyMarkup(nil),
 			)
+			if err != nil {
+				e.log.Sugar().Error(err)
+			}
 		},
 	})
 
-	_, _ = bot.SendMessage(params.
+	_, err := bot.SendMessage(params.
 		WithText(fmt.Sprintf("%s, ты тоже хочешь аннигилировать %s? 😐",
 			sUser.Mention(), bUser.Mention())).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(yesCallback.Inline()),
 		)),
 	)
+	if err != nil {
+		e.log.Sugar().Error(err)
+	}
 
 }

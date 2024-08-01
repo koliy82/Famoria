@@ -33,9 +33,12 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 	}
 	b, _ := e.brakRepo.FindByKidID(from.ID)
 	if b == nil {
-		_, _ = bot.SendMessage(params.WithText(
+		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ты ещё не родился. ⌚", html.UserMention(from))),
 		)
+		if err != nil {
+			e.log.Sugar().Error(err)
+		}
 		return
 	}
 
@@ -74,15 +77,21 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 				text = "Что-то пошло не так..."
 			}
 
-			_, _ = bot.SendMessage(params.
+			_, err = bot.SendMessage(params.
 				WithText(text).
 				WithReplyMarkup(nil),
 			)
+			if err != nil {
+				e.log.Sugar().Error(err)
+			}
 		},
 	})
 
-	_, _ = bot.SendMessage(params.
+	_, err := bot.SendMessage(params.
 		WithText(fmt.Sprintf("%s, ты уверен, что хочешь покинуть свою семью? 🏠", html.UserMention(from))).
 		WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(yesCallback.Inline()))),
 	)
+	if err != nil {
+		e.log.Sugar().Error(err)
+	}
 }

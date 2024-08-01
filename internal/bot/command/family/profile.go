@@ -77,5 +77,8 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		params.ReplyMarkup = tu.InlineKeyboard(keyboard)
 	}
 
-	_, _ = bot.SendMessage(params)
+	_, err = bot.SendMessage(params)
+	if err != nil {
+		p.log.Sugar().Error(err)
+	}
 }
