@@ -86,14 +86,16 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 			}
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
-			_, _ = bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err = bot.EditMessageText(&telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
 				ChatID:      tu.ID(update.Message.Chat.ID),
 				ParseMode:   telego.ModeHTML,
 				Text:        header + fillPage(braks, page, limit),
 				ReplyMarkup: keyboard,
-			},
-			)
+			})
+			if err != nil {
+				p.log.Sugar().Error(err)
+			}
 		},
 	})
 
@@ -128,13 +130,16 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 			}
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
-			_, _ = bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err = bot.EditMessageText(&telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
 				ChatID:      tu.ID(update.Message.Chat.ID),
 				ParseMode:   telego.ModeHTML,
 				Text:        header + fillPage(braks, page, limit),
 				ReplyMarkup: keyboard,
 			})
+			if err != nil {
+				p.log.Sugar().Error(err)
+			}
 		},
 	})
 

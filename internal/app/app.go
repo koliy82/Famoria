@@ -50,7 +50,6 @@ var App = fx.Options(
 		family.Register,
 		minecraft.Register,
 		callback.Register,
-		static.Register,
 		logger.Register,
 		handler.StartHandle,
 	),
