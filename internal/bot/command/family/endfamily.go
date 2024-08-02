@@ -65,7 +65,7 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf(
 					"Брак между %s и %s распался. 💔\nОни прожили вместе %s",
-					fuser.Mention(), tuser.Mention(), brak.Duration(),
+					html.ModelMention(fuser), html.ModelMention(tuser), brak.Duration(),
 				)).WithReplyMarkup(nil),
 			)
 			if err != nil {

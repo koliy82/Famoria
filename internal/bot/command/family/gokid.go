@@ -139,7 +139,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 			}
 			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf("Внимание! ⚠️\n%s родился у %s и %s. 🤱",
-					html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
+					html.UserMention(tUser), html.UserMention(from), html.ModelMention(sUser))).
 				WithReplyMarkup(nil),
 			)
 			if err != nil {
@@ -166,7 +166,7 @@ func (g goKid) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, err := bot.SendMessage(params.
 		WithText(fmt.Sprintf("%s, тебе предложили родиться в семье %s и %s. 🏠",
-			html.UserMention(tUser), html.UserMention(from), sUser.Mention())).
+			html.UserMention(tUser), html.UserMention(from), html.ModelMention(sUser))).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(yesCallback.Inline(), noCallback.Inline()),
 		)),

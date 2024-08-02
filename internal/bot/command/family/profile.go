@@ -30,7 +30,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
-	text += fmt.Sprintf("👤 %s\n", fUser.Mention())
+	text += fmt.Sprintf("👤 %s\n", html.ModelMention(fUser))
 	messageCount, err := p.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
@@ -53,13 +53,13 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
 		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
-		text += fmt.Sprintf("🫂 %s [%s]\n", tUser.Mention(), b.Duration())
+		text += fmt.Sprintf("🫂 %s [%s]\n", html.ModelMention(tUser), b.Duration())
 
 		if b.BabyUserID != nil {
 			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
 			bUser, err := p.userRepo.FindByID(*b.BabyUserID)
 			if err == nil {
-				text += fmt.Sprintf("👼 %s [%s]\n", bUser.Mention(), b.DurationKid())
+				text += fmt.Sprintf("👼 %s [%s]\n", html.ModelMention(bUser), b.DurationKid())
 			}
 		}
 

@@ -78,7 +78,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 
 			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf("Внимание! ⚠️\n%s был аннигилирован %s и %s!\n Он прожил %s",
-					bUser.Mention(), html.UserMention(from), sUser.Mention(), b.DurationKid())).
+					html.ModelMention(bUser), html.UserMention(from), html.ModelMention(sUser), b.DurationKid())).
 				WithReplyMarkup(nil),
 			)
 			if err != nil {
@@ -89,7 +89,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, err := bot.SendMessage(params.
 		WithText(fmt.Sprintf("%s, ты тоже хочешь аннигилировать %s? 😐",
-			sUser.Mention(), bUser.Mention())).
+			html.ModelMention(sUser), html.ModelMention(bUser))).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(yesCallback.Inline()),
 		)),

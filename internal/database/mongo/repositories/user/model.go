@@ -1,9 +1,7 @@
 package user
 
 import (
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go_tg_bot/internal/pkg/html"
 )
 
 type User struct {
@@ -22,14 +20,4 @@ func (u *User) IsEquals(other *User) bool {
 		u.LastName == other.LastName &&
 		u.Username == other.Username &&
 		u.LanguageCode == other.LanguageCode
-}
-
-func (u *User) Mention() string {
-	if u.Username != nil {
-		return html.Mention(u.ID, *u.Username)
-	}
-	if u.LastName != nil {
-		return html.Mention(u.ID, fmt.Sprintf("%s %s", u.FirstName, *u.LastName))
-	}
-	return html.Mention(u.ID, u.FirstName)
 }

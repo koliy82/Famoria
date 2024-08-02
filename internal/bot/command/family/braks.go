@@ -173,7 +173,7 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 			)
 		} else {
 			text += fmt.Sprintf(" %s",
-				m.First.Mention(),
+				html.ModelMention(m.First),
 			)
 		}
 
@@ -183,12 +183,12 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 			)
 		} else {
 			text += fmt.Sprintf(" и %s",
-				m.Second.Mention(),
+				html.ModelMention(m.Second),
 			)
 		}
 
 		if m.Brak.BabyUserID != nil && m.Baby != nil {
-			text += fmt.Sprintf(" [%s]", m.Baby.Mention())
+			text += fmt.Sprintf(" [%s]", html.ModelMention(m.Baby))
 		}
 
 		text += fmt.Sprintf("\n   ⏳ %s - 💰 %d\n", m.Brak.Duration(), m.Brak.Score)
