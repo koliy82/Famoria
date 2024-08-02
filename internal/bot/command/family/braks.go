@@ -153,7 +153,8 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, err = bot.SendMessage(params.
 		WithText(header + fillPage(braks, page, limit)).
-		WithReplyMarkup(keyboard),
+		WithReplyMarkup(keyboard).
+		WithDisableNotification(),
 	)
 	if err != nil {
 		p.log.Sugar().Error(err)
@@ -168,30 +169,28 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 	for index, m := range braks {
 		text += fmt.Sprintf("%d.", index+1+(int(page)-1)*int(limit))
 		if m.First == nil {
-			text += fmt.Sprintf(" %s",
-				html.Mention(m.Brak.FirstUserID, "?"),
-			)
+			text += html.Bold(" ?")
 		} else {
 			text += fmt.Sprintf(" %s",
-				html.ModelMention(m.First),
+				m.First.UsernameOrFull(),
 			)
 		}
 
 		if m.Second == nil {
-			text += fmt.Sprintf(" и %s",
-				html.Mention(m.Brak.SecondUserID, "?"),
-			)
+			text += html.Bold(" ?")
 		} else {
 			text += fmt.Sprintf(" и %s",
-				html.ModelMention(m.Second),
+				m.Second.UsernameOrFull(),
 			)
 		}
 
 		if m.Brak.BabyUserID != nil && m.Baby != nil {
-			text += fmt.Sprintf(" 👼 %s", html.ModelMention(m.Baby))
+			text += fmt.Sprintf(" 👼 %s",
+				html.CodeInline(m.Baby.UsernameOrFull()),
+			)
 		}
 
-		text += fmt.Sprintf("\n   ⏳ %s - 💰 %d\n", m.Brak.Duration(), m.Brak.Score)
+		text += fmt.Sprintf("\n   ⏳ %s - %d 💰\n", m.Brak.Duration(), m.Brak.Score)
 	}
 	return text
 }
