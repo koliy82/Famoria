@@ -62,7 +62,7 @@ func UserMention(user *telego.User) string {
 // ModelMention creates a mention of the user with the specified ID and text.
 func ModelMention(user *user.User) string {
 	if &user.Username != nil {
-		return Mention(user.ID, "@"+*user.Username)
+		return Mention(user.ID, *user.Username)
 	}
 	if &user.LastName != nil {
 		return Mention(user.ID, fmt.Sprintf("%s %s", user.FirstName, *user.LastName))

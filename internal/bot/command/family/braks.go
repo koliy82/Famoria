@@ -188,7 +188,7 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 		}
 
 		if m.Brak.BabyUserID != nil && m.Baby != nil {
-			text += fmt.Sprintf(" [%s]", html.ModelMention(m.Baby))
+			text += fmt.Sprintf(" 👼 %s", html.ModelMention(m.Baby))
 		}
 
 		text += fmt.Sprintf("\n   ⏳ %s - 💰 %d\n", m.Brak.Duration(), m.Brak.Score)
