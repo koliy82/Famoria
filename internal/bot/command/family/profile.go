@@ -26,6 +26,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
 	fUser, err := p.userRepo.FindByID(from.ID)
 	if err != nil {
+		p.log.Sugar().Error(err)
 		return
 	}
 
@@ -43,17 +44,21 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	if b != nil {
 		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
 			b.ChatID = update.Message.Chat.ID
-			_ = p.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
+			err = p.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
+			if err != nil {
+				p.log.Sugar().Error(err)
+				return
+			}
 		}
-		tUser, _ := p.userRepo.FindByID(b.PartnerID(fUser.ID))
-		if tUser == nil {
-			return
-		}
+
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
+		tUser, _ := p.userRepo.FindByID(b.PartnerID(fUser.ID))
 		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
-		text += fmt.Sprintf("🫂 %s [%s]\n", html.ModelMention(tUser), b.Duration())
+		if tUser != nil {
+			text += fmt.Sprintf("🫂 %s [%s]\n", html.ModelMention(tUser), b.Duration())
+		}
 
 		if b.BabyUserID != nil {
 			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
