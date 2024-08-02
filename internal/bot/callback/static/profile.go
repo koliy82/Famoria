@@ -10,8 +10,8 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/database/mongo/repositories/user"
+	"go_tg_bot/internal/pkg/date"
 	"go_tg_bot/internal/pkg/html"
-	"go_tg_bot/internal/pkg/utils"
 	"math/rand"
 	"time"
 )
@@ -43,7 +43,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if utils.HasUpdated(b.LastCasinoPlay) {
+		if date.HasUpdated(b.LastCasinoPlay) {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Играть в казино можно раз в сутки.",
@@ -117,7 +117,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if utils.HasUpdated(b.LastGrowKid) {
+		if date.HasUpdated(b.LastGrowKid) {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Кормить ребёнка можно раз в сутки.",
@@ -176,7 +176,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if !utils.HasUpdated(b.LastHamsterUpdate) {
+		if !date.HasUpdated(b.LastHamsterUpdate) {
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{

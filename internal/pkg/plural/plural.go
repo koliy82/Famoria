@@ -1,4 +1,4 @@
-package utils
+package plural
 
 import (
 	"golang.org/x/exp/constraints"

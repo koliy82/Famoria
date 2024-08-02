@@ -9,7 +9,7 @@ import (
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/database/mongo/repositories/brak"
 	"go_tg_bot/internal/pkg/html"
-	"go_tg_bot/internal/pkg/utils"
+	"go_tg_bot/internal/pkg/plural"
 	"math"
 	"strconv"
 	"time"
@@ -60,11 +60,11 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 
 	if p.isLocal {
 		header = fmt.Sprintf("💍 %d %s В ГРУППЕ 💍\n",
-			count, utils.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
+			count, plural.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
 		)
 	} else {
 		header = fmt.Sprintf("💍 %d %s В ЧАТАХ 💍\n",
-			count, utils.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
+			count, plural.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
 		)
 	}
 
