@@ -75,10 +75,9 @@ func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]
 		c.log.Sugar().Error(err)
 		return nil, 0, err
 	}
-
 	pipeline := mongo.Pipeline{
 		{{"$match", filter}},
-		{{"$sort", bson.M{"score": -1}}},
+		{{"$sort", bson.M{"score": -1, "create_date": -1}}},
 		{{"$skip", skip}},
 		{{"$limit", limit}},
 		{{"$lookup", bson.M{
@@ -144,9 +143,6 @@ func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return nil, 0, err
-	}
-	for b := range braks {
-		c.log.Info("brak", zap.Any("brak", braks[b]))
 	}
 	return braks, brakCount, nil
 }
