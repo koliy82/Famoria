@@ -5,11 +5,12 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Config struct {
-	AppEnv string `envconfig:"APP_ENV" default:"dev"`
-
+	AppEnv        string `envconfig:"APP_ENV" default:"dev"`
+	AppTimeZone   string `envconfig:"APP_TIMEZONE" default:"Europe/Moscow"`
 	TelegramToken string `envconfig:"TELEGRAM_TOKEN" required:"true"`
 
 	ClickhouseURL      string `envconfig:"CLICKHOUSE_URL" required:"true"`
@@ -37,6 +38,12 @@ func New() Config {
 	if err := envconfig.Process("", &cfg); err != nil {
 		panic(err)
 	}
+
+	loc, err := time.LoadLocation(cfg.AppTimeZone)
+	if err != nil {
+		panic(err)
+	}
+	time.Local = loc
 
 	return cfg
 }
