@@ -6,15 +6,17 @@ import (
 	"go_tg_bot/internal/config"
 )
 
-func New(log *zap.Logger, cfg config.Config) *telego.Bot {
-	bot, err := telego.NewBot(cfg.TelegramToken, telego.WithDefaultDebugLogger())
+func New(cfg config.Config) *telego.Bot {
+	bot, err := telego.NewBot(cfg.TelegramToken, telego.WithDefaultLogger(true, true))
 	if err != nil {
-		log.Sugar().Error(err)
 		panic(err)
 	}
+	return bot
+}
+
+func PrintMe(log *zap.Logger, bot *telego.Bot) {
 	me, err := bot.GetMe()
 	if err != nil {
-		log.Sugar().Error(err)
 		panic(err)
 	}
 	m := Me{
@@ -25,5 +27,4 @@ func New(log *zap.Logger, cfg config.Config) *telego.Bot {
 		IsBot:     me.IsBot,
 	}
 	m.Print(log)
-	return bot
 }

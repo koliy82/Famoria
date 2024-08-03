@@ -2,7 +2,6 @@ package app
 
 import (
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"go_tg_bot/internal/bot"
 	"go_tg_bot/internal/bot/callback"
 	"go_tg_bot/internal/bot/callback/static"
@@ -22,12 +21,8 @@ import (
 
 var App = fx.Options(
 	fx.Provide(
-		func() *zap.Logger {
-			log, _ := zap.NewDevelopment()
-			zap.ReplaceGlobals(log)
-			return log
-		},
 		config.New,
+		config.SetupLogger,
 	),
 	fx.Provide(
 		clickhouse.New,
@@ -51,6 +46,7 @@ var App = fx.Options(
 		minecraft.Register,
 		callback.Register,
 		logger.Register,
+		bot.PrintMe,
 		handler.StartHandle,
 	),
 )

@@ -12,6 +12,7 @@ type Config struct {
 	AppEnv        string `envconfig:"APP_ENV" default:"dev"`
 	AppTimeZone   string `envconfig:"APP_TIMEZONE" default:"Europe/Moscow"`
 	TelegramToken string `envconfig:"TELEGRAM_TOKEN" required:"true"`
+	ErrorsChatID  int64  `envconfig:"ERRORS_CHAT_ID" default:"0"`
 
 	ClickhouseURL      string `envconfig:"CLICKHOUSE_URL" required:"true"`
 	ClickhousePort     int    `envconfig:"CLICKHOUSE_PORT" required:"true"`
