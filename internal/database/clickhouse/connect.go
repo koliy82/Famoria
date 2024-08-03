@@ -3,10 +3,10 @@ package clickhouse
 import (
 	"context"
 	"errors"
+	"famoria/internal/config"
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"go_tg_bot/internal/config"
 	"net"
 	"time"
 )

@@ -1,9 +1,9 @@
 package html
 
 import (
+	"famoria/internal/database/mongo/repositories/user"
 	"fmt"
 	"github.com/mymmrac/telego"
-	"go_tg_bot/internal/database/mongo/repositories/user"
 	"strings"
 )
 

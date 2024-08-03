@@ -2,9 +2,9 @@ package mongo
 
 import (
 	"context"
+	"famoria/internal/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go_tg_bot/internal/config"
 )
 
 func New(cfg config.Config) *mongo.Client {

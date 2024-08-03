@@ -1,4 +1,4 @@
-module go_tg_bot
+module famoria
 
 go 1.22.3
 

@@ -1,13 +1,13 @@
 package info
 
 import (
+	"famoria/internal/bot/callback"
+	"famoria/internal/database/mongo/repositories/brak"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/bot/callback"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
 )
 
 type Opts struct {

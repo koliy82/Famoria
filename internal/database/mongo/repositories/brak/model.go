@@ -1,10 +1,10 @@
 package brak
 
 import (
+	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/plural"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/pkg/plural"
 	"time"
 )
 

@@ -1,10 +1,10 @@
 package info
 
 import (
+	"famoria/internal/database/mongo/repositories/brak"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
 )
 
 type menu struct {

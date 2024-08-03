@@ -1,8 +1,8 @@
 package main
 
 import (
+	"famoria/internal/app"
 	"go.uber.org/fx"
-	"go_tg_bot/internal/app"
 )
 
 func main() {

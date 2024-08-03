@@ -1,9 +1,9 @@
 package bot
 
 import (
+	"famoria/internal/config"
 	"github.com/mymmrac/telego"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/config"
 )
 
 func New(cfg config.Config) *telego.Bot {

@@ -1,13 +1,13 @@
 package logger
 
 import (
+	"famoria/internal/database/clickhouse/repositories/message"
+	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/user"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/database/clickhouse/repositories/message"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type MessageLogger struct {

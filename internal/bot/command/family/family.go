@@ -1,15 +1,15 @@
 package family
 
 import (
+	"famoria/internal/bot/callback"
+	"famoria/internal/database/clickhouse/repositories/message"
+	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/user"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/bot/callback"
-	"go_tg_bot/internal/database/clickhouse/repositories/message"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 type Opts struct {

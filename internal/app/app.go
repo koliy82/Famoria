@@ -1,22 +1,22 @@
 package app
 
 import (
+	"famoria/internal/bot"
+	"famoria/internal/bot/callback"
+	"famoria/internal/bot/callback/static"
+	"famoria/internal/bot/command/admin"
+	"famoria/internal/bot/command/family"
+	"famoria/internal/bot/command/info"
+	"famoria/internal/bot/command/minecraft"
+	"famoria/internal/bot/handler"
+	"famoria/internal/bot/handler/logger"
+	"famoria/internal/config"
+	"famoria/internal/database/clickhouse"
+	"famoria/internal/database/clickhouse/repositories/message"
+	"famoria/internal/database/mongo"
+	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/user"
 	"go.uber.org/fx"
-	"go_tg_bot/internal/bot"
-	"go_tg_bot/internal/bot/callback"
-	"go_tg_bot/internal/bot/callback/static"
-	"go_tg_bot/internal/bot/command/admin"
-	"go_tg_bot/internal/bot/command/family"
-	"go_tg_bot/internal/bot/command/info"
-	"go_tg_bot/internal/bot/command/minecraft"
-	"go_tg_bot/internal/bot/handler"
-	"go_tg_bot/internal/bot/handler/logger"
-	"go_tg_bot/internal/config"
-	"go_tg_bot/internal/database/clickhouse"
-	"go_tg_bot/internal/database/clickhouse/repositories/message"
-	"go_tg_bot/internal/database/mongo"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/database/mongo/repositories/user"
 )
 
 var App = fx.Options(

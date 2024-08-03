@@ -1,11 +1,11 @@
 package admin
 
 import (
+	"famoria/internal/bot/callback"
+	"famoria/internal/bot/predicate"
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/bot/callback"
-	"go_tg_bot/internal/bot/predicate"
 )
 
 type Opts struct {

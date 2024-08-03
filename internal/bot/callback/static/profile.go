@@ -1,17 +1,17 @@
 package static
 
 import (
+	"famoria/internal/bot/callback"
+	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/date"
+	"famoria/internal/pkg/html"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"go_tg_bot/internal/bot/callback"
-	"go_tg_bot/internal/database/mongo/repositories/brak"
-	"go_tg_bot/internal/database/mongo/repositories/user"
-	"go_tg_bot/internal/pkg/date"
-	"go_tg_bot/internal/pkg/html"
 	"math/rand"
 	"time"
 )
