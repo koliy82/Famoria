@@ -46,7 +46,7 @@ func SetupLogger(c Config, bot *telego.Bot) *zap.Logger {
 
 func (t *telegramCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if ce := t.Core.Check(ent, ce); ce != nil {
-		if ent.Level >= zapcore.ErrorLevel {
+		if ent.Level >= zapcore.InfoLevel {
 			go t.sendToTelegram(ent)
 		}
 		return ce

@@ -7,7 +7,7 @@ import (
 )
 
 func New(cfg config.Config) *telego.Bot {
-	bot, err := telego.NewBot(cfg.TelegramToken, telego.WithDefaultLogger(true, true))
+	bot, err := telego.NewBot(cfg.TelegramToken, telego.WithDefaultLogger(false, true))
 	if err != nil {
 		panic(err)
 	}

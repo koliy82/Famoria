@@ -78,11 +78,11 @@ func (m Me) Print(log *zap.Logger) {
 		spaceLength,
 	)
 
-	log.Info(header)
+	log.Debug(header)
 	for _, line := range bodyLines {
-		log.Info(line)
+		log.Debug(line)
 	}
-	log.Info(footer)
+	log.Debug(footer)
 }
 
 func buildBox(

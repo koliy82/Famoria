@@ -22,7 +22,7 @@ func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
 	if from == nil {
 		return
 	}
-	err := l.userRepo.ValidateInfo(update.Message.From)
+	_, err := l.userRepo.FindOrUpdate(update.Message.From)
 	if err != nil {
 		return
 	}
