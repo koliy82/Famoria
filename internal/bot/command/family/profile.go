@@ -24,9 +24,8 @@ type profile struct {
 
 func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	fUser, err := p.userRepo.FindByID(from.ID)
+	fUser, err := p.userRepo.FindOrUpdate(from)
 	if err != nil {
-		p.log.Sugar().Error(err)
 		return
 	}
 
