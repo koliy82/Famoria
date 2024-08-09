@@ -22,6 +22,8 @@ type Config struct {
 
 	MongoURI      string `envconfig:"MONGO_URI" required:"true"`
 	MongoDatabase string `envconfig:"MONGO_DATABASE" required:"true"`
+
+	ApiURL string `envconfig:"API_URL" default:"http://localhost:8000"`
 }
 
 func New() Config {

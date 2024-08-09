@@ -2,12 +2,11 @@ package family
 
 import (
 	"famoria/internal/bot/callback"
+	"famoria/internal/config"
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
-	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
-	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -16,6 +15,7 @@ type Opts struct {
 	fx.In
 	Bh          *th.BotHandler
 	Log         *zap.Logger
+	Cfg         config.Config
 	BrakRepo    brak.Repository
 	UserRepo    user.Repository
 	MessageRepo message.Repository
@@ -80,17 +80,15 @@ func Register(opts Opts) {
 		log:      opts.Log,
 	}.Handle, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
+	opts.Bh.Handle(tree{
+		mode: "text",
+		cfg:  opts.Cfg,
+		log:  opts.Log,
+	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, _ = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"Hello %s!\n Данная команда пока не реализована..", update.Message.From.FirstName,
-		))
-	}, th.Or(th.CommandEqual("treeimage"), th.TextEqual("🌳 Древо (картинка)")))
+	opts.Bh.Handle(tree{
+		mode: "image",
+		cfg:  opts.Cfg,
+		log:  opts.Log,
+	}.Handle, th.Or(th.CommandEqual("treeimage"), th.TextEqual("🌳 Древо (картинка)")))
 }

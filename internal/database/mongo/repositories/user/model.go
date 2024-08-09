@@ -13,7 +13,7 @@ type User struct {
 	LastName     *string            `bson:"last_name"`
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
-	IsAdmin      bool               `bson:"is_admin"`
+	IsAdmin      *bool              `bson:"is_admin"`
 }
 
 func (u *User) IsEquals(other *User) bool {
