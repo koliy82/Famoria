@@ -54,7 +54,6 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 		LastName:     &user.LastName,
 		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
-		IsAdmin:      false,
 	}
 	if errors.Is(err, mongo.ErrNoDocuments) && actual == nil {
 		model.OID = primitive.NewObjectID()

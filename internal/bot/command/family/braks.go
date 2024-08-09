@@ -190,7 +190,12 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 			)
 		}
 
-		text += fmt.Sprintf("\n   ⏳ %s - %d 💰\n", m.Brak.Duration(), m.Brak.Score)
+		text += fmt.Sprintf("\n   ⏳ %s", m.Brak.Duration())
+		if m.Brak.Score >= 0 {
+			text += fmt.Sprintf(" - %d 💰\n", m.Brak.Score)
+		} else {
+			text += fmt.Sprintf(", долг %d 💸\n", m.Brak.Score)
+		}
 	}
 	return text
 }

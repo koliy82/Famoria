@@ -77,7 +77,7 @@ func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]
 	}
 	pipeline := mongo.Pipeline{
 		{{"$match", filter}},
-		{{"$sort", bson.M{"score": -1, "create_date": -1}}},
+		{{"$sort", bson.M{"score": -1}}},
 		{{"$skip", skip}},
 		{{"$limit", limit}},
 		{{"$lookup", bson.M{
