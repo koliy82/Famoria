@@ -1,6 +1,7 @@
 package family
 
 import (
+	"bytes"
 	"famoria/internal/config"
 	"fmt"
 	"github.com/mymmrac/telego"
@@ -8,16 +9,55 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type tree struct {
-	cfg  config.Config
-	log  *zap.Logger
-	mode string
+	cfg config.Config
+	log *zap.Logger
 }
 
+type Image int
+
+func (i Image) String() string {
+	switch i {
+	case Graphviz:
+		return "graphviz"
+	case Ete3:
+		return "ete3"
+	case AnyTree:
+		return "anytree"
+	case Igraph:
+		return "igraph"
+	case Plotly:
+		return "v2"
+	case Networkx:
+		return "v3"
+	default:
+		return "graphviz"
+	}
+}
+
+const (
+	Graphviz Image = iota
+	Ete3
+	AnyTree
+	Igraph
+	Plotly
+	Networkx
+)
+
 func (t tree) Handle(bot *telego.Bot, update telego.Update) {
-	requestURL := fmt.Sprintf("%s/tree/%s/%d?reverse=true", t.cfg.ApiURL, t.mode, update.Message.From.ID)
+	args := strings.Split(update.Message.Text, " ")
+	mode := "text"
+	if len(args) > 1 {
+		arg, err := strconv.Atoi(args[1])
+		if err == nil {
+			mode = "image_" + Image(arg).String()
+		}
+	}
+	requestURL := fmt.Sprintf("%s/tree/%s/%d?reverse=true", t.cfg.ApiURL, mode, update.Message.From.ID)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
 		t.log.Sugar().Error("client: could not create request: %s\n", err)
@@ -35,25 +75,31 @@ func (t tree) Handle(bot *telego.Bot, update telego.Update) {
 		t.log.Sugar().Error("client: could not read response body: %s\n", err)
 		return
 	}
-	t.log.Sugar().Debug(fmt.Sprintf("client: response body: %s\n", resBody))
 
-	switch t.mode {
+	switch mode {
 	case "text":
 		_, err = bot.SendMessage(
 			&telego.SendMessageParams{
-				ChatID:    tu.ID(update.Message.Chat.ID),
-				ParseMode: telego.ModeHTML,
-				Text:      string(resBody),
+				ChatID: tu.ID(update.Message.Chat.ID),
+				Text:   string(resBody),
 			},
 		)
-	case "image":
-		_, err = bot.SendMessage(tu.Messagef(
-			tu.ID(update.Message.Chat.ID),
-			"%s, данная команда находится в разработке..", update.Message.From.FirstName,
-		))
-		//_, err = bot.SendPhoto(&telego.SendPhotoParams{
-		//	ChatID: tu.ID(update.Message.Chat.ID),
-		//})
+	default:
+		contentType := res.Header.Get("Content-Type")
+		if !strings.HasPrefix(contentType, "image/") {
+			t.log.Sugar().Error("client: expected image but got: %s", contentType)
+			return
+		}
+
+		_, err = bot.SendPhoto(&telego.SendPhotoParams{
+			ChatID: tu.ID(update.Message.Chat.ID),
+			Photo: tu.File(
+				tu.NameReader(
+					bytes.NewReader(resBody),
+					"tree.png",
+				),
+			),
+		})
 	}
 
 	if err != nil {

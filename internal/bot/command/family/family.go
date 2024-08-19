@@ -81,14 +81,13 @@ func Register(opts Opts) {
 	}.Handle, th.Or(th.CommandEqual("braksglobal"), th.TextEqual("🌍 Браки всех чатов")))
 
 	opts.Bh.Handle(tree{
-		mode: "text",
-		cfg:  opts.Cfg,
-		log:  opts.Log,
+		cfg: opts.Cfg,
+		log: opts.Log,
 	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
-
-	opts.Bh.Handle(tree{
-		mode: "image",
-		cfg:  opts.Cfg,
-		log:  opts.Log,
-	}.Handle, th.Or(th.CommandEqual("treeimage"), th.TextEqual("🌳 Древо (картинка)")))
+	
+	//opts.Bh.Handle(tree{
+	//	mode: "image",
+	//	cfg:  opts.Cfg,
+	//	log:  opts.Log,
+	//}.Handle, th.Or(th.CommandEqual("treeimage"), th.TextEqual("🌳 Древо (картинка)")))
 }

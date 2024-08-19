@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/mymmrac/telego v0.31.0
+	github.com/mymmrac/telego v0.31.1
 	go.uber.org/fx v1.22.1
 	go.uber.org/zap v1.27.0
 )
@@ -19,8 +19,8 @@ require (
 require (
 	github.com/ClickHouse/ch-go v0.62.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/bytedance/sonic v1.11.9 // indirect
-	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/bytedance/sonic v1.12.1 // indirect
+	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
