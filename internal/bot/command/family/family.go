@@ -6,7 +6,7 @@ import (
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
-	th "github.com/mymmrac/telego/telegohandler"
+	th "github.com/koliy82/telego/telegohandler"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -84,7 +84,7 @@ func Register(opts Opts) {
 		cfg: opts.Cfg,
 		log: opts.Log,
 	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
-	
+
 	//opts.Bh.Handle(tree{
 	//	mode: "image",
 	//	cfg:  opts.Cfg,

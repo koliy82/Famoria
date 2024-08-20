@@ -3,7 +3,7 @@ package html
 import (
 	"famoria/internal/database/mongo/repositories/user"
 	"fmt"
-	"github.com/mymmrac/telego"
+	"github.com/koliy82/telego"
 	"strings"
 )
 

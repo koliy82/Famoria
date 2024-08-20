@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"github.com/mymmrac/telego"
-	tu "github.com/mymmrac/telego/telegoutil"
+	"github.com/koliy82/telego"
+	tu "github.com/koliy82/telego/telegoutil"
 	"go.uber.org/zap"
 	"strings"
 )

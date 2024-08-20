@@ -2,7 +2,7 @@ package callback
 
 import (
 	"github.com/google/uuid"
-	"github.com/mymmrac/telego"
+	"github.com/koliy82/telego"
 	"go.uber.org/zap"
 	"sync"
 	"time"

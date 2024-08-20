@@ -1,12 +1,35 @@
 package handler
 
 import (
-	"github.com/mymmrac/telego"
-	th "github.com/mymmrac/telego/telegohandler"
+	"github.com/koliy82/telego"
+	th "github.com/koliy82/telego/telegohandler"
 )
 
 func New(bot *telego.Bot) *th.BotHandler {
-	updates, _ := bot.UpdatesViaLongPolling(nil)
+	var updates, _ = bot.UpdatesViaLongPolling(
+
+		&telego.GetUpdatesParams{
+			Timeout: 8,
+			AllowedUpdates: []string{
+				telego.MessageUpdates,
+				telego.EditedMessageUpdates,
+				telego.ChannelPostUpdates,
+				telego.EditedChannelPostUpdates,
+				//telego.MessageReaction,
+				//telego.MessageReactionCount,
+				telego.InlineQueryUpdates,
+				telego.ChosenInlineResultUpdates,
+				telego.CallbackQueryUpdates,
+				telego.ShippingQueryUpdates,
+				telego.PreCheckoutQueryUpdates,
+				telego.PollUpdates,
+				telego.PollAnswerUpdates,
+				telego.MyChatMemberUpdates,
+				telego.ChatMemberUpdates,
+				telego.ChatJoinRequestUpdates,
+			},
+		},
+	)
 
 	bh, err := th.NewBotHandler(bot, updates)
 

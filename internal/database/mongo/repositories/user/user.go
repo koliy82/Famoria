@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/mymmrac/telego"
+	"github.com/koliy82/telego"
 )
 
 type Repository interface {

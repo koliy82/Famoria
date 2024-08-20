@@ -2,7 +2,7 @@ package bot
 
 import (
 	"famoria/internal/config"
-	"github.com/mymmrac/telego"
+	"github.com/koliy82/telego"
 	"go.uber.org/zap"
 )
 

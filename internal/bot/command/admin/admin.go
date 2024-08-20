@@ -3,7 +3,7 @@ package admin
 import (
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/predicate"
-	th "github.com/mymmrac/telego/telegohandler"
+	th "github.com/koliy82/telego/telegohandler"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )

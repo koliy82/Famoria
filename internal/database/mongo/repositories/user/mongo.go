@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"famoria/internal/config"
-	"github.com/mymmrac/telego"
+	"github.com/koliy82/telego"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
