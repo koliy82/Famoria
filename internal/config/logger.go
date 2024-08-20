@@ -11,12 +11,27 @@ import (
 
 type telegramCore struct {
 	zapcore.Core
-	bot    *telego.Bot
-	chatID int64
+	bot         *telego.Bot
+	infoChatID  *int64
+	warnChatID  *int64
+	errorChatID *int64
 }
 
-func newTelegramCore(core zapcore.Core, bot *telego.Bot, chatID int64) zapcore.Core {
-	return &telegramCore{core, bot, chatID}
+func (t *telegramCore) toChatID(level zapcore.Level) *int64 {
+	switch level {
+	case zapcore.InfoLevel:
+		return t.infoChatID
+	case zapcore.WarnLevel:
+		return t.warnChatID
+	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
+		return t.errorChatID
+	default:
+		return nil
+	}
+}
+
+func newTelegramCore(core zapcore.Core, bot *telego.Bot, c Config) zapcore.Core {
+	return &telegramCore{core, bot, c.InfoChatID, c.WarnChatID, c.ErrorsChatID}
 }
 
 func SetupLogger(c Config, bot *telego.Bot) *zap.Logger {
@@ -32,9 +47,9 @@ func SetupLogger(c Config, bot *telego.Bot) *zap.Logger {
 
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC850)
 
-	if c.ErrorsChatID != 0 {
+	if c.ErrorsChatID != nil {
 		core, _ := config.Build()
-		telegramCore := newTelegramCore(core.Core(), bot, c.ErrorsChatID)
+		telegramCore := newTelegramCore(core.Core(), bot, c)
 		log = zap.New(telegramCore)
 	} else {
 		log, _ = config.Build()
@@ -55,8 +70,12 @@ func (t *telegramCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapco
 }
 
 func (t *telegramCore) sendToTelegram(ent zapcore.Entry) {
+	chatId := t.toChatID(ent.Level)
+	if chatId == nil {
+		return
+	}
 	_, _ = t.bot.SendMessage(&telego.SendMessageParams{
-		ChatID: tu.ID(t.chatID),
+		ChatID: tu.ID(*chatId),
 		Text: fmt.Sprintf("[%s]\n%s: %s", ent.Time.Format(time.RFC850),
 			ent.Level.CapitalString(), ent.Message,
 		),
