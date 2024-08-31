@@ -22,29 +22,26 @@ type Image int
 
 func (i Image) String() string {
 	switch i {
+	case Text:
+		return "text"
 	case Graphviz:
-		return "graphviz"
+		return "image_graphviz"
 	case Ete3:
-		return "ete3"
+		return "image_ete3"
 	case AnyTree:
-		return "anytree"
-	case Igraph:
-		return "igraph"
-	case Plotly:
-		return "v2"
+		return "image_igraph"
 	case Networkx:
-		return "v3"
+		return "image_networkx"
 	default:
-		return "graphviz"
+		return "text"
 	}
 }
 
 const (
-	Graphviz Image = iota
+	Text Image = iota
+	Graphviz
 	Ete3
 	AnyTree
-	Igraph
-	Plotly
 	Networkx
 )
 
@@ -54,7 +51,7 @@ func (t tree) Handle(bot *telego.Bot, update telego.Update) {
 	if len(args) > 1 {
 		arg, err := strconv.Atoi(args[1])
 		if err == nil {
-			mode = "image_" + Image(arg).String()
+			mode = Image(arg).String()
 		}
 	}
 	requestURL := fmt.Sprintf("%s/tree/%s/%d?reverse=true", t.cfg.ApiURL, mode, update.Message.From.ID)
