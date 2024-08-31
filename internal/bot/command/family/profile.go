@@ -31,6 +31,15 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 
 	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
 	text += fmt.Sprintf("👤 %s\n", html.CodeInline(fUser.UsernameOrFull()))
+	text += fmt.Sprintf("💰 %s\n", fUser.Score.GetFormattedScore())
+
+	//text += fmt.Sprintf("old💰 %s\n", fUser.Score.GetFormattedScore())
+	//for range 1 {
+	//	fUser.Score.IncreaseScore(1000)
+	//}
+	//_ = p.userRepo.Update(bson.M{"id": fUser.ID}, bson.M{"$set": bson.M{"score": fUser.Score}})
+	//text += fmt.Sprintf("new💰 %s\n", fUser.Score.GetFormattedScore())
+
 	messageCount, err := p.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
@@ -67,7 +76,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 			}
 		}
 
-		text += fmt.Sprintf("💰 %v\n", b.Score)
+		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
 	}
 
 	params := &telego.SendMessageParams{

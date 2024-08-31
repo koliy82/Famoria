@@ -23,8 +23,9 @@ type Config struct {
 	ClickhousePassword string `envconfig:"CLICKHOUSE_PASSWORD" required:"true"`
 	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
 
-	MongoURI      string `envconfig:"MONGO_URI" required:"true"`
-	MongoDatabase string `envconfig:"MONGO_DATABASE" required:"true"`
+	MongoURI              string  `envconfig:"MONGO_URI" required:"true"`
+	MongoDatabase         string  `envconfig:"MONGO_DATABASE" required:"true"`
+	TransferMongoDatabase *string `envconfig:"TRANSFER_MONGO_DATABASE"`
 
 	ApiURL string `envconfig:"API_URL" default:"http://localhost:8000"`
 }

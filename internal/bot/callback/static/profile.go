@@ -52,12 +52,16 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		score := rand.Intn(500) - 300
+		score := rand.Int63n(500) - 300
+		b.Score.IncreaseScore(score)
+
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
-				"$inc": bson.M{"score": score},
-				"$set": bson.M{"last_casino_play": time.Now()},
+				"$set": bson.M{
+					"score":            b.Score,
+					"last_casino_play": time.Now(),
+				},
 			},
 		)
 		if err != nil {
@@ -126,12 +130,16 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		score := rand.Intn(30) + 20
+		score := rand.Int63n(30) + 20
+		b.Score.IncreaseScore(score)
+
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
-				"$inc": bson.M{"score": score},
-				"$set": bson.M{"last_grow_kid": time.Now()},
+				"$set": bson.M{
+					"score":         b.Score,
+					"last_grow_kid": time.Now(),
+				},
 			},
 		)
 		if err != nil {
@@ -177,11 +185,12 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if !date.HasUpdated(b.LastHamsterUpdate) {
+			b.Score.IncreaseScore(1)
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
-					"$inc": bson.M{"score": 1},
 					"$set": bson.M{
+						"score":               b.Score,
 						"tap_count":           49,
 						"last_hamster_update": time.Now(),
 					},
@@ -195,10 +204,12 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		} else {
+			b.Score.IncreaseScore(1)
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
-					"$inc": bson.M{"score": 1, "tap_count": -1},
+					"$set": bson.M{"score": b.Score},
+					"$inc": bson.M{"tap_count": -1},
 				},
 			)
 		}

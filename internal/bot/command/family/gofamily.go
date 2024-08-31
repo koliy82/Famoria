@@ -4,6 +4,7 @@ import (
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/score"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -109,7 +110,10 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Score:        0,
+				Score: score.Score{
+					Mantissa: 0,
+					Exponent: 0,
+				},
 			})
 
 			_, err := bot.SendMessage(&telego.SendMessageParams{

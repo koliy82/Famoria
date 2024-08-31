@@ -3,6 +3,7 @@ package brak
 import (
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/plural"
+	"famoria/internal/pkg/score"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
@@ -16,7 +17,7 @@ type Brak struct {
 	CreateDate        time.Time          `bson:"create_date"`
 	BabyUserID        *int64             `bson:"baby_user_id"`
 	BabyCreateDate    *time.Time         `bson:"baby_create_date"`
-	Score             int64              `bson:"score"`
+	Score             score.Score        `bson:"score"`
 	LastCasinoPlay    time.Time          `bson:"last_casino_play"`
 	LastGrowKid       time.Time          `bson:"last_grow_kid"`
 	LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
