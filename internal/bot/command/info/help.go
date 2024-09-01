@@ -8,15 +8,15 @@ import (
 	"strings"
 )
 
-type help struct {
+type helpCmd struct {
 	brakRepo brak.Repository
 	log      *zap.Logger
 }
 
-func (h help) Handle(bot *telego.Bot, update telego.Update) {
+func (c helpCmd) Handle(bot *telego.Bot, update telego.Update) {
 	commands, err := bot.GetMyCommands(&telego.GetMyCommandsParams{})
 	if err != nil {
-		h.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 		return
 	}
 	text := ""
@@ -31,9 +31,9 @@ func (h help) Handle(bot *telego.Bot, update telego.Update) {
 			ChatID:                   tu.ID(update.Message.Chat.ID),
 			AllowSendingWithoutReply: true,
 		},
-		ReplyMarkup: GenerateButtons(h.brakRepo, update.Message.From.ID),
+		ReplyMarkup: GenerateButtons(c.brakRepo, update.Message.From.ID),
 	})
 	if err != nil {
-		h.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

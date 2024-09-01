@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-type sendText struct {
+type sendTextCmd struct {
 	log *zap.Logger
 }
 
-func (s sendText) Handle(bot *telego.Bot, update telego.Update) {
+func (c sendTextCmd) Handle(bot *telego.Bot, update telego.Update) {
 	chatID := tu.ID(update.Message.Chat.ID)
 	args := strings.Split(update.Message.Text, " ")
 	err := bot.DeleteMessage(
@@ -21,7 +21,7 @@ func (s sendText) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	)
 	if err != nil {
-		s.log.Error(err.Error())
+		c.log.Error(err.Error())
 		return
 	}
 	_, err = bot.SendMessage(
@@ -31,7 +31,7 @@ func (s sendText) Handle(bot *telego.Bot, update telego.Update) {
 		),
 	)
 	if err != nil {
-		s.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 		return
 	}
 }

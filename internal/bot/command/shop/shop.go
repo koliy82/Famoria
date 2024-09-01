@@ -1,4 +1,4 @@
-package minecraft
+package shop
 
 import (
 	"github.com/mymmrac/telego"
@@ -11,7 +11,7 @@ func Register(bh *th.BotHandler, log *zap.Logger) {
 	bh.Handle(func(bot *telego.Bot, update telego.Update) {
 		_, _ = bot.SendMessage(tu.Messagef(
 			tu.ID(update.Message.Chat.ID),
-			"Hello %s!", update.Message.From.FirstName,
+			"Данная команда пока не реализована :(",
 		))
-	}, th.Or(th.CommandEqual("subscribe"), th.TextEqual("💳 Подписка")))
+	}, th.Or(th.CommandEqual("shop"), th.TextEqual("💳 Магазин")))
 }

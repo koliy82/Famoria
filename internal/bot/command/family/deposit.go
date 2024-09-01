@@ -3,8 +3,8 @@ package family
 import (
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
-	"famoria/internal/pkg/score"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -60,7 +60,7 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if u == nil {
 		return
 	}
-	if !u.Score.IsBiggerOrEquals(&score.Score{Mantissa: int64(amount)}) {
+	if !u.Score.IsBiggerOrEquals(&common.Score{Mantissa: int64(amount)}) {
 		_, err := bot.SendMessage(params.
 			WithText(fmt.Sprintf("%s, вы ввели сликом большое число для депозита", html.UserMention(from))),
 		)

@@ -2,9 +2,13 @@ package family
 
 import (
 	"famoria/internal/bot/callback"
+	"famoria/internal/bot/events"
+	"famoria/internal/bot/events/casino"
+	"famoria/internal/bot/events/growkid"
+	"famoria/internal/bot/events/hamster"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
-	"famoria/internal/pkg/score"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -110,9 +114,34 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Score: score.Score{
+				Inventory:    &common.Inventory{Items: map[string]common.Item{}},
+				Score: common.Score{
 					Mantissa: 0,
 					Exponent: 0,
+				},
+				Hamster: &hamster.Hamster{
+					Base: events.Base{
+						LastPlay:     time.Time{},
+						PlayCount:    0,
+						MaxPlayCount: 50,
+						PlayPower:    1,
+					},
+				},
+				Casino: &casino.Casino{
+					Base: events.Base{
+						LastPlay:     time.Time{},
+						PlayCount:    0,
+						MaxPlayCount: 1,
+						PlayPower:    500,
+					},
+				},
+				GrowKid: &growkid.GrowKid{
+					Base: events.Base{
+						LastPlay:     time.Time{},
+						PlayCount:    0,
+						MaxPlayCount: 1,
+						PlayPower:    50,
+					},
 				},
 			})
 

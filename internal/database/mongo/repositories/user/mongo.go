@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"famoria/internal/config"
-	"famoria/internal/pkg/score"
+	"famoria/internal/pkg/common"
 	"github.com/mymmrac/telego"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,7 +64,7 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 		LastName:     &user.LastName,
 		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
-		Score: score.Score{
+		Score: common.Score{
 			Mantissa: 0,
 			Exponent: 0,
 		},
@@ -143,7 +143,7 @@ func TransferUsers(client *mongo.Client, m *Mongo, cfg config.Config) error {
 		return err
 	}
 	if usersCount != 0 {
-		m.log.Error("transfer error: braks collection in new db is not empty")
+		m.log.Warn("transfer user collection in new db is not empty, skip transfer")
 		return nil
 	}
 
@@ -168,11 +168,15 @@ func TransferUsers(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			LastName:     transferUsers[i].LastName,
 			Username:     transferUsers[i].Username,
 			LanguageCode: transferUsers[i].LanguageCode,
-			Score: score.Score{
+			Score: common.Score{
 				Mantissa: 0,
 				Exponent: 0,
 			},
 			SubscribeEnd: nil,
+		}
+
+		if user.Score.Mantissa < 0 {
+			user.Score.Mantissa = 0
 		}
 
 		m.log.Sugar().Debug("Transfer user: ", zap.Any("user", user))

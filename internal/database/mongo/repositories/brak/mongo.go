@@ -2,8 +2,12 @@ package brak
 
 import (
 	"context"
+	"famoria/internal/bot/events"
+	"famoria/internal/bot/events/casino"
+	"famoria/internal/bot/events/growkid"
+	"famoria/internal/bot/events/hamster"
 	"famoria/internal/config"
-	"famoria/internal/pkg/score"
+	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -214,7 +218,7 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 		return err
 	}
 	if braksCount != 0 {
-		m.log.Error("transfer error: braks collection in new db is not empty")
+		m.log.Warn("transfer brak collection in new db is not empty, skip transfer")
 		return nil
 	}
 
@@ -233,18 +237,44 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 	m.log.Sugar().Info("Transfer braks count: ", strconv.Itoa(len(transferBraks)))
 	for i := range transferBraks {
 		brak := Brak{
-			OID:               transferBraks[i].OID,
-			FirstUserID:       transferBraks[i].FirstUserID,
-			SecondUserID:      transferBraks[i].SecondUserID,
-			ChatID:            transferBraks[i].ChatID,
-			CreateDate:        transferBraks[i].CreateDate,
-			BabyUserID:        transferBraks[i].BabyUserID,
-			BabyCreateDate:    transferBraks[i].BabyCreateDate,
-			Score:             score.Score{Mantissa: transferBraks[i].Score},
-			LastCasinoPlay:    transferBraks[i].LastCasinoPlay,
-			LastGrowKid:       transferBraks[i].LastGrowKid,
-			LastHamsterUpdate: transferBraks[i].LastHamsterUpdate,
-			TapCount:          transferBraks[i].TapCount,
+			OID:            transferBraks[i].OID,
+			FirstUserID:    transferBraks[i].FirstUserID,
+			SecondUserID:   transferBraks[i].SecondUserID,
+			ChatID:         transferBraks[i].ChatID,
+			CreateDate:     transferBraks[i].CreateDate,
+			BabyUserID:     transferBraks[i].BabyUserID,
+			BabyCreateDate: transferBraks[i].BabyCreateDate,
+			Score:          common.Score{Mantissa: transferBraks[i].Score},
+			Inventory:      &common.Inventory{Items: map[string]common.Item{}},
+			Hamster: &hamster.Hamster{
+				Base: events.Base{
+					LastPlay:     transferBraks[i].LastHamsterUpdate,
+					PlayCount:    uint16(transferBraks[i].TapCount),
+					MaxPlayCount: 50,
+					PlayPower:    1,
+				},
+			},
+			Casino: &casino.Casino{
+				Base: events.Base{
+					LastPlay:     transferBraks[i].LastCasinoPlay,
+					PlayCount:    1,
+					MaxPlayCount: 1,
+					PlayPower:    500,
+				},
+			},
+			GrowKid: &growkid.GrowKid{
+				Base: events.Base{
+					LastPlay:     transferBraks[i].LastGrowKid,
+					PlayCount:    1,
+					MaxPlayCount: 1,
+					PlayPower:    50,
+				},
+			},
+
+			//LastCasinoPlay:    transferBraks[i].LastCasinoPlay,
+			//LastGrowKid:       transferBraks[i].LastGrowKid,
+			//LastHamsterUpdate: transferBraks[i].LastHamsterUpdate,
+			//TapCount:          transferBraks[i].TapCount,
 		}
 
 		m.log.Sugar().Debug("transfer brak: ", zap.Any("brak", transferBraks[i]))

@@ -7,7 +7,8 @@ import (
 	"famoria/internal/bot/command/admin"
 	"famoria/internal/bot/command/family"
 	"famoria/internal/bot/command/info"
-	"famoria/internal/bot/command/minecraft"
+	"famoria/internal/bot/command/shop"
+	"famoria/internal/bot/command/subscription"
 	"famoria/internal/bot/handler"
 	"famoria/internal/bot/handler/logger"
 	"famoria/internal/config"
@@ -40,10 +41,11 @@ var App = fx.Options(
 		static.ProfileCallbacks,
 	),
 	fx.Invoke(
-		info.Register,
 		admin.Register,
 		family.Register,
-		minecraft.Register,
+		info.Register,
+		shop.Register,
+		subscription.Register,
 		callback.Register,
 		logger.Register,
 		bot.PrintMe,

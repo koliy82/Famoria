@@ -43,10 +43,15 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if date.HasUpdated(b.LastCasinoPlay) {
+		if !date.HasUpdated(b.Casino.LastPlay) {
+			b.Casino.PlayCount = b.Casino.MaxPlayCount
+			b.Casino.LastPlay = time.Now()
+		}
+
+		if b.Casino.PlayCount == 0 {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
-				Text:            "Играть в казино можно раз в сутки.",
+				Text:            "Сегодня вы уже играли в казино.",
 				ShowAlert:       true,
 			})
 			return
@@ -78,12 +83,13 @@ func ProfileCallbacks(opts Opts) {
 			text = fmt.Sprintf("%s играл сегодня в казино, но остался в нуле.", html.UserMention(&query.From))
 		}
 
+		b.Casino.PlayCount -= 1
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
 				"$set": bson.M{
-					"score":            b.Score,
-					"last_casino_play": time.Now(),
+					"score":  b.Score,
+					"casino": b.Casino,
 				},
 			},
 		)
@@ -136,10 +142,15 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if date.HasUpdated(b.LastGrowKid) {
+		if !date.HasUpdated(b.GrowKid.LastPlay) {
+			b.GrowKid.PlayCount = b.GrowKid.MaxPlayCount
+			b.GrowKid.LastPlay = time.Now()
+		}
+
+		if b.GrowKid.PlayCount == 0 {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
-				Text:            "Кормить ребёнка можно раз в сутки.",
+				Text:            "Вы сегодня уже кормили ребёнка.",
 				ShowAlert:       true,
 			})
 			return
@@ -147,13 +158,14 @@ func ProfileCallbacks(opts Opts) {
 
 		score := uint64(rand.Int31n(50) + 20)
 		b.Score.Increase(score)
+		b.GrowKid.PlayCount -= 1
 
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
 				"$set": bson.M{
-					"score":         b.Score,
-					"last_grow_kid": time.Now(),
+					"score":    b.Score,
+					"grow_kid": b.GrowKid,
 				},
 			},
 		)
@@ -193,25 +205,26 @@ func ProfileCallbacks(opts Opts) {
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
-				Text:            "Для использования казино необходимо жениться.",
+				Text:            "Для тапа хомяка необходимо жениться.",
 				ShowAlert:       true,
 			})
 			return
 		}
 
-		if !date.HasUpdated(b.LastHamsterUpdate) {
-			b.Score.Increase(1)
+		if !date.HasUpdated(b.Hamster.LastPlay) {
+			b.Score.Increase(b.Hamster.PlayPower)
+			b.Hamster.PlayCount = b.Hamster.MaxPlayCount - 1
+			b.Hamster.LastPlay = time.Now()
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
 					"$set": bson.M{
-						"score":               b.Score,
-						"tap_count":           49,
-						"last_hamster_update": time.Now(),
+						"score":   b.Score,
+						"hamster": b.Hamster,
 					},
 				},
 			)
-		} else if b.TapCount == 0 {
+		} else if b.Hamster.PlayCount == 0 {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Хомяк устал, он разрешит себя тапать завтра.",
@@ -219,12 +232,15 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		} else {
-			b.Score.Increase(1)
+			b.Score.Increase(b.Hamster.PlayPower)
+			b.Hamster.PlayCount -= 1
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
-					"$set": bson.M{"score": b.Score},
-					"$inc": bson.M{"tap_count": -1},
+					"$set": bson.M{
+						"score":   b.Score,
+						"hamster": b.Hamster,
+					},
 				},
 			)
 		}

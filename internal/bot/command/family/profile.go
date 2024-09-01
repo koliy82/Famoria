@@ -7,6 +7,7 @@ import (
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/plural"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -45,6 +46,13 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
 
+	if fUser.IsSub() {
+		days := fUser.SubDaysCount()
+		text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
+	} else {
+		text += fmt.Sprintf("😿 Нет активной подписки\n")
+	}
+
 	keyboard := tu.InlineKeyboardRow()
 
 	b, _ := c.brakRepo.FindByUserID(from.ID)
@@ -77,6 +85,8 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		}
 
 		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
+
+		text += fmt.Sprintf("items: %v\n", len(b.Inventory.Items))
 	}
 
 	params := &telego.SendMessageParams{

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"famoria/internal/pkg/score"
+	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
 	"strings"
@@ -15,7 +15,7 @@ type User struct {
 	LastName     *string            `bson:"last_name"`
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
-	Score        score.Score        `bson:"score"`
+	Score        common.Score       `bson:"score"`
 	SubscribeEnd *time.Time         `bson:"subscribe_end"`
 }
 
@@ -34,4 +34,15 @@ func (u *User) UsernameOrFull() string {
 		return u.FirstName + " " + *u.LastName
 	}
 	return u.FirstName
+}
+
+func (u *User) IsSub() bool {
+	return u.SubscribeEnd != nil && time.Now().Before(*u.SubscribeEnd)
+}
+
+func (u *User) SubDaysCount() int {
+	if u.SubscribeEnd == nil {
+		return 0
+	}
+	return int(u.SubscribeEnd.Sub(time.Now()).Hours() / 24)
 }

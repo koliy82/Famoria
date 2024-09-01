@@ -1,27 +1,35 @@
 package brak
 
 import (
+	"famoria/internal/bot/events/casino"
+	"famoria/internal/bot/events/growkid"
+	"famoria/internal/bot/events/hamster"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/plural"
-	"famoria/internal/pkg/score"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
 type Brak struct {
-	OID               primitive.ObjectID `bson:"_id"`
-	FirstUserID       int64              `bson:"first_user_id"`
-	SecondUserID      int64              `bson:"second_user_id"`
-	ChatID            int64              `bson:"chat_id,omitempty"`
-	CreateDate        time.Time          `bson:"create_date"`
-	BabyUserID        *int64             `bson:"baby_user_id"`
-	BabyCreateDate    *time.Time         `bson:"baby_create_date"`
-	Score             score.Score        `bson:"score"`
-	LastCasinoPlay    time.Time          `bson:"last_casino_play"`
-	LastGrowKid       time.Time          `bson:"last_grow_kid"`
-	LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
-	TapCount          int                `bson:"tap_count"`
+	OID            primitive.ObjectID `bson:"_id"`
+	FirstUserID    int64              `bson:"first_user_id"`
+	SecondUserID   int64              `bson:"second_user_id"`
+	ChatID         int64              `bson:"chat_id,omitempty"`
+	CreateDate     time.Time          `bson:"create_date"`
+	BabyUserID     *int64             `bson:"baby_user_id"`
+	BabyCreateDate *time.Time         `bson:"baby_create_date"`
+	Score          common.Score       `bson:"score"`
+	Inventory      *common.Inventory  `bson:"inventory"`
+	Casino         *casino.Casino     `bson:"casino"`
+	Hamster        *hamster.Hamster   `bson:"hamster"`
+	GrowKid        *growkid.GrowKid   `bson:"grow_kid"`
+
+	//LastCasinoPlay    time.Time          `bson:"last_casino_play"`
+	//LastGrowKid       time.Time          `bson:"last_grow_kid"`
+	//LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
+	//TapCount          int                `bson:"tap_count"`
 }
 
 type UsersBrak struct {

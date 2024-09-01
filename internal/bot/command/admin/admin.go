@@ -16,7 +16,7 @@ type Opts struct {
 }
 
 func Register(opts Opts) {
-	opts.Bh.Handle(sendText{
+	opts.Bh.Handle(sendTextCmd{
 		log: opts.Log,
 	}.Handle, th.And(
 		th.CommandEqual("text"),
