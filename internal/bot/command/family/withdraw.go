@@ -1,6 +1,7 @@
 package family
 
 import (
+	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
@@ -14,13 +15,14 @@ import (
 	"strings"
 )
 
-type depositCmd struct {
+type withdrawCmd struct {
+	cm       *callback.CallbacksManager
 	brakRepo brak.Repository
 	userRepo user.Repository
 	log      *zap.Logger
 }
 
-func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c withdrawCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -30,7 +32,7 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 
 	if len(args) < 2 {
 		_, err := bot.SendMessage(params.
-			WithText(fmt.Sprintf("%s, укажи сумму для депозита", html.UserMention(from))),
+			WithText(fmt.Sprintf("%s, укажи сумму для вывода", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
@@ -60,9 +62,9 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if u == nil {
 		return
 	}
-	if !u.Score.IsBiggerOrEquals(&score.Score{Mantissa: int64(amount)}) {
+	if !b.Score.IsBiggerOrEquals(&score.Score{Mantissa: int64(amount)}) {
 		_, err := bot.SendMessage(params.
-			WithText(fmt.Sprintf("%s, вы ввели сликом большое число для депозита", html.UserMention(from))),
+			WithText(fmt.Sprintf("%s, вы ввели сликом большое число для вывода", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
@@ -70,14 +72,14 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	u.Score.Decrease(amount)
-	b.Score.Increase(amount)
-	err = c.userRepo.Update(bson.M{"_id": u.OID}, bson.M{"$set": bson.M{"score": u.Score}})
+	u.Score.Increase(amount)
+	b.Score.Decrease(amount)
+	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"score": b.Score}})
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return
 	}
-	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"score": b.Score}})
+	err = c.userRepo.Update(bson.M{"_id": u.OID}, bson.M{"$set": bson.M{"score": u.Score}})
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return
@@ -85,7 +87,7 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, err = bot.SendMessage(
 		params.WithText(
-			fmt.Sprintf("%s, ты успешно внёс депозит в размере %d💰",
+			fmt.Sprintf("%s, ты успешно вывел из брака %d💰",
 				html.UserMention(from), amount),
 		),
 	)

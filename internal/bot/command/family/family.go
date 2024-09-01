@@ -86,10 +86,14 @@ func Register(opts Opts) {
 	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
 
 	opts.Bh.Handle(depositCmd{
-		cm:       opts.Cm,
 		brakRepo: opts.BrakRepo,
 		userRepo: opts.UserRepo,
 		log:      opts.Log,
 	}.Handle, th.CommandEqualArgc("deposit", 1))
 
+	opts.Bh.Handle(withdrawCmd{
+		brakRepo: opts.BrakRepo,
+		userRepo: opts.UserRepo,
+		log:      opts.Log,
+	}.Handle, th.CommandEqualArgc("withdraw", 1))
 }
