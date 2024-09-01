@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type profile struct {
+type profileCmd struct {
 	cm          *callback.CallbacksManager
 	log         *zap.Logger
 	userRepo    user.Repository
@@ -22,9 +22,9 @@ type profile struct {
 	messageRepo message.Repository
 }
 
-func (p profile) Handle(bot *telego.Bot, update telego.Update) {
+func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	fUser, err := p.userRepo.FindOrUpdate(from)
+	fUser, err := c.userRepo.FindOrUpdate(from)
 	if err != nil {
 		return
 	}
@@ -35,26 +35,26 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 
 	//text += fmt.Sprintf("old💰 %s\n", fUser.Score.GetFormattedScore())
 	//for range 1 {
-	//	fUser.Score.IncreaseScore(1000)
+	//	fUser.Score.Increase(1000)
 	//}
-	//_ = p.userRepo.Update(bson.M{"id": fUser.ID}, bson.M{"$set": bson.M{"score": fUser.Score}})
+	//_ = c.userRepo.Update(bson.M{"id": fUser.ID}, bson.M{"$set": bson.M{"score": fUser.Score}})
 	//text += fmt.Sprintf("new💰 %s\n", fUser.Score.GetFormattedScore())
 
-	messageCount, err := p.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
+	messageCount, err := c.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
 
 	keyboard := tu.InlineKeyboardRow()
 
-	b, _ := p.brakRepo.FindByUserID(from.ID)
+	b, _ := c.brakRepo.FindByUserID(from.ID)
 
 	if b != nil {
 		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
 			b.ChatID = update.Message.Chat.ID
-			err = p.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
+			err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
 			if err != nil {
-				p.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 				return
 			}
 		}
@@ -62,7 +62,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
 		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
-		tUser, _ := p.userRepo.FindByID(b.PartnerID(fUser.ID))
+		tUser, _ := c.userRepo.FindByID(b.PartnerID(fUser.ID))
 		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
 		if tUser != nil {
 			text += fmt.Sprintf("🫂 %s [%s]\n", html.CodeInline(tUser.UsernameOrFull()), b.Duration())
@@ -70,7 +70,7 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 
 		if b.BabyUserID != nil {
 			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
-			bUser, err := p.userRepo.FindByID(*b.BabyUserID)
+			bUser, err := c.userRepo.FindByID(*b.BabyUserID)
 			if err == nil {
 				text += fmt.Sprintf("👼 %s [%s]\n", html.CodeInline(bUser.UsernameOrFull()), b.DurationKid())
 			}
@@ -92,6 +92,6 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 
 	_, err = bot.SendMessage(params)
 	if err != nil {
-		p.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

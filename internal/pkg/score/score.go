@@ -58,9 +58,9 @@ func int64Pow(base, exp int) int64 {
 	return result
 }
 
-func (u *Score) IncreaseScore(increment int64) {
+func (u *Score) Increase(increment uint64) {
 	for increment >= 1e18 {
-		u.Mantissa += increment / 1e18
+		u.Mantissa += int64(increment / 1e18)
 		u.Exponent++
 		if u.Mantissa >= 1e18 {
 			u.Mantissa /= 10
@@ -69,7 +69,7 @@ func (u *Score) IncreaseScore(increment int64) {
 		increment %= 1e18
 	}
 
-	u.Mantissa += increment
+	u.Mantissa += int64(increment)
 
 	if u.Mantissa >= 1e18 {
 		u.Mantissa /= 10
@@ -79,4 +79,37 @@ func (u *Score) IncreaseScore(increment int64) {
 	if u.Mantissa < 0 {
 		u.Mantissa = 0
 	}
+}
+
+func (u *Score) Decrease(decrement uint64) {
+	for decrement >= 1e18 {
+		u.Mantissa -= int64(decrement / 1e18)
+		u.Exponent--
+		if u.Mantissa < 0 {
+			u.Mantissa *= 10
+			u.Exponent--
+		}
+		decrement %= 1e18
+	}
+
+	u.Mantissa -= int64(decrement)
+
+	if u.Mantissa < 0 {
+		u.Mantissa *= 10
+		u.Exponent--
+	}
+
+	if u.Mantissa < 0 {
+		u.Mantissa = 0
+	}
+}
+
+func (u *Score) IsBiggerOrEquals(other *Score) bool {
+	if u.Exponent > other.Exponent {
+		return true
+	}
+	if u.Exponent < other.Exponent {
+		return false
+	}
+	return u.Mantissa >= other.Mantissa
 }

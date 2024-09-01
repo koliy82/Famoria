@@ -15,14 +15,14 @@ import (
 	"time"
 )
 
-type brakPages struct {
+type pagesCmd struct {
 	cm       *callback.CallbacksManager
 	brakRepo brak.Repository
 	isLocal  bool
 	log      *zap.Logger
 }
 
-func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
+func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 	var page int64 = 1
 	var limit int64 = 5
 	var keyboard *telego.InlineKeyboardMarkup
@@ -40,25 +40,25 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		DisableNotification: true,
 	}
 
-	if p.isLocal {
+	if c.isLocal {
 		filter = bson.M{"chat_id": update.Message.Chat.ID}
 	} else {
 		filter = bson.M{}
 	}
 
-	braks, count, err := p.brakRepo.FindBraksByPage(page, limit, filter)
+	braks, count, err := c.brakRepo.FindBraksByPage(page, limit, filter)
 
 	pages = int64(math.Ceil(float64(count) / float64(limit)))
 
 	if err != nil {
 		_, err = bot.SendMessage(params.WithText("Произошла ошибка при получении списка браков"))
 		if err != nil {
-			p.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	if p.isLocal {
+	if c.isLocal {
 		header = fmt.Sprintf("💍 %d %s В ГРУППЕ 💍\n",
 			count, plural.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
 		)
@@ -68,7 +68,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		)
 	}
 
-	backCallback := p.cm.DynamicCallback(callback.DynamicOpts{
+	backCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "⬅️",
 		CtxType:  callback.Temporary,
 		OwnerIDs: []int64{update.Message.From.ID},
@@ -80,7 +80,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				page--
 			}
 
-			braks, count, err = p.brakRepo.FindBraksByPage(page, limit, filter)
+			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter)
 			if err != nil {
 				return
 			}
@@ -94,12 +94,12 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				ReplyMarkup: keyboard,
 			})
 			if err != nil {
-				p.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
 
-	currentCallback := p.cm.DynamicCallback(callback.DynamicOpts{
+	currentCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    strconv.FormatInt(page, 10),
 		CtxType:  callback.Temporary,
 		OwnerIDs: []int64{update.Message.From.ID},
@@ -112,7 +112,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	nextCallback := p.cm.DynamicCallback(callback.DynamicOpts{
+	nextCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "➡️",
 		CtxType:  callback.Temporary,
 		OwnerIDs: []int64{update.Message.From.ID},
@@ -124,7 +124,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				page++
 			}
 
-			braks, count, err = p.brakRepo.FindBraksByPage(page, limit, filter)
+			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter)
 			if err != nil {
 				return
 			}
@@ -138,7 +138,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 				ReplyMarkup: keyboard,
 			})
 			if err != nil {
-				p.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
@@ -157,7 +157,7 @@ func (p brakPages) Handle(bot *telego.Bot, update telego.Update) {
 		WithDisableNotification(),
 	)
 	if err != nil {
-		p.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }
 

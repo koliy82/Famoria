@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-type leaveKid struct {
+type leaveKidCmd struct {
 	cm       *callback.CallbacksManager
 	brakRepo brak.Repository
 	userRepo user.Repository
 	log      *zap.Logger
 }
 
-func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
+func (c leaveKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -31,24 +31,24 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 			AllowSendingWithoutReply: true,
 		},
 	}
-	b, _ := e.brakRepo.FindByKidID(from.ID)
+	b, _ := c.brakRepo.FindByKidID(from.ID)
 	if b == nil {
 		_, err := bot.SendMessage(params.WithText(
 			fmt.Sprintf("%s, ты ещё не родился. ⌚", html.UserMention(from))),
 		)
 		if err != nil {
-			e.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	yesCallback := e.cm.DynamicCallback(callback.DynamicOpts{
+	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Да.",
 		CtxType:  callback.OneClick,
 		OwnerIDs: []int64{from.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.brakRepo.Update(
+			err := c.brakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
 					{"baby_user_id", nil},
@@ -56,7 +56,7 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 				}},
 			)
 			if err != nil {
-				e.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 				return
 			}
 
@@ -82,7 +82,7 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 				WithReplyMarkup(nil),
 			)
 			if err != nil {
-				e.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
@@ -92,6 +92,6 @@ func (e leaveKid) Handle(bot *telego.Bot, update telego.Update) {
 		WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(yesCallback.Inline()))),
 	)
 	if err != nil {
-		e.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

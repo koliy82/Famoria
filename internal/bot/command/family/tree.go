@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-type tree struct {
+type treeCmd struct {
 	cfg config.Config
 	log *zap.Logger
 }
@@ -45,7 +45,7 @@ const (
 	Networkx
 )
 
-func (t tree) Handle(bot *telego.Bot, update telego.Update) {
+func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
 	args := strings.Split(update.Message.Text, " ")
 	mode := "text"
 	if len(args) > 1 {
@@ -54,22 +54,22 @@ func (t tree) Handle(bot *telego.Bot, update telego.Update) {
 			mode = Image(arg).String()
 		}
 	}
-	requestURL := fmt.Sprintf("%s/tree/%s/%d?reverse=true", t.cfg.ApiURL, mode, update.Message.From.ID)
+	requestURL := fmt.Sprintf("%s/treeCmd/%s/%d?reverse=true", c.cfg.ApiURL, mode, update.Message.From.ID)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		t.log.Sugar().Error("client: could not create request: %s\n", err)
+		c.log.Sugar().Error("client: could not create request: %s\n", err)
 		return
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.log.Sugar().Error("client: error making http request: %s\n", err)
+		c.log.Sugar().Error("client: error making http request: %s\n", err)
 		return
 	}
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
-		t.log.Sugar().Error("client: could not read response body: %s\n", err)
+		c.log.Sugar().Error("client: could not read response body: %s\n", err)
 		return
 	}
 
@@ -84,7 +84,7 @@ func (t tree) Handle(bot *telego.Bot, update telego.Update) {
 	default:
 		contentType := res.Header.Get("Content-Type")
 		if !strings.HasPrefix(contentType, "image/") {
-			t.log.Sugar().Error("client: expected image but got: %s", contentType)
+			c.log.Sugar().Error("client: expected image but got: %s", contentType)
 			return
 		}
 
@@ -93,13 +93,13 @@ func (t tree) Handle(bot *telego.Bot, update telego.Update) {
 			Photo: tu.File(
 				tu.NameReader(
 					bytes.NewReader(resBody),
-					"tree.png",
+					"treeCmd.png",
 				),
 			),
 		})
 	}
 
 	if err != nil {
-		t.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

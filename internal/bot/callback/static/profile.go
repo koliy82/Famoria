@@ -52,8 +52,31 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		score := rand.Int63n(500) - 300
-		b.Score.IncreaseScore(score)
+		score := uint64(rand.Int31n(500))
+		chance := rand.Intn(100)
+		text := ""
+		switch {
+		case chance <= 40:
+			text = fmt.Sprintf("%s выйграл в казино %d хинкалей!", html.UserMention(&query.From), score)
+			b.Score.Increase(score)
+		case chance <= 70:
+			text = fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&query.From), score)
+			b.Score.Decrease(score)
+		case chance <= 75:
+			score = score * 2
+			text = fmt.Sprintf("%s выйграл в казино %d хинкалей, весьма неплохо!", html.UserMention(&query.From), score)
+			b.Score.Increase(score)
+		case chance == 76:
+			score = score * 6
+			b.Score.Increase(score * 5)
+			text = fmt.Sprintf("%s сорвал куш на %d хинкалей.", html.UserMention(&query.From), score)
+		case chance == 77:
+			score = score * 3
+			b.Score.Decrease(score * 2)
+			text = fmt.Sprintf("%s сегодня не везёт, он проиграл %d хинкалей.", html.UserMention(&query.From), score)
+		default:
+			text = fmt.Sprintf("%s играл сегодня в казино, но остался в нуле.", html.UserMention(&query.From))
+		}
 
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
@@ -73,15 +96,7 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		}
-		text := ""
-		switch {
-		case score > 0:
-			text = fmt.Sprintf("%s выйграл в казино %d хинкалей!", html.UserMention(&query.From), score)
-		case score < 0:
-			text = fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&query.From), score)
-		default:
-			text = "%s играл сегодня в казино, но остался в нуле."
-		}
+
 		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
@@ -130,8 +145,8 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		score := rand.Int63n(30) + 20
-		b.Score.IncreaseScore(score)
+		score := uint64(rand.Int31n(50) + 20)
+		b.Score.Increase(score)
 
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
@@ -185,7 +200,7 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if !date.HasUpdated(b.LastHamsterUpdate) {
-			b.Score.IncreaseScore(1)
+			b.Score.Increase(1)
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
@@ -204,7 +219,7 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		} else {
-			b.Score.IncreaseScore(1)
+			b.Score.Increase(1)
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{
