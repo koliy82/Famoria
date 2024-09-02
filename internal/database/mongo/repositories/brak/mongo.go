@@ -2,10 +2,11 @@ package brak
 
 import (
 	"context"
-	"famoria/internal/bot/events"
-	"famoria/internal/bot/events/casino"
-	"famoria/internal/bot/events/growkid"
-	"famoria/internal/bot/events/hamster"
+	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/events/casino"
+	"famoria/internal/bot/idle/events/growkid"
+	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/inventory"
 	"famoria/internal/config"
 	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson"
@@ -42,6 +43,7 @@ func (c *Mongo) FindByUserID(id int64) (*Brak, error) {
 	if err != nil {
 		return nil, err
 	}
+	result.ApplyBuffs()
 	return result, nil
 }
 
@@ -52,6 +54,7 @@ func (c *Mongo) FindByKidID(id int64) (*Brak, error) {
 	if err != nil {
 		return nil, err
 	}
+	result.ApplyBuffs()
 	return result, nil
 }
 
@@ -245,29 +248,29 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			BabyUserID:     transferBraks[i].BabyUserID,
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
 			Score:          common.Score{Mantissa: transferBraks[i].Score},
-			Inventory:      &common.Inventory{Items: map[string]common.Item{}},
+			Inventory:      &inventory.Inventory{Items: []inventory.Item{}},
 			Hamster: &hamster.Hamster{
 				Base: events.Base{
-					LastPlay:     transferBraks[i].LastHamsterUpdate,
-					PlayCount:    uint16(transferBraks[i].TapCount),
-					MaxPlayCount: 50,
-					PlayPower:    1,
+					LastPlay:      transferBraks[i].LastHamsterUpdate,
+					PlayCount:     uint16(transferBraks[i].TapCount),
+					MaxPlayCount:  50,
+					BasePlayPower: 1,
 				},
 			},
 			Casino: &casino.Casino{
 				Base: events.Base{
-					LastPlay:     transferBraks[i].LastCasinoPlay,
-					PlayCount:    1,
-					MaxPlayCount: 1,
-					PlayPower:    500,
+					LastPlay:      transferBraks[i].LastCasinoPlay,
+					PlayCount:     1,
+					MaxPlayCount:  1,
+					BasePlayPower: 500,
 				},
 			},
 			GrowKid: &growkid.GrowKid{
 				Base: events.Base{
-					LastPlay:     transferBraks[i].LastGrowKid,
-					PlayCount:    1,
-					MaxPlayCount: 1,
-					PlayPower:    50,
+					LastPlay:      transferBraks[i].LastGrowKid,
+					PlayCount:     1,
+					MaxPlayCount:  1,
+					BasePlayPower: 50,
 				},
 			},
 

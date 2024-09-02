@@ -1,9 +1,11 @@
 package brak
 
 import (
-	"famoria/internal/bot/events/casino"
-	"famoria/internal/bot/events/growkid"
-	"famoria/internal/bot/events/hamster"
+	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/events/casino"
+	"famoria/internal/bot/idle/events/growkid"
+	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/inventory"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/plural"
@@ -13,23 +15,38 @@ import (
 )
 
 type Brak struct {
-	OID            primitive.ObjectID `bson:"_id"`
-	FirstUserID    int64              `bson:"first_user_id"`
-	SecondUserID   int64              `bson:"second_user_id"`
-	ChatID         int64              `bson:"chat_id,omitempty"`
-	CreateDate     time.Time          `bson:"create_date"`
-	BabyUserID     *int64             `bson:"baby_user_id"`
-	BabyCreateDate *time.Time         `bson:"baby_create_date"`
-	Score          common.Score       `bson:"score"`
-	Inventory      *common.Inventory  `bson:"inventory"`
-	Casino         *casino.Casino     `bson:"casino"`
-	Hamster        *hamster.Hamster   `bson:"hamster"`
-	GrowKid        *growkid.GrowKid   `bson:"grow_kid"`
+	OID            primitive.ObjectID   `bson:"_id"`
+	FirstUserID    int64                `bson:"first_user_id"`
+	SecondUserID   int64                `bson:"second_user_id"`
+	ChatID         int64                `bson:"chat_id,omitempty"`
+	CreateDate     time.Time            `bson:"create_date"`
+	BabyUserID     *int64               `bson:"baby_user_id"`
+	BabyCreateDate *time.Time           `bson:"baby_create_date"`
+	Score          common.Score         `bson:"score"`
+	Inventory      *inventory.Inventory `bson:"inventory"`
+	Casino         *casino.Casino       `bson:"casino"`
+	Hamster        *hamster.Hamster     `bson:"hamster"`
+	GrowKid        *growkid.GrowKid     `bson:"grow_kid"`
 
 	//LastCasinoPlay    time.Time          `bson:"last_casino_play"`
 	//LastGrowKid       time.Time          `bson:"last_grow_kid"`
 	//LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
 	//TapCount          int                `bson:"tap_count"`
+}
+
+func (b Brak) ApplyBuffs() {
+	for _, i := range b.Inventory.Items {
+		for _, buff := range i.Buffs {
+			switch buff.Type() {
+			case events.Hamster:
+				buff.Apply(&b.Hamster.Base)
+			case events.Casino:
+				buff.Apply(&b.Casino.Base)
+			case events.GrowKid:
+				buff.Apply(&b.GrowKid.Base)
+			}
+		}
+	}
 }
 
 type UsersBrak struct {

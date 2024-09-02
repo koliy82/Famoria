@@ -212,7 +212,7 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if !date.HasUpdated(b.Hamster.LastPlay) {
-			b.Score.Increase(b.Hamster.PlayPower)
+			b.Score.Increase(b.Hamster.BasePlayPower)
 			b.Hamster.PlayCount = b.Hamster.MaxPlayCount - 1
 			b.Hamster.LastPlay = time.Now()
 			err = opts.BrakRepo.Update(
@@ -232,7 +232,7 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		} else {
-			b.Score.Increase(b.Hamster.PlayPower)
+			b.Score.Increase(b.Hamster.BasePlayPower)
 			b.Hamster.PlayCount -= 1
 			err = opts.BrakRepo.Update(
 				bson.M{"_id": b.OID},

@@ -2,10 +2,11 @@ package family
 
 import (
 	"famoria/internal/bot/callback"
-	"famoria/internal/bot/events"
-	"famoria/internal/bot/events/casino"
-	"famoria/internal/bot/events/growkid"
-	"famoria/internal/bot/events/hamster"
+	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/events/casino"
+	"famoria/internal/bot/idle/events/growkid"
+	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/inventory"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
@@ -114,33 +115,33 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Inventory:    &common.Inventory{Items: map[string]common.Item{}},
+				Inventory:    &inventory.Inventory{Items: []inventory.Item{}},
 				Score: common.Score{
 					Mantissa: 0,
 					Exponent: 0,
 				},
 				Hamster: &hamster.Hamster{
 					Base: events.Base{
-						LastPlay:     time.Time{},
-						PlayCount:    0,
-						MaxPlayCount: 50,
-						PlayPower:    1,
+						LastPlay:      time.Time{},
+						PlayCount:     0,
+						MaxPlayCount:  50,
+						BasePlayPower: 1,
 					},
 				},
 				Casino: &casino.Casino{
 					Base: events.Base{
-						LastPlay:     time.Time{},
-						PlayCount:    0,
-						MaxPlayCount: 1,
-						PlayPower:    500,
+						LastPlay:      time.Time{},
+						PlayCount:     0,
+						MaxPlayCount:  1,
+						BasePlayPower: 500,
 					},
 				},
 				GrowKid: &growkid.GrowKid{
 					Base: events.Base{
-						LastPlay:     time.Time{},
-						PlayCount:    0,
-						MaxPlayCount: 1,
-						PlayPower:    50,
+						LastPlay:      time.Time{},
+						PlayCount:     0,
+						MaxPlayCount:  1,
+						BasePlayPower: 50,
 					},
 				},
 			})
