@@ -1,33 +1,62 @@
 package hamster
 
-import "famoria/internal/bot/idle/events"
+import (
+	"famoria/internal/bot/idle/events"
+	"famoria/internal/pkg/html"
+	"fmt"
+	"strconv"
+)
 
-//====== BaseHamsterBuff ======
+//====== PlayPowerBuff ======
 
-type BaseHamsterBuff struct {
-	power uint64
+type PlayPowerBuff struct {
+	Power uint64
 }
 
-func (b *BaseHamsterBuff) Apply(base *events.Base) {
-	base.BasePlayPower = b.power
+func (b *PlayPowerBuff) Apply(base *events.Base) {
+	base.BasePlayPower = b.Power
 }
 
-func (b *BaseHamsterBuff) Type() events.GameType {
+func (b *PlayPowerBuff) Type() events.GameType {
 	return events.Hamster
 }
 
-//====== PercentageHamsterBuff ======
-
-type PercentageHamsterBuff struct {
-	percentage uint32
+func (b *PlayPowerBuff) Description() string {
+	return fmt.Sprintf("+ %s к базовому тапу.", html.Bold(strconv.FormatUint(b.Power, 10)))
 }
 
-func (b *PercentageHamsterBuff) Apply(base *events.Base) {
-	base.PercentagePower += b.percentage
+//====== PercentagePowerBuff ======
+
+type PercentagePowerBuff struct {
+	Percentage float64
 }
 
-func (b *PercentageHamsterBuff) Type() events.GameType {
+func (b *PercentagePowerBuff) Apply(base *events.Base) {
+	base.PercentagePower += b.Percentage
+}
+
+func (b *PercentagePowerBuff) Type() events.GameType {
 	return events.Hamster
 }
 
-//====== ... ======
+func (b *PercentagePowerBuff) Description() string {
+	return fmt.Sprintf("+ %v%% силы тапа.", b.Percentage)
+}
+
+//====== PlayCountBuff ======
+
+type PlayCountBuff struct {
+	Count uint16
+}
+
+func (b *PlayCountBuff) Apply(base *events.Base) {
+	base.MaxPlayCount += b.Count
+}
+
+func (b *PlayCountBuff) Type() events.GameType {
+	return events.Hamster
+}
+
+func (b *PlayCountBuff) Description() string {
+	return fmt.Sprintf("+ %s тапов в день.", html.Bold(strconv.Itoa(int(b.Count))))
+}

@@ -5,7 +5,8 @@ import (
 	"famoria/internal/bot/idle/events/casino"
 	"famoria/internal/bot/idle/events/growkid"
 	"famoria/internal/bot/idle/events/hamster"
-	"famoria/internal/bot/idle/inventory"
+	"famoria/internal/bot/idle/item"
+	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/plural"
@@ -27,22 +28,24 @@ type Brak struct {
 	Casino         *casino.Casino       `bson:"casino"`
 	Hamster        *hamster.Hamster     `bson:"hamster"`
 	GrowKid        *growkid.GrowKid     `bson:"grow_kid"`
-
-	//LastCasinoPlay    time.Time          `bson:"last_casino_play"`
-	//LastGrowKid       time.Time          `bson:"last_grow_kid"`
-	//LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
-	//TapCount          int                `bson:"tap_count"`
 }
 
-func (b Brak) ApplyBuffs() {
+func (b *Brak) ApplyBuffs(manager *item.Manager) {
+	b.Casino.DefaultStats()
+	b.Hamster.DefaultStats()
+	b.GrowKid.DefaultStats()
 	for _, i := range b.Inventory.Items {
-		for _, buff := range i.Buffs {
+		for _, buff := range i.GetBuffs(manager) {
 			switch buff.Type() {
 			case events.Hamster:
 				buff.Apply(&b.Hamster.Base)
 			case events.Casino:
 				buff.Apply(&b.Casino.Base)
 			case events.GrowKid:
+				buff.Apply(&b.GrowKid.Base)
+			case events.Subscribe:
+				buff.Apply(&b.Hamster.Base)
+				buff.Apply(&b.Casino.Base)
 				buff.Apply(&b.GrowKid.Base)
 			}
 		}
@@ -57,7 +60,7 @@ type UsersBrak struct {
 }
 
 // PartnerID returns the partner's ID by the user's ID
-func (b Brak) PartnerID(userID int64) int64 {
+func (b *Brak) PartnerID(userID int64) int64 {
 	if b.FirstUserID == userID {
 		return b.SecondUserID
 	}
@@ -65,7 +68,7 @@ func (b Brak) PartnerID(userID int64) int64 {
 }
 
 // Duration returns the duration of the relationship
-func (b Brak) Duration() string {
+func (b *Brak) Duration() string {
 	duration := time.Now().Sub(b.CreateDate)
 	hours := int(duration.Hours())
 
@@ -92,7 +95,7 @@ func (b Brak) Duration() string {
 	return fmt.Sprintf("%d %s", hours, plural.Declension(hours, "час", "часа", "часов"))
 }
 
-func (b Brak) DurationKid() string {
+func (b *Brak) DurationKid() string {
 	if b.BabyCreateDate == nil {
 		return ""
 	}

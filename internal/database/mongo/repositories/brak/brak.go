@@ -1,11 +1,12 @@
 package brak
 
 import (
+	"famoria/internal/bot/idle/item"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Repository interface {
-	FindByUserID(id int64) (*Brak, error)
+	FindByUserID(id int64, m *item.Manager) (*Brak, error)
 	FindByKidID(id int64) (*Brak, error)
 	Insert(brak *Brak) error
 	Delete(id primitive.ObjectID) error

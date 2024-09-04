@@ -102,6 +102,9 @@ func (u *Score) Decrease(decrement uint64) {
 	if u.Mantissa < 0 {
 		u.Mantissa = 0
 	}
+	if u.Exponent < 0 {
+		u.Exponent = 0
+	}
 }
 
 func (u *Score) IsBiggerOrEquals(other *Score) bool {

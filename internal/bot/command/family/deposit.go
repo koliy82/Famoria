@@ -45,7 +45,7 @@ func (c depositCmd) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	b, _ := c.brakRepo.FindByUserID(from.ID)
+	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	if b == nil {
 		_, err := bot.SendMessage(params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),

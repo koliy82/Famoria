@@ -21,7 +21,7 @@ type endFamilyCmd struct {
 
 func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	b, _ := c.brakRepo.FindByUserID(from.ID)
+	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,

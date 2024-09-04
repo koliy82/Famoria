@@ -10,17 +10,20 @@ const (
 	Hamster GameType = iota
 	Casino
 	GrowKid
+	Subscribe
 )
 
 type Base struct {
 	LastPlay        time.Time `bson:"last_play"`
 	PlayCount       uint16    `bson:"play_count"`
-	MaxPlayCount    uint16    `bson:"max_play_count"`
-	BasePlayPower   uint64    `bson:"play_power"`
-	PercentagePower uint32    `bson:"percentage_power"`
+	MaxPlayCount    uint16    `bson:"-"`
+	BasePlayPower   uint64    `bson:"-"`
+	PercentagePower float64   `bson:"-"`
+	Luck            int       `bson:"-"`
 }
 
 type Buff interface {
 	Type() GameType
 	Apply(*Base)
+	Description() string
 }

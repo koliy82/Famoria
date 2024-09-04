@@ -14,7 +14,7 @@ type menuCmd struct {
 
 func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboardMarkup {
 	var rows [][]telego.KeyboardButton
-	userBrak, _ := brakRepo.FindByUserID(userID)
+	userBrak, _ := brakRepo.FindByUserID(userID, nil)
 	if userBrak != nil {
 		rows = append(rows, []telego.KeyboardButton{
 			tu.KeyboardButton("👤 Профиль"),

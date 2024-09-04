@@ -6,7 +6,8 @@ import (
 	"famoria/internal/bot/idle/events/casino"
 	"famoria/internal/bot/idle/events/growkid"
 	"famoria/internal/bot/idle/events/hamster"
-	"famoria/internal/bot/idle/inventory"
+	"famoria/internal/bot/idle/item"
+	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/config"
 	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson"
@@ -31,7 +32,7 @@ func (c *Mongo) Update(filter interface{}, update interface{}) error {
 	return err
 }
 
-func (c *Mongo) FindByUserID(id int64) (*Brak, error) {
+func (c *Mongo) FindByUserID(id int64, m *item.Manager) (*Brak, error) {
 	result := &Brak{}
 	filter := bson.D{
 		{"$or", []interface{}{
@@ -43,7 +44,9 @@ func (c *Mongo) FindByUserID(id int64) (*Brak, error) {
 	if err != nil {
 		return nil, err
 	}
-	result.ApplyBuffs()
+	if m != nil {
+		result.ApplyBuffs(m)
+	}
 	return result, nil
 }
 
@@ -54,7 +57,6 @@ func (c *Mongo) FindByKidID(id int64) (*Brak, error) {
 	if err != nil {
 		return nil, err
 	}
-	result.ApplyBuffs()
 	return result, nil
 }
 
@@ -248,45 +250,28 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			BabyUserID:     transferBraks[i].BabyUserID,
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
 			Score:          common.Score{Mantissa: transferBraks[i].Score},
-			Inventory:      &inventory.Inventory{Items: []inventory.Item{}},
+			Inventory:      &inventory.Inventory{Items: make([]inventory.Item, 0)},
 			Hamster: &hamster.Hamster{
 				Base: events.Base{
-					LastPlay:      transferBraks[i].LastHamsterUpdate,
-					PlayCount:     uint16(transferBraks[i].TapCount),
-					MaxPlayCount:  50,
-					BasePlayPower: 1,
+					LastPlay:  transferBraks[i].LastHamsterUpdate,
+					PlayCount: uint16(transferBraks[i].TapCount),
 				},
 			},
 			Casino: &casino.Casino{
 				Base: events.Base{
-					LastPlay:      transferBraks[i].LastCasinoPlay,
-					PlayCount:     1,
-					MaxPlayCount:  1,
-					BasePlayPower: 500,
+					LastPlay:  transferBraks[i].LastCasinoPlay,
+					PlayCount: 1,
 				},
 			},
 			GrowKid: &growkid.GrowKid{
 				Base: events.Base{
-					LastPlay:      transferBraks[i].LastGrowKid,
-					PlayCount:     1,
-					MaxPlayCount:  1,
-					BasePlayPower: 50,
+					LastPlay:  transferBraks[i].LastGrowKid,
+					PlayCount: 1,
 				},
 			},
-
-			//LastCasinoPlay:    transferBraks[i].LastCasinoPlay,
-			//LastGrowKid:       transferBraks[i].LastGrowKid,
-			//LastHamsterUpdate: transferBraks[i].LastHamsterUpdate,
-			//TapCount:          transferBraks[i].TapCount,
 		}
 
 		m.log.Sugar().Debug("transfer brak: ", zap.Any("brak", transferBraks[i]))
-		//if transferBraks[i].Baby != nil {
-		//	brak.BabyUserID = &transferBraks[i].Baby.BabyUserID
-		//	date := time.Unix(transferBraks[i].Baby.time, 0)
-		//	brak.BabyCreateDate = &date
-		//	m.log.Sugar().Info("transfer baby: ", zap.Any("baby", transferBraks[i].Baby.BabyUserID))
-		//}
 		newBraks[i] = brak
 	}
 
