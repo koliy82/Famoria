@@ -10,6 +10,7 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -48,6 +49,12 @@ func New(opts *Opts) *Shop {
 		Opts:        opts,
 	}
 	s.Items = opts.B.Inventory.GetAvailableItems(opts.Manager)
+	sort.Slice(s.Items, func(i, j int) bool {
+		if s.Items[i].Price.Exponent == s.Items[j].Price.Exponent {
+			return s.Items[i].Price.Mantissa < s.Items[j].Price.Mantissa
+		}
+		return s.Items[i].Price.Exponent < s.Items[j].Price.Exponent
+	})
 	if len(s.Items) == 0 {
 		_, err := opts.Bot.SendMessage(opts.Params.
 			WithText("Вы скупили все доступные предметы на данный момент, милорд."),

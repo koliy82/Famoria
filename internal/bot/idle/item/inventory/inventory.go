@@ -42,10 +42,6 @@ func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
 	return list
 }
 
-func (i *Inventory) AddItem() {
-
-}
-
 func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
 	list := make([]*ShopItem, 0, len(manager.Items))
 	for _, mi := range manager.Items {
@@ -60,7 +56,6 @@ func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
 				Price:       mi.Prices[1],
 				Buffs:       mi.Buffs[1],
 			})
-			println(mi.Name.String())
 			continue
 		}
 		if current.CurrentLevel >= mi.MaxLevel {
