@@ -8,6 +8,7 @@ import (
 	"famoria/internal/bot/idle/events/hamster"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
+	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/config"
 	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"math"
 	"strconv"
 	"time"
 )
@@ -250,7 +252,7 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			BabyUserID:     transferBraks[i].BabyUserID,
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
 			Score:          common.Score{Mantissa: transferBraks[i].Score},
-			Inventory:      &inventory.Inventory{Items: make([]inventory.Item, 0)},
+			Inventory:      &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
 			Hamster: &hamster.Hamster{
 				Base: events.Base{
 					LastPlay:  transferBraks[i].LastHamsterUpdate,
@@ -269,6 +271,9 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 					PlayCount: 1,
 				},
 			},
+		}
+		if brak.Score.Mantissa < 0 {
+			brak.Score.Mantissa = int64(math.Abs(float64(brak.Score.Mantissa)))
 		}
 
 		m.log.Sugar().Debug("transfer brak: ", zap.Any("brak", transferBraks[i]))

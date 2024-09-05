@@ -71,6 +71,10 @@ func (cm *CallbacksManager) DynamicCallback(opts DynamicOpts) Callback {
 
 func (cm *CallbacksManager) cleanupCallback(data string, duration time.Duration) {
 	time.Sleep(duration)
+	cm.RemoveCallback(data)
+}
+
+func (cm *CallbacksManager) RemoveCallback(data string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	delete(cm.Callbacks, data)
@@ -89,8 +93,9 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 	cm.log.Sugar().Debug(query)
 
 	cm.mu.Lock()
-	defer cm.mu.Unlock()
+	//defer cm.mu.Unlock()
 	callback, exists := cm.Callbacks[query.Data]
+	cm.mu.Unlock()
 
 	if !exists {
 		err := bot.AnswerCallbackQuery(
@@ -144,11 +149,11 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 	switch callback.Type {
 	case Static, Temporary:
 	case OneClick:
-		delete(cm.Callbacks, query.Data)
+		cm.RemoveCallback(query.Data)
 	case ChooseOne:
 		for data, cb := range cm.Callbacks {
 			if cb.Type == ChooseOne && contains(cb.OwnerIDs, query.From.ID) {
-				delete(cm.Callbacks, data)
+				cm.RemoveCallback(data)
 			}
 		}
 	}

@@ -24,5 +24,53 @@ func (i *Item) GetBuffs(manager *item.Manager) []events.Buff {
 }
 
 type Inventory struct {
-	Items []Item
+	Items map[items.Name]Item
+}
+
+func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
+	list := make([]*ShowItem, 0, len(i.Items))
+	for _, i := range i.Items {
+		mi := i.GetItem(manager)
+		list = append(list, &ShowItem{
+			Name:         mi.Name,
+			CurrentLevel: i.CurrentLevel,
+			MaxLevel:     mi.MaxLevel,
+			Description:  mi.Description,
+			Buffs:        mi.Buffs[i.CurrentLevel],
+		})
+	}
+	return list
+}
+
+func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
+	list := make([]*ShopItem, 0, len(manager.Items))
+	for _, mi := range manager.Items {
+		current, ok := i.Items[mi.Name]
+		if ok == false {
+			list = append(list, &ShopItem{
+				Name:        mi.Name,
+				Emoji:       mi.Emoji,
+				BuyLevel:    1,
+				MaxLevel:    mi.MaxLevel,
+				Description: mi.Description,
+				Price:       mi.Prices[1],
+				Buffs:       mi.Buffs[1],
+			})
+			println(mi.Name.String())
+			continue
+		}
+		if current.CurrentLevel >= mi.MaxLevel {
+			continue
+		}
+		list = append(list, &ShopItem{
+			Name:        mi.Name,
+			Emoji:       mi.Emoji,
+			BuyLevel:    current.CurrentLevel + 1,
+			MaxLevel:    mi.MaxLevel,
+			Description: mi.Description,
+			Price:       mi.Prices[current.CurrentLevel+1],
+			Buffs:       mi.Buffs[current.CurrentLevel+1],
+		})
+	}
+	return list
 }

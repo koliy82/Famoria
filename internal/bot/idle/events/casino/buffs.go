@@ -76,5 +76,5 @@ func (b *LuckBuff) Type() events.GameType {
 }
 
 func (b *LuckBuff) Description() string {
-	return fmt.Sprintf("+ %s%% удачи.", html.Bold(strconv.Itoa(int(b.Luck))))
+	return fmt.Sprintf("+ %s%% удачи.", html.Bold(strconv.Itoa(b.Luck)))
 }

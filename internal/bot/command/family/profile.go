@@ -80,8 +80,6 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		}
 
 		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
-
-		text += fmt.Sprintf("items: %v\n", len(b.Inventory.Items))
 	}
 
 	params := &telego.SendMessageParams{

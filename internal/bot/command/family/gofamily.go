@@ -7,6 +7,7 @@ import (
 	"famoria/internal/bot/idle/events/growkid"
 	"famoria/internal/bot/idle/events/hamster"
 	"famoria/internal/bot/idle/item/inventory"
+	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
@@ -115,7 +116,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Inventory:    &inventory.Inventory{Items: make([]inventory.Item, 0)},
+				Inventory:    &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
 				Score: common.Score{
 					Mantissa: 0,
 					Exponent: 0,

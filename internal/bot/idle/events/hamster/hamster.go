@@ -13,7 +13,7 @@ type Hamster struct {
 }
 
 func (h *Hamster) DefaultStats() {
-	h.Base.MaxPlayCount = 50
+	h.Base.MaxPlayCount = 20
 	h.Base.BasePlayPower = 1
 	h.Base.PercentagePower = 1.0
 }
