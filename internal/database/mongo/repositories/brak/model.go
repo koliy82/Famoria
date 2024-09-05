@@ -23,7 +23,7 @@ type Brak struct {
 	CreateDate     time.Time            `bson:"create_date"`
 	BabyUserID     *int64               `bson:"baby_user_id"`
 	BabyCreateDate *time.Time           `bson:"baby_create_date"`
-	Score          common.Score         `bson:"score"`
+	Score          *common.Score        `bson:"score"`
 	Inventory      *inventory.Inventory `bson:"inventory"`
 	Casino         *casino.Casino       `bson:"casino"`
 	Hamster        *hamster.Hamster     `bson:"hamster"`

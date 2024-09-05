@@ -117,7 +117,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
 				Inventory:    &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
-				Score: common.Score{
+				Score: &common.Score{
 					Mantissa: 0,
 					Exponent: 0,
 				},

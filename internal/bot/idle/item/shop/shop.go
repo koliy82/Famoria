@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -30,12 +31,13 @@ type Shop struct {
 }
 
 type Opts struct {
-	B       *brak.Brak
-	Params  *telego.SendMessageParams
-	Bot     *telego.Bot
-	Manager *item.Manager
-	Log     *zap.Logger
-	Cm      *callback.CallbacksManager
+	B        *brak.Brak
+	Params   *telego.SendMessageParams
+	Bot      *telego.Bot
+	Manager  *item.Manager
+	Log      *zap.Logger
+	Cm       *callback.CallbacksManager
+	BrakRepo brak.Repository
 }
 
 func New(opts *Opts) *Shop {
@@ -71,7 +73,11 @@ func New(opts *Opts) *Shop {
 }
 
 func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
-	s.Label = fmt.Sprintf("Потайная лавка (%d/%d)\n", s.CurrentPage, s.MaxPages)
+	s.Label = fmt.Sprintf(
+		"Потайная лавка (%d/%d стр.)\nБаланс - %s 💰\n",
+		s.CurrentPage, s.MaxPages,
+		s.Opts.B.Score.GetFormattedScore(),
+	)
 	for i := 0; i < len(s.ShopCallbacks)-1; i++ {
 		for j := 0; j < len(s.ShopCallbacks[i]); j++ {
 			s.Opts.Cm.RemoveCallback(s.ShopCallbacks[i][j].CallbackData)
@@ -93,7 +99,7 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 			si := s.Items[itemIndex]
 			s.Label += si.SmallDescription() + "\n"
 			dCallback := s.Opts.Cm.DynamicCallback(callback.DynamicOpts{
-				Label:    fmt.Sprintf("%s %d/%d", si.Emoji, si.BuyLevel, si.MaxLevel),
+				Label:    si.Emoji,
 				CtxType:  callback.Temporary,
 				OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 				Time:     time.Duration(30) * time.Minute,
@@ -164,6 +170,9 @@ func (s *Shop) SetNavigateButtons() {
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
 			}
+			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+			})
 		}})
 
 	s.NavigateNext = s.Opts.Cm.DynamicCallback(callback.DynamicOpts{
@@ -184,6 +193,9 @@ func (s *Shop) SetNavigateButtons() {
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
 			}
+			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+			})
 		}})
 }
 
@@ -207,6 +219,9 @@ func (s *Shop) SetItemCallbacks() {
 				s.Opts.Log.Sugar().Error(err)
 			}
 			s.SelectedItem = nil
+			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+			})
 		},
 	})
 
@@ -216,11 +231,46 @@ func (s *Shop) SetItemCallbacks() {
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
+			answerParams := &telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+			}
 			si := s.SelectedItem
-			if !s.Opts.B.Score.IsBiggerOrEquals(si.Price) {
+			actualBrak, err := s.Opts.BrakRepo.FindByUserID(s.Opts.B.FirstUserID, s.Opts.Manager)
+			if !actualBrak.Score.IsBiggerOrEquals(si.Price) {
+				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+					WithText("У вас недостаточно средств для покупки/улучшения предмета."),
+				)
 				return
 			}
-			_, err := s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			ii, ok := actualBrak.Inventory.Items[si.Name]
+			if !ok {
+				ii = inventory.Item{
+					Name:         si.Name,
+					CurrentLevel: 0,
+				}
+			}
+			buyItem := ii.GetItem(s.Opts.Manager)
+			if si.BuyLevel >= si.MaxLevel || ii.CurrentLevel >= buyItem.MaxLevel {
+				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+					WithText("Предмет уже максимального уровня."),
+				)
+				return
+			}
+			actualBrak.Score.Minus(si.Price)
+			ii.CurrentLevel++
+			actualBrak.Inventory.Items[si.Name] = ii
+			err = s.Opts.BrakRepo.Update(bson.M{"_id": actualBrak.OID},
+				bson.M{"$set": bson.M{
+					"score":     actualBrak.Score,
+					"inventory": actualBrak.Inventory},
+				})
+			if err != nil {
+				s.Opts.Log.Sugar().Error(err)
+				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+					WithText("Произошла ошибка при покупке/улучшении предмета."),
+				)
+			}
+			_, err = s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -230,6 +280,7 @@ func (s *Shop) SetItemCallbacks() {
 				s.Opts.Log.Sugar().Error(err)
 			}
 			s.SelectedItem = nil
+			_ = s.Opts.Bot.AnswerCallbackQuery(answerParams)
 		},
 	})
 }

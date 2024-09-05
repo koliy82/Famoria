@@ -251,7 +251,7 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			CreateDate:     transferBraks[i].CreateDate,
 			BabyUserID:     transferBraks[i].BabyUserID,
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
-			Score:          common.Score{Mantissa: transferBraks[i].Score},
+			Score:          &common.Score{Mantissa: transferBraks[i].Score},
 			Inventory:      &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
 			Hamster: &hamster.Hamster{
 				Base: events.Base{

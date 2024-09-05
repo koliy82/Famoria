@@ -39,12 +39,13 @@ func (c shopCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	s := shop.New(&shop.Opts{
-		B:       b,
-		Params:  params,
-		Bot:     bot,
-		Manager: c.manager,
-		Cm:      c.cm,
-		Log:     c.log,
+		B:        b,
+		Params:   params,
+		Bot:      bot,
+		Manager:  c.manager,
+		Cm:       c.cm,
+		Log:      c.log,
+		BrakRepo: c.brakRepo,
 	})
 
 	_, err := bot.SendMessage(params.

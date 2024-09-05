@@ -95,15 +95,61 @@ func (u *Score) Decrease(decrement uint64) {
 	u.Mantissa -= int64(decrement)
 
 	if u.Mantissa < 0 {
+		u.Mantissa = 0
+	}
+	if u.Exponent < 0 {
+		u.Exponent = 0
+	}
+}
+
+func (u *Score) Minus(other *Score) {
+	// Приводим мантиссу и экспоненту к одному уровню для вычитания
+	if u.Exponent > other.Exponent {
+		diff := u.Exponent - other.Exponent
+		otherMantissa := other.Mantissa * int64Pow(10, diff)
+		u.Mantissa -= otherMantissa
+	} else if u.Exponent < other.Exponent {
+		diff := other.Exponent - u.Exponent
+		uMantissa := u.Mantissa * int64Pow(10, diff)
+		u.Mantissa = uMantissa - other.Mantissa
+		u.Exponent = other.Exponent
+	} else {
+		// Если экспоненты равны, вычитаем мантиссы
+		u.Mantissa -= other.Mantissa
+	}
+
+	// Нормализация результата
+	for u.Mantissa < 0 && u.Exponent > 0 {
 		u.Mantissa *= 10
 		u.Exponent--
 	}
 
 	if u.Mantissa < 0 {
 		u.Mantissa = 0
-	}
-	if u.Exponent < 0 {
 		u.Exponent = 0
+	}
+}
+
+func (u *Score) Plus(other *Score) {
+	// Приводим мантиссу и экспоненту к одному уровню для сложения
+	if u.Exponent > other.Exponent {
+		diff := u.Exponent - other.Exponent
+		otherMantissa := other.Mantissa * int64Pow(10, diff)
+		u.Mantissa += otherMantissa
+	} else if u.Exponent < other.Exponent {
+		diff := other.Exponent - u.Exponent
+		uMantissa := u.Mantissa * int64Pow(10, diff)
+		u.Mantissa = uMantissa + other.Mantissa
+		u.Exponent = other.Exponent
+	} else {
+		// Если экспоненты равны, складываем мантиссы
+		u.Mantissa += other.Mantissa
+	}
+
+	// Нормализация результата
+	for u.Mantissa >= 1e18 {
+		u.Mantissa /= 10
+		u.Exponent++
 	}
 }
 
