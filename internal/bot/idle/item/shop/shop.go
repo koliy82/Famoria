@@ -80,11 +80,7 @@ func New(opts *Opts) *Shop {
 }
 
 func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
-	s.Label = fmt.Sprintf(
-		"Потайная лавка (%d/%d стр.)\nБаланс - %s 💰\n",
-		s.CurrentPage, s.MaxPages,
-		s.Opts.B.Score.GetFormattedScore(),
-	)
+	s.Label = fmt.Sprintf("Потайная лавка (%d/%d стр.)\n", s.CurrentPage, s.MaxPages)
 	for i := 0; i < len(s.ShopCallbacks)-1; i++ {
 		for j := 0; j < len(s.ShopCallbacks[i]); j++ {
 			s.Opts.Cm.RemoveCallback(s.ShopCallbacks[i][j].CallbackData)
@@ -135,6 +131,7 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 			s.ShopCallbacks[i] = append(s.ShopCallbacks[i], dCallback.Inline())
 		}
 	}
+	s.Label += fmt.Sprintf("Доступные средства - %s 💰", s.Opts.B.Score.GetFormattedScore())
 
 	if s.MaxPages > 1 {
 		s.ShopCallbacks = append(s.ShopCallbacks, []telego.InlineKeyboardButton{s.NavigateBack.Inline(), s.NavigateNext.Inline()})
