@@ -54,7 +54,7 @@ func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
 			mode = Image(arg).String()
 		}
 	}
-	requestURL := fmt.Sprintf("%s/treeCmd/%s/%d?reverse=true", c.cfg.ApiURL, mode, update.Message.From.ID)
+	requestURL := fmt.Sprintf("%s/tree/%s/%d?reverse=true", c.cfg.ApiURL, mode, update.Message.From.ID)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.log.Sugar().Error("client: could not create request: %s\n", err)

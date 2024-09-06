@@ -16,6 +16,7 @@ import (
 	"famoria/internal/database/clickhouse"
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo"
+	admin2 "famoria/internal/database/mongo/repositories/admin"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"go.uber.org/fx"
@@ -32,6 +33,7 @@ var App = fx.Options(
 		mongo.New,
 		fx.Annotate(user.New, fx.As(new(user.Repository))),
 		fx.Annotate(brak.New, fx.As(new(brak.Repository))),
+		fx.Annotate(admin2.New, fx.As(new(admin2.Repository))),
 		item.New,
 	),
 	fx.Provide(
