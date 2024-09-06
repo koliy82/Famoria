@@ -2,9 +2,7 @@ package growkid
 
 import (
 	"famoria/internal/bot/idle/events"
-	"famoria/internal/pkg/html"
 	"fmt"
-	"strconv"
 )
 
 //====== PlayPowerBuff ======
@@ -22,7 +20,7 @@ func (b *PlayPowerBuff) Type() events.GameType {
 }
 
 func (b *PlayPowerBuff) Description() string {
-	return fmt.Sprintf("+ %s к базовой кормёжке.", html.Bold(strconv.FormatUint(b.Power, 10)))
+	return fmt.Sprintf("+ %v к базовой кормёжке.", b.Power)
 }
 
 //====== PercentagePowerBuff ======
@@ -40,7 +38,7 @@ func (b *PercentagePowerBuff) Type() events.GameType {
 }
 
 func (b *PercentagePowerBuff) Description() string {
-	return fmt.Sprintf("+ %s%% силы кормёжки.", html.Bold(strconv.FormatFloat(b.Percentage*100, 'f', 2, 64)))
+	return fmt.Sprintf("+ %v%% силы кормёжки.", b.Percentage*100)
 }
 
 //====== PlayCountBuff ======
@@ -58,5 +56,5 @@ func (b *PlayCountBuff) Type() events.GameType {
 }
 
 func (b *PlayCountBuff) Description() string {
-	return fmt.Sprintf("+ %s кормёжок в день.", html.Bold(strconv.Itoa(int(b.Count))))
+	return fmt.Sprintf("+ %v кормёжок в день.", b.Count)
 }

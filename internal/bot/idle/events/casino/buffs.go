@@ -2,9 +2,7 @@ package casino
 
 import (
 	"famoria/internal/bot/idle/events"
-	"famoria/internal/pkg/html"
 	"fmt"
-	"strconv"
 )
 
 //====== PlayPowerBuff ======
@@ -22,7 +20,7 @@ func (b *PlayPowerBuff) Type() events.GameType {
 }
 
 func (b *PlayPowerBuff) Description() string {
-	return fmt.Sprintf("+ %s к базовому выйгрышу.", html.Bold(strconv.FormatUint(b.Power, 10)))
+	return fmt.Sprintf("+ %v к базовому выйгрышу.", b.Power)
 }
 
 //====== PercentagePowerBuff ======
@@ -58,7 +56,7 @@ func (b *PlayCountBuff) Type() events.GameType {
 }
 
 func (b *PlayCountBuff) Description() string {
-	return fmt.Sprintf("+ %s круток в день.", html.Bold(strconv.Itoa(int(b.Count))))
+	return fmt.Sprintf("+ %v круток в день.", b.Count)
 }
 
 //====== LuckBuff ======
@@ -76,5 +74,5 @@ func (b *LuckBuff) Type() events.GameType {
 }
 
 func (b *LuckBuff) Description() string {
-	return fmt.Sprintf("+ %s%% удачи.", html.Bold(strconv.Itoa(b.Luck)))
+	return fmt.Sprintf("+ %v%% удачи.", b.Luck)
 }

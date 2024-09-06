@@ -20,7 +20,7 @@ func (b *PlayPowerBuff) Type() events.GameType {
 }
 
 func (b *PlayPowerBuff) Description() string {
-	return fmt.Sprintf("+ %v к базовому тапу.", b.Power)
+	return fmt.Sprintf("+ %v к базовой силе тапа.", b.Power)
 }
 
 //====== PercentagePowerBuff ======
