@@ -6,6 +6,12 @@ const (
 	MegaTap Name = iota
 	TapCount
 	TapPower
+	GoldenDice
+	InfiniteSpins
+	LuckyClover
+	MagicSpoon
+	GrowthPotion
+	EndlessMilk
 )
 
 func (n Name) String() string {
@@ -16,6 +22,18 @@ func (n Name) String() string {
 		return "Больше хомяков"
 	case TapPower:
 		return "Хомячий тренер"
+	case GoldenDice:
+		return "Золотые кости"
+	case InfiniteSpins:
+		return "Бесконечные крутки"
+	case LuckyClover:
+		return "Счастливый клевер"
+	case MagicSpoon:
+		return "Волшебная ложка"
+	case GrowthPotion:
+		return "Зелье роста"
+	case EndlessMilk:
+		return "Бесконечное молоко"
 	default:
 		return "Неизвестный предмет"
 	}

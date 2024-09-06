@@ -18,7 +18,7 @@ type GrowKid struct {
 func (g *GrowKid) DefaultStats() {
 	g.Base.MaxPlayCount = 1
 	g.Base.PercentagePower = 1.0
-	g.Base.BasePlayPower = 100
+	g.Base.BasePlayPower = 50
 }
 
 type PlayOpts struct {

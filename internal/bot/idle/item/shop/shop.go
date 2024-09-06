@@ -127,6 +127,9 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 					if err != nil {
 						s.Opts.Log.Sugar().Error(err)
 					}
+					_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+						CallbackQueryID: query.ID,
+					})
 				},
 			})
 			s.ShopCallbacks[i] = append(s.ShopCallbacks[i], dCallback.Inline())
