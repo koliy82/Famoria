@@ -38,7 +38,7 @@ func (b *PercentagePowerBuff) Type() events.GameType {
 }
 
 func (b *PercentagePowerBuff) Description() string {
-	return fmt.Sprintf("+ %v%% выйгрыша.", b.Percentage)
+	return fmt.Sprintf("+ %v%% к выйгрышу.", b.Percentage*100)
 }
 
 //====== PlayCountBuff ======
@@ -74,5 +74,5 @@ func (b *LuckBuff) Type() events.GameType {
 }
 
 func (b *LuckBuff) Description() string {
-	return fmt.Sprintf("+ %v%% удачи.", b.Luck)
+	return fmt.Sprintf("+ %v к удаче.", b.Luck)
 }

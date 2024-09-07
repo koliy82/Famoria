@@ -10,6 +10,7 @@ const (
 	Hamster GameType = iota
 	Casino
 	GrowKid
+	Shop
 	Subscribe
 )
 
@@ -20,6 +21,7 @@ type Base struct {
 	BasePlayPower   uint64    `bson:"-"`
 	PercentagePower float64   `bson:"-"`
 	Luck            int       `bson:"-"`
+	Sale            float64   `bson:"-"`
 }
 
 type Buff interface {

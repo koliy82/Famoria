@@ -1,24 +1,17 @@
 package subscribe
 
-import (
-	"famoria/internal/bot/idle/events"
-	"fmt"
-)
+import "famoria/internal/bot/idle/events"
 
-//====== SubBuff ======
+// ====== AnubisBuff ======
 
-type SubBuff struct {
-	percentage float64
-}
+type AnubisBuff struct{}
 
-func (b *SubBuff) Apply(base *events.Base) {
-	base.PercentagePower += b.percentage
-}
+func (b *AnubisBuff) Apply(*events.Base) {}
 
-func (b *SubBuff) Type() events.GameType {
+func (b *AnubisBuff) Type() events.GameType {
 	return events.Subscribe
 }
 
-func (b *SubBuff) Description() string {
-	return fmt.Sprintf("+ %v%% ко всему.", b.percentage)
+func (b *AnubisBuff) Description() string {
+	return "+ Доступ к игре в Анубис."
 }

@@ -12,6 +12,7 @@ const (
 	MagicSpoon
 	GrowthPotion
 	EndlessMilk
+	Subscribe
 )
 
 func (n Name) String() string {
@@ -34,6 +35,8 @@ func (n Name) String() string {
 		return "Зелье роста"
 	case EndlessMilk:
 		return "Бесконечное молоко"
+	case Subscribe:
+		return "Подписка"
 	default:
 		return "Неизвестный предмет"
 	}

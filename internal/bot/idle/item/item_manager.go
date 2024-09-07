@@ -5,7 +5,9 @@ import (
 	"famoria/internal/bot/idle/events/casino"
 	"famoria/internal/bot/idle/events/growkid"
 	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/events/subscribe"
 	"famoria/internal/bot/idle/item/items"
+	"famoria/internal/bot/idle/item/shop/shopb"
 	"famoria/internal/pkg/common"
 	"go.uber.org/zap"
 )
@@ -36,6 +38,26 @@ func New(log *zap.Logger) *Manager {
 	return &Manager{
 		Log: log,
 		Items: map[items.Name]*Item{
+			// Donate items
+			items.Subscribe: {
+				Emoji:       "💎",
+				Name:        items.Subscribe,
+				MaxLevel:    0,
+				Description: "items.Subscribe",
+				Buffs: map[int][]events.Buff{
+					0: {
+						&hamster.PercentagePowerBuff{Percentage: 0.2},
+						&casino.PercentagePowerBuff{Percentage: 0.2},
+						&growkid.PercentagePowerBuff{Percentage: 0.2},
+						&casino.LuckBuff{Luck: 15},
+						&shopb.SaleBuff{Percentage: 0.2},
+						&subscribe.AnubisBuff{},
+					},
+				},
+				Prices: map[int]*common.Score{
+					0: {Mantissa: 1000000, Exponent: 100},
+				},
+			},
 			// Hamster items
 			items.MegaTap: {
 				Emoji:       "💪",

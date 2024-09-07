@@ -271,6 +271,7 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 					PlayCount: 1,
 				},
 			},
+			SubscribeEnd: nil,
 		}
 		if brak.Score.Mantissa < 0 {
 			brak.Score.Mantissa = int64(math.Abs(float64(brak.Score.Mantissa)))

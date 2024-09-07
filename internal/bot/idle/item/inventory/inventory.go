@@ -25,6 +25,7 @@ func (i *Item) GetBuffs(manager *item.Manager) []events.Buff {
 
 type Inventory struct {
 	Items map[items.Name]Item `bson:"items"`
+	Base  events.Base         `bson:"-"`
 }
 
 func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
@@ -45,6 +46,9 @@ func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
 func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
 	list := make([]*ShopItem, 0, len(manager.Items))
 	for _, mi := range manager.Items {
+		if mi.MaxLevel == 0 {
+			continue
+		}
 		current, ok := i.Items[mi.Name]
 		if ok == false {
 			list = append(list, &ShopItem{
@@ -59,6 +63,7 @@ func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
 			continue
 		}
 		if current.CurrentLevel >= mi.MaxLevel {
+			println("current.CurrentLevel >= mi.MaxLevel")
 			continue
 		}
 		list = append(list, &ShopItem{

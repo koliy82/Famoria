@@ -7,6 +7,7 @@ import (
 	"famoria/internal/bot/idle/events/hamster"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
+	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/plural"
@@ -24,6 +25,7 @@ type Brak struct {
 	BabyUserID     *int64               `bson:"baby_user_id"`
 	BabyCreateDate *time.Time           `bson:"baby_create_date"`
 	Score          *common.Score        `bson:"score"`
+	SubscribeEnd   *time.Time           `bson:"subscribe_end"`
 	Inventory      *inventory.Inventory `bson:"inventory"`
 	Casino         *casino.Casino       `bson:"casino"`
 	Hamster        *hamster.Hamster     `bson:"hamster"`
@@ -31,6 +33,23 @@ type Brak struct {
 }
 
 func (b *Brak) ApplyBuffs(manager *item.Manager) {
+	if b.Inventory == nil {
+		return
+	}
+	si, ok := b.Inventory.Items[items.Subscribe]
+	if b.IsSub() {
+		if !ok {
+			si = inventory.Item{
+				Name:         items.Subscribe,
+				CurrentLevel: 0,
+			}
+			b.Inventory.Items[items.Subscribe] = si
+		}
+	} else {
+		if ok {
+			delete(b.Inventory.Items, items.Subscribe)
+		}
+	}
 	b.Casino.DefaultStats()
 	b.Hamster.DefaultStats()
 	b.GrowKid.DefaultStats()
@@ -43,13 +62,24 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 				buff.Apply(&b.Casino.Base)
 			case events.GrowKid:
 				buff.Apply(&b.GrowKid.Base)
+			case events.Shop:
+				buff.Apply(&b.Inventory.Base)
 			case events.Subscribe:
-				buff.Apply(&b.Hamster.Base)
-				buff.Apply(&b.Casino.Base)
-				buff.Apply(&b.GrowKid.Base)
+				continue
 			}
 		}
 	}
+}
+
+func (b *Brak) IsSub() bool {
+	return b.SubscribeEnd != nil && time.Now().Before(*b.SubscribeEnd)
+}
+
+func (b *Brak) SubDaysCount() int {
+	if b.SubscribeEnd == nil {
+		return 0
+	}
+	return int(b.SubscribeEnd.Sub(time.Now()).Hours() / 24)
 }
 
 type UsersBrak struct {

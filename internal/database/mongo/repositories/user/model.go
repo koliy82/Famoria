@@ -5,7 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
 	"strings"
-	"time"
 )
 
 type User struct {
@@ -16,7 +15,6 @@ type User struct {
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
 	Score        common.Score       `bson:"score"`
-	SubscribeEnd *time.Time         `bson:"subscribe_end"`
 }
 
 func (u *User) IsEquals(other *User) bool {
@@ -34,15 +32,4 @@ func (u *User) UsernameOrFull() string {
 		return u.FirstName + " " + *u.LastName
 	}
 	return u.FirstName
-}
-
-func (u *User) IsSub() bool {
-	return u.SubscribeEnd != nil && time.Now().Before(*u.SubscribeEnd)
-}
-
-func (u *User) SubDaysCount() int {
-	if u.SubscribeEnd == nil {
-		return 0
-	}
-	return int(u.SubscribeEnd.Sub(time.Now()).Hours() / 24)
 }

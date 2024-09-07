@@ -11,6 +11,7 @@ import (
 	"famoria/internal/bot/command/subscription"
 	"famoria/internal/bot/handler"
 	"famoria/internal/bot/handler/logger"
+	"famoria/internal/bot/handler/payments"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/config"
 	"famoria/internal/database/clickhouse"
@@ -43,8 +44,7 @@ var App = fx.Options(
 	),
 	fx.Invoke(
 		static.ProfileCallbacks,
-	),
-	fx.Invoke(
+		payments.Register,
 		admin.Register,
 		family.Register,
 		idle.Register,

@@ -38,7 +38,7 @@ func (b *PercentagePowerBuff) Type() events.GameType {
 }
 
 func (b *PercentagePowerBuff) Description() string {
-	return fmt.Sprintf("+ %v%% силы тапа.", b.Percentage)
+	return fmt.Sprintf("+ %v%% силы тапа.", b.Percentage*100)
 }
 
 //====== PlayCountBuff ======

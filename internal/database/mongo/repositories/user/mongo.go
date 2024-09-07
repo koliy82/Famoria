@@ -172,7 +172,6 @@ func TransferUsers(client *mongo.Client, m *Mongo, cfg config.Config) error {
 				Mantissa: 0,
 				Exponent: 0,
 			},
-			SubscribeEnd: nil,
 		}
 
 		if user.Score.Mantissa < 0 {

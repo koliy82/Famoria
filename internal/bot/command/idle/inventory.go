@@ -21,7 +21,7 @@ type inventoryCmd struct {
 
 func (c inventoryCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
+	b, _ := c.brakRepo.FindByUserID(from.ID, c.manager)
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,
@@ -46,6 +46,9 @@ func (c inventoryCmd) Handle(bot *telego.Bot, update telego.Update) {
 		Cm:             c.cm,
 		InventoryItems: b.Inventory.Items,
 	})
+	if pages == nil {
+		return
+	}
 
 	_, err := bot.SendMessage(params.
 		WithText(pages.Label + "Выберите предмет для просмотра.\n").

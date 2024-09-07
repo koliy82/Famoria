@@ -46,7 +46,9 @@ func New(opts *Opts) *Inventory {
 		Opts:        opts,
 	}
 	for _, i := range opts.InventoryItems {
-		mi := i.GetItem(opts.Manager)
+		mi := opts.Manager.Items[i.Name]
+		println(i.Name.String())
+		println(i.CurrentLevel)
 		p.Items = append(p.Items, &inventory.ShowItem{
 			Emoji:        mi.Emoji,
 			Name:         mi.Name,
