@@ -24,7 +24,7 @@ func (i *Item) GetBuffs(manager *item.Manager) []events.Buff {
 }
 
 type Inventory struct {
-	Items map[items.Name]Item
+	Items map[items.Name]Item `bson:"items"`
 }
 
 func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {

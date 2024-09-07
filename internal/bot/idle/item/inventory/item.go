@@ -25,7 +25,11 @@ func (si *ShowItem) FullDescription() string {
 	for _, buff := range si.Buffs {
 		bDesc += buff.Description() + "\n"
 	}
-	return header + body + html.CodeBlockWithLang(bDesc, "Усиления")
+	return header + html.Italic(body) + html.CodeBlockWithLang(bDesc, "Усиления")
+}
+
+func (si *ShowItem) SmallDescription() string {
+	return fmt.Sprintf("%s - %s [%d/%d ур.]", si.Emoji, si.Name.String(), si.CurrentLevel, si.MaxLevel)
 }
 
 type ShopItem struct {
