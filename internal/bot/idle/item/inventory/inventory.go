@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/items"
 )
@@ -15,7 +15,7 @@ func (i *Item) GetItem(manager *item.Manager) *item.Item {
 	return manager.GetItem(i.Name)
 }
 
-func (i *Item) GetBuffs(manager *item.Manager) []events.Buff {
+func (i *Item) GetBuffs(manager *item.Manager) []event.Buff {
 	buffs := i.GetItem(manager).Buffs[i.CurrentLevel]
 	if buffs == nil {
 		manager.Log.Sugar().Error("Buffs not found", i.Name, i.CurrentLevel)
@@ -25,7 +25,7 @@ func (i *Item) GetBuffs(manager *item.Manager) []events.Buff {
 
 type Inventory struct {
 	Items map[items.Name]Item `bson:"items"`
-	Base  events.Base         `bson:"-"`
+	Base  event.Base          `bson:"-"`
 }
 
 func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {

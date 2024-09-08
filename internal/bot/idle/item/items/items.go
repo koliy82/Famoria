@@ -36,7 +36,7 @@ func (n Name) String() string {
 	case EndlessMilk:
 		return "Бесконечное молоко"
 	case Subscribe:
-		return "Подписка"
+		return "Сияющий кристалл"
 	default:
 		return "Неизвестный предмет"
 	}

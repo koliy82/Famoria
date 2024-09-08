@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
@@ -15,7 +15,7 @@ type ShowItem struct {
 	CurrentLevel int
 	MaxLevel     int
 	Description  string
-	Buffs        []events.Buff
+	Buffs        []event.Buff
 }
 
 func (si *ShowItem) FullDescription() string {
@@ -39,7 +39,7 @@ type ShopItem struct {
 	MaxLevel    int
 	Description string
 	Price       *common.Score
-	Buffs       []events.Buff
+	Buffs       []event.Buff
 }
 
 func (si *ShopItem) FullDescription() string {

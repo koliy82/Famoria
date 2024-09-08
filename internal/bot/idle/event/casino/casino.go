@@ -1,7 +1,7 @@
 package casino
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/date"
 	"famoria/internal/pkg/html"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 type Casino struct {
-	events.Base `bson:"base"`
+	event.Base `bson:"base"`
 }
 
 func (c *Casino) DefaultStats() {
@@ -61,7 +61,6 @@ func (c *Casino) Play(opts *PlayOpts) *PlayResponse {
 			IsWin: false,
 		}
 	case chance <= 35:
-		score *= 3
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&opts.Query.From), score),

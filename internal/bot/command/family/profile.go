@@ -7,6 +7,7 @@ import (
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/plural"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -37,14 +38,6 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err == nil {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
-
-	// TODO transfer to brak
-	//if fUser.IsSub() {
-	//	days := fUser.SubDaysCount()
-	//	text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
-	//} else {
-	//	text += fmt.Sprintf("😿 Нет активной подписки\n")
-	//}
 
 	keyboard := tu.InlineKeyboardRow()
 
@@ -77,6 +70,14 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 			if err == nil {
 				text += fmt.Sprintf("👼 %s [%s]\n", html.CodeInline(bUser.UsernameOrFull()), b.DurationKid())
 			}
+		}
+
+		if b.IsSub() {
+			days := b.SubDaysCount()
+			text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
+			keyboard = append(keyboard, tu.InlineKeyboardButton("💎").WithCallbackData(static.AnubisData))
+		} else {
+			text += fmt.Sprintf("😿 Нет активной подписки\n")
 		}
 
 		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())

@@ -1,10 +1,8 @@
 package brak
 
 import (
-	"famoria/internal/bot/idle/events"
-	"famoria/internal/bot/idle/events/casino"
-	"famoria/internal/bot/idle/events/growkid"
-	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/event"
+	"famoria/internal/bot/idle/event/events"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/bot/idle/item/items"
@@ -27,9 +25,11 @@ type Brak struct {
 	Score          *common.Score        `bson:"score"`
 	SubscribeEnd   *time.Time           `bson:"subscribe_end"`
 	Inventory      *inventory.Inventory `bson:"inventory"`
-	Casino         *casino.Casino       `bson:"casino"`
-	Hamster        *hamster.Hamster     `bson:"hamster"`
-	GrowKid        *growkid.GrowKid     `bson:"grow_kid"`
+	//Casino         *casino.Casino       `bson:"casino"`
+	//Hamster        *hamster.Hamster     `bson:"hamster"`
+	//GrowKid        *growkid.GrowKid     `bson:"grow_kid"`
+	//Anubis         *anubis.Anubis       `bson:"anubis"`
+	Events *events.Events `bson:"events"`
 }
 
 func (b *Brak) ApplyBuffs(manager *item.Manager) {
@@ -50,21 +50,19 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 			delete(b.Inventory.Items, items.Subscribe)
 		}
 	}
-	b.Casino.DefaultStats()
-	b.Hamster.DefaultStats()
-	b.GrowKid.DefaultStats()
+	b.Events.DefaultStats()
 	for _, i := range b.Inventory.Items {
 		for _, buff := range i.GetBuffs(manager) {
 			switch buff.Type() {
-			case events.Hamster:
-				buff.Apply(&b.Hamster.Base)
-			case events.Casino:
-				buff.Apply(&b.Casino.Base)
-			case events.GrowKid:
-				buff.Apply(&b.GrowKid.Base)
-			case events.Shop:
+			case event.Hamster:
+				buff.Apply(&b.Events.Hamster.Base)
+			case event.Casino:
+				buff.Apply(&b.Events.Casino.Base)
+			case event.GrowKid:
+				buff.Apply(&b.Events.GrowKid.Base)
+			case event.Shop:
 				buff.Apply(&b.Inventory.Base)
-			case events.Subscribe:
+			case event.Subscribe:
 				continue
 			}
 		}

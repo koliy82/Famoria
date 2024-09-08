@@ -2,10 +2,12 @@ package brak
 
 import (
 	"context"
-	"famoria/internal/bot/idle/events"
-	"famoria/internal/bot/idle/events/casino"
-	"famoria/internal/bot/idle/events/growkid"
-	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/event"
+	"famoria/internal/bot/idle/event/anubis"
+	"famoria/internal/bot/idle/event/casino"
+	"famoria/internal/bot/idle/event/events"
+	"famoria/internal/bot/idle/event/growkid"
+	"famoria/internal/bot/idle/event/hamster"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/bot/idle/item/items"
@@ -253,22 +255,30 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
 			Score:          &common.Score{Mantissa: transferBraks[i].Score},
 			Inventory:      &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
-			Hamster: &hamster.Hamster{
-				Base: events.Base{
-					LastPlay:  transferBraks[i].LastHamsterUpdate,
-					PlayCount: uint16(transferBraks[i].TapCount),
+			Events: &events.Events{
+				Hamster: &hamster.Hamster{
+					Base: event.Base{
+						LastPlay:  transferBraks[i].LastHamsterUpdate,
+						PlayCount: uint16(transferBraks[i].TapCount),
+					},
 				},
-			},
-			Casino: &casino.Casino{
-				Base: events.Base{
-					LastPlay:  transferBraks[i].LastCasinoPlay,
-					PlayCount: 1,
+				Casino: &casino.Casino{
+					Base: event.Base{
+						LastPlay:  transferBraks[i].LastCasinoPlay,
+						PlayCount: 1,
+					},
 				},
-			},
-			GrowKid: &growkid.GrowKid{
-				Base: events.Base{
-					LastPlay:  transferBraks[i].LastGrowKid,
-					PlayCount: 1,
+				GrowKid: &growkid.GrowKid{
+					Base: event.Base{
+						LastPlay:  transferBraks[i].LastGrowKid,
+						PlayCount: 1,
+					},
+				},
+				Anubis: &anubis.Anubis{
+					Base: event.Base{
+						LastPlay:  time.Time{},
+						PlayCount: 0,
+					},
 				},
 			},
 			SubscribeEnd: nil,

@@ -1,7 +1,7 @@
 package casino
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"fmt"
 )
 
@@ -11,12 +11,12 @@ type PlayPowerBuff struct {
 	Power uint64
 }
 
-func (b *PlayPowerBuff) Apply(base *events.Base) {
+func (b *PlayPowerBuff) Apply(base *event.Base) {
 	base.BasePlayPower = b.Power
 }
 
-func (b *PlayPowerBuff) Type() events.GameType {
-	return events.Casino
+func (b *PlayPowerBuff) Type() event.GameType {
+	return event.Casino
 }
 
 func (b *PlayPowerBuff) Description() string {
@@ -29,12 +29,12 @@ type PercentagePowerBuff struct {
 	Percentage float64
 }
 
-func (b *PercentagePowerBuff) Apply(base *events.Base) {
+func (b *PercentagePowerBuff) Apply(base *event.Base) {
 	base.PercentagePower += b.Percentage
 }
 
-func (b *PercentagePowerBuff) Type() events.GameType {
-	return events.Casino
+func (b *PercentagePowerBuff) Type() event.GameType {
+	return event.Casino
 }
 
 func (b *PercentagePowerBuff) Description() string {
@@ -47,12 +47,12 @@ type PlayCountBuff struct {
 	Count uint16
 }
 
-func (b *PlayCountBuff) Apply(base *events.Base) {
+func (b *PlayCountBuff) Apply(base *event.Base) {
 	base.MaxPlayCount += b.Count
 }
 
-func (b *PlayCountBuff) Type() events.GameType {
-	return events.Casino
+func (b *PlayCountBuff) Type() event.GameType {
+	return event.Casino
 }
 
 func (b *PlayCountBuff) Description() string {
@@ -65,12 +65,12 @@ type LuckBuff struct {
 	Luck int
 }
 
-func (b *LuckBuff) Apply(base *events.Base) {
+func (b *LuckBuff) Apply(base *event.Base) {
 	base.Luck += b.Luck
 }
 
-func (b *LuckBuff) Type() events.GameType {
-	return events.Casino
+func (b *LuckBuff) Type() event.GameType {
+	return event.Casino
 }
 
 func (b *LuckBuff) Description() string {

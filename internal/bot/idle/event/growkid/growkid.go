@@ -1,7 +1,7 @@
 package growkid
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/date"
 	"famoria/internal/pkg/html"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 type GrowKid struct {
-	events.Base `bson:"base"`
+	event.Base `bson:"base"`
 }
 
 func (g *GrowKid) DefaultStats() {

@@ -94,7 +94,7 @@ func (p *Inventory) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 				break
 			}
 			si := p.Items[i*p.MaxCells+j]
-			p.Label += si.SmallDescription() + "\n"
+			//p.Label += si.SmallDescription() + "\n"
 			iCallback := p.Opts.Cm.DynamicCallback(callback.DynamicOpts{
 				Label:    si.Name.String(),
 				CtxType:  callback.Temporary,

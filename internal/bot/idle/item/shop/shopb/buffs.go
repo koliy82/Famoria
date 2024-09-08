@@ -1,7 +1,7 @@
 package shopb
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"fmt"
 )
 
@@ -11,12 +11,12 @@ type SaleBuff struct {
 	Percentage float64
 }
 
-func (b *SaleBuff) Apply(base *events.Base) {
+func (b *SaleBuff) Apply(base *event.Base) {
 	base.Sale += b.Percentage
 }
 
-func (b *SaleBuff) Type() events.GameType {
-	return events.Shop
+func (b *SaleBuff) Type() event.GameType {
+	return event.Shop
 }
 
 func (b *SaleBuff) Description() string {

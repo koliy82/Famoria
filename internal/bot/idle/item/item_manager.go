@@ -1,11 +1,11 @@
 package item
 
 import (
-	"famoria/internal/bot/idle/events"
-	"famoria/internal/bot/idle/events/casino"
-	"famoria/internal/bot/idle/events/growkid"
-	"famoria/internal/bot/idle/events/hamster"
-	"famoria/internal/bot/idle/events/subscribe"
+	"famoria/internal/bot/idle/event"
+	"famoria/internal/bot/idle/event/anubis"
+	"famoria/internal/bot/idle/event/casino"
+	"famoria/internal/bot/idle/event/growkid"
+	"famoria/internal/bot/idle/event/hamster"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/bot/idle/item/shop/shopb"
 	"famoria/internal/pkg/common"
@@ -29,7 +29,7 @@ type Item struct {
 	Name        items.Name
 	Emoji       string
 	MaxLevel    int
-	Buffs       map[int][]events.Buff
+	Buffs       map[int][]event.Buff
 	Description string
 	Prices      map[int]*common.Score
 }
@@ -43,15 +43,15 @@ func New(log *zap.Logger) *Manager {
 				Emoji:       "💎",
 				Name:        items.Subscribe,
 				MaxLevel:    0,
-				Description: "items.Subscribe",
-				Buffs: map[int][]events.Buff{
+				Description: "Древний артефакт, испускающий мощную магическую ауру. Этот кристалл дарует владельцу невероятное везение и усиливает все его способности. Легенда гласит, что тот, кто овладеет кристаллом, сможет изменить судьбу своего рода.",
+				Buffs: map[int][]event.Buff{
 					0: {
 						&hamster.PercentagePowerBuff{Percentage: 0.2},
 						&casino.PercentagePowerBuff{Percentage: 0.2},
 						&growkid.PercentagePowerBuff{Percentage: 0.2},
 						&casino.LuckBuff{Luck: 15},
 						&shopb.SaleBuff{Percentage: 0.2},
-						&subscribe.AnubisBuff{},
+						&anubis.AccessBuff{},
 					},
 				},
 				Prices: map[int]*common.Score{
@@ -64,7 +64,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.MegaTap,
 				MaxLevel:    5,
 				Description: "Священная перчатка, усиливающая силу вашего тапа.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&hamster.PlayPowerBuff{Power: 1},
 					},
@@ -96,7 +96,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.TapCount,
 				MaxLevel:    5,
 				Description: "Коробка с милыми хомяками.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&hamster.PlayCountBuff{Count: 10},
 						&hamster.PlayPowerBuff{Power: 1},
@@ -133,7 +133,7 @@ func New(log *zap.Logger) *Manager {
 				Emoji:       "🏋️",
 				MaxLevel:    5,
 				Description: "Тренажер для хомяков, увеличивающий их силу.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&hamster.PlayPowerBuff{Power: 1},
 						&hamster.PercentagePowerBuff{Percentage: 1.0},
@@ -170,7 +170,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.GoldenDice,
 				MaxLevel:    5,
 				Description: "Эти золотые кости, выкованные богами удачи, увеличивают твой выигрыш на каждом броске.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&casino.PlayPowerBuff{Power: 250},
 					},
@@ -204,7 +204,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.InfiniteSpins,
 				MaxLevel:    5,
 				Description: "Эти магические барабаны могут вращаться вечно, увеличивая количество твоих попыток.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&casino.PlayCountBuff{Count: 1},
 					},
@@ -241,7 +241,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.LuckyClover,
 				MaxLevel:    5,
 				Description: "Легендарный клевер находит счастливчика среди всех и делает его ещё удачливее!",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&casino.LuckBuff{Luck: 10},
 					},
@@ -280,7 +280,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.MagicSpoon,
 				MaxLevel:    5,
 				Description: "Эта ложка, выкованная из звёздного света, увеличивает эффект каждого кормления.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&growkid.PlayPowerBuff{Power: 50},
 					},
@@ -312,7 +312,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.GrowthPotion,
 				MaxLevel:    5,
 				Description: "Эликсир, сваренный древним алхимиком, ускоряет рост ребёнка.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&growkid.PercentagePowerBuff{Percentage: 0.25},
 					},
@@ -346,7 +346,7 @@ func New(log *zap.Logger) *Manager {
 				Name:        items.EndlessMilk,
 				MaxLevel:    5,
 				Description: "Бутылочка молока, которое никогда не заканчивается, увеличивая количество кормлений.",
-				Buffs: map[int][]events.Buff{
+				Buffs: map[int][]event.Buff{
 					1: {
 						&growkid.PlayCountBuff{Count: 1},
 					},

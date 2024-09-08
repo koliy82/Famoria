@@ -2,10 +2,7 @@ package family
 
 import (
 	"famoria/internal/bot/callback"
-	"famoria/internal/bot/idle/events"
-	"famoria/internal/bot/idle/events/casino"
-	"famoria/internal/bot/idle/events/growkid"
-	"famoria/internal/bot/idle/events/hamster"
+	"famoria/internal/bot/idle/event/events"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/brak"
@@ -121,24 +118,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 					Mantissa: 0,
 					Exponent: 0,
 				},
-				Hamster: &hamster.Hamster{
-					Base: events.Base{
-						LastPlay:  time.Time{},
-						PlayCount: 0,
-					},
-				},
-				Casino: &casino.Casino{
-					Base: events.Base{
-						LastPlay:  time.Time{},
-						PlayCount: 0,
-					},
-				},
-				GrowKid: &growkid.GrowKid{
-					Base: events.Base{
-						LastPlay:  time.Time{},
-						PlayCount: 0,
-					},
-				},
+				Events: events.New(),
 			})
 
 			_, err := bot.SendMessage(&telego.SendMessageParams{

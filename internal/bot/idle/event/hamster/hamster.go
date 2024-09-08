@@ -1,7 +1,7 @@
 package hamster
 
 import (
-	"famoria/internal/bot/idle/events"
+	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/date"
 	"github.com/mymmrac/telego"
 	"go.uber.org/zap"
@@ -9,7 +9,7 @@ import (
 )
 
 type Hamster struct {
-	events.Base `bson:"base"`
+	event.Base `bson:"base"`
 }
 
 func (h *Hamster) DefaultStats() {
