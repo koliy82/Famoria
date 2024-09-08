@@ -6,6 +6,7 @@ import (
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
 	"famoria/internal/pkg/plural"
 	"fmt"
@@ -39,7 +40,7 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
 
-	keyboard := tu.InlineKeyboardRow()
+	keyboard := buttons.New(5, 3)
 
 	b, err := c.brakRepo.FindByUserID(from.ID, nil)
 	if err != nil {
@@ -55,8 +56,8 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 			}
 		}
 
-		keyboard = append(keyboard, tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
-		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
+		keyboard.Add(tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
+		keyboard.Add(tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
 		tUser, _ := c.userRepo.FindByID(b.PartnerID(fUser.ID))
 		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
@@ -65,7 +66,7 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		}
 
 		if b.BabyUserID != nil {
-			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
+			keyboard.Add(tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
 			bUser, err := c.userRepo.FindByID(*b.BabyUserID)
 			if err == nil {
 				text += fmt.Sprintf("👼 %s [%s]\n", html.CodeInline(bUser.UsernameOrFull()), b.DurationKid())
@@ -75,7 +76,7 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		if b.IsSub() {
 			days := b.SubDaysCount()
 			text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
-			keyboard = append(keyboard, tu.InlineKeyboardButton("💎").WithCallbackData(static.AnubisData))
+			keyboard.Add(tu.InlineKeyboardButton("💎").WithCallbackData(static.AnubisData))
 		} else {
 			text += fmt.Sprintf("😿 Нет активной подписки\n")
 		}
@@ -90,8 +91,8 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		DisableNotification: true,
 	}
 
-	if len(keyboard) != 0 {
-		params.ReplyMarkup = tu.InlineKeyboard(keyboard)
+	if len(keyboard.Buttons) != 0 {
+		params.ReplyMarkup = keyboard.Build()
 	}
 
 	_, err = bot.SendMessage(params)
