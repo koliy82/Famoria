@@ -48,7 +48,7 @@ func New(opts *Opts) *Shop {
 		MaxCells:    4,
 		Opts:        opts,
 	}
-	s.Items = opts.B.Inventory.GetAvailableItems(opts.Manager)
+	s.Items = opts.B.GetAvailableItems(opts.Manager)
 	sort.Slice(s.Items, func(i, j int) bool {
 		if s.Items[i].Price.Exponent == s.Items[j].Price.Exponent {
 			return s.Items[i].Price.Mantissa < s.Items[j].Price.Mantissa
@@ -243,6 +243,9 @@ func (s *Shop) SetItemCallbacks() {
 			}
 			si := s.SelectedItem
 			actualBrak, err := s.Opts.BrakRepo.FindByUserID(s.Opts.B.FirstUserID, s.Opts.Manager)
+			if actualBrak.Events.Shop.Sale > 0 {
+				si.Price = si.Price.GetSaleScore(actualBrak.Events.Shop.Sale)
+			}
 			if !actualBrak.Score.IsBiggerOrEquals(si.Price) {
 				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
 					WithText("У вас недостаточно средств для покупки/улучшения предмета."),

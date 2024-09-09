@@ -6,8 +6,8 @@ import (
 	"famoria/internal/bot/idle/event/casino"
 	"famoria/internal/bot/idle/event/growkid"
 	"famoria/internal/bot/idle/event/hamster"
+	"famoria/internal/bot/idle/event/subscribe"
 	"famoria/internal/bot/idle/item/items"
-	"famoria/internal/bot/idle/item/shop/shopb"
 	"famoria/internal/pkg/common"
 	"go.uber.org/zap"
 )
@@ -17,10 +17,10 @@ type Manager struct {
 	Items map[items.Name]*Item
 }
 
-func (i *Manager) GetItem(name items.Name) *Item {
-	item := i.Items[name]
+func (m *Manager) GetItem(name items.Name) *Item {
+	item := m.Items[name]
 	if item == nil {
-		i.Log.Sugar().Error("Item not found", name)
+		m.Log.Sugar().Error("Item not found", name)
 	}
 	return item
 }
@@ -50,7 +50,7 @@ func New(log *zap.Logger) *Manager {
 						&casino.PercentagePowerBuff{Percentage: 0.2},
 						&growkid.PercentagePowerBuff{Percentage: 0.2},
 						&casino.LuckBuff{Luck: 15},
-						&shopb.SaleBuff{Percentage: 0.2},
+						&subscribe.SaleBuff{Percentage: 0.2},
 						&anubis.AccessBuff{},
 					},
 				},

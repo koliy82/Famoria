@@ -14,6 +14,7 @@ type Events struct {
 	Hamster *hamster.Hamster `bson:"hamster"`
 	GrowKid *growkid.GrowKid `bson:"grow_kid"`
 	Anubis  *anubis.Anubis   `bson:"anubis"`
+	Shop    *event.Base      `bson:"-"`
 }
 
 func (e *Events) DefaultStats() {

@@ -21,7 +21,7 @@ type shopCmd struct {
 
 func (c shopCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
+	b, _ := c.brakRepo.FindByUserID(from.ID, c.manager)
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,

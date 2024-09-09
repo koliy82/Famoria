@@ -47,6 +47,7 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 		}
 	}
 	b.Events.DefaultStats()
+	b.Events.Shop = &event.Base{}
 	for _, i := range b.Inventory.Items {
 		for _, buff := range i.GetBuffs(manager) {
 			switch buff.Type() {
@@ -57,7 +58,7 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 			case event.GrowKid:
 				buff.Apply(&b.Events.GrowKid.Base)
 			case event.Shop:
-				buff.Apply(&b.Inventory.Base)
+				buff.Apply(b.Events.Shop)
 			case event.Subscribe:
 				continue
 			}
@@ -156,4 +157,48 @@ func (b *Brak) DurationKid() string {
 	default:
 		return fmt.Sprintf("%d %s", seconds, plural.Declension(seconds, "секунда", "секунды", "секунд"))
 	}
+}
+
+func (b *Brak) GetAvailableItems(manager *item.Manager) []*inventory.ShopItem {
+	list := make([]*inventory.ShopItem, 0, len(manager.Items))
+	for _, mi := range manager.Items {
+		if mi.MaxLevel == 0 {
+			continue
+		}
+		current, ok := b.Inventory.Items[mi.Name]
+		if ok == false {
+			si := &inventory.ShopItem{
+				Name:        mi.Name,
+				Emoji:       mi.Emoji,
+				BuyLevel:    1,
+				MaxLevel:    mi.MaxLevel,
+				Description: mi.Description,
+				Price:       mi.Prices[1],
+				Buffs:       mi.Buffs[1],
+			}
+			if b.Events.Shop.Sale > 0 {
+				si.SalePrice = si.Price.GetSaleScore(b.Events.Shop.Sale)
+			}
+			list = append(list, si)
+			continue
+		}
+		if current.CurrentLevel >= mi.MaxLevel {
+			println("current.CurrentLevel >= mi.MaxLevel")
+			continue
+		}
+		si := &inventory.ShopItem{
+			Name:        mi.Name,
+			Emoji:       mi.Emoji,
+			BuyLevel:    current.CurrentLevel + 1,
+			MaxLevel:    mi.MaxLevel,
+			Description: mi.Description,
+			Price:       mi.Prices[current.CurrentLevel+1],
+			Buffs:       mi.Buffs[current.CurrentLevel+1],
+		}
+		if b.Events.Shop.Sale > 0 {
+			si.SalePrice = si.Price.GetSaleScore(b.Events.Shop.Sale)
+		}
+		list = append(list, si)
+	}
+	return list
 }

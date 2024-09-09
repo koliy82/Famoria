@@ -39,12 +39,20 @@ type ShopItem struct {
 	MaxLevel    int
 	Description string
 	Price       *common.Score
+	SalePrice   *common.Score
 	Buffs       []event.Buff
 }
 
 func (si *ShopItem) FullDescription() string {
 	header := html.Bold(si.Emoji+" "+si.Name.String()) + " (" + strconv.Itoa(si.BuyLevel) + "/" + strconv.Itoa(si.MaxLevel) + " ур.)" + "\n"
-	price := "Цена: " + si.Price.GetFormattedScore() + " 💰 \n"
+
+	price := "Цена: "
+	if si.SalePrice != nil {
+		price += html.Strike(si.Price.GetFormattedScore()) + " " + si.SalePrice.GetFormattedScore()
+	} else {
+		price += si.Price.GetFormattedScore()
+	}
+	price += " 💰 \n"
 	body := si.Description + "\n"
 	bDesc := ""
 	for _, buff := range si.Buffs {
@@ -54,5 +62,8 @@ func (si *ShopItem) FullDescription() string {
 }
 
 func (si *ShopItem) SmallDescription() string {
+	if si.SalePrice != nil {
+		return fmt.Sprintf("%s - %s [%d/%d ур.] - %s %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, html.Strike(si.Price.GetFormattedScore()), si.SalePrice.GetFormattedScore())
+	}
 	return fmt.Sprintf("%s - %s [%d/%d ур.] - %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, si.Price.GetFormattedScore())
 }

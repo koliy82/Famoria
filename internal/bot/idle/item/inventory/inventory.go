@@ -25,7 +25,6 @@ func (i *Item) GetBuffs(manager *item.Manager) []event.Buff {
 
 type Inventory struct {
 	Items map[items.Name]Item `bson:"items"`
-	Base  event.Base          `bson:"-"`
 }
 
 func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
@@ -43,38 +42,38 @@ func (i *Inventory) GetItems(manager *item.Manager) []*ShowItem {
 	return list
 }
 
-func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
-	list := make([]*ShopItem, 0, len(manager.Items))
-	for _, mi := range manager.Items {
-		if mi.MaxLevel == 0 {
-			continue
-		}
-		current, ok := i.Items[mi.Name]
-		if ok == false {
-			list = append(list, &ShopItem{
-				Name:        mi.Name,
-				Emoji:       mi.Emoji,
-				BuyLevel:    1,
-				MaxLevel:    mi.MaxLevel,
-				Description: mi.Description,
-				Price:       mi.Prices[1],
-				Buffs:       mi.Buffs[1],
-			})
-			continue
-		}
-		if current.CurrentLevel >= mi.MaxLevel {
-			println("current.CurrentLevel >= mi.MaxLevel")
-			continue
-		}
-		list = append(list, &ShopItem{
-			Name:        mi.Name,
-			Emoji:       mi.Emoji,
-			BuyLevel:    current.CurrentLevel + 1,
-			MaxLevel:    mi.MaxLevel,
-			Description: mi.Description,
-			Price:       mi.Prices[current.CurrentLevel+1],
-			Buffs:       mi.Buffs[current.CurrentLevel+1],
-		})
-	}
-	return list
-}
+//func (i *Inventory) GetAvailableItems(manager *item.Manager) []*ShopItem {
+//	list := make([]*ShopItem, 0, len(manager.Items))
+//	for _, mi := range manager.Items {
+//		if mi.MaxLevel == 0 {
+//			continue
+//		}
+//		current, ok := i.Items[mi.Name]
+//		if ok == false {
+//			list = append(list, &ShopItem{
+//				Name:        mi.Name,
+//				Emoji:       mi.Emoji,
+//				BuyLevel:    1,
+//				MaxLevel:    mi.MaxLevel,
+//				Description: mi.Description,
+//				Price:       mi.Prices[1],
+//				Buffs:       mi.Buffs[1],
+//			})
+//			continue
+//		}
+//		if current.CurrentLevel >= mi.MaxLevel {
+//			println("current.CurrentLevel >= mi.MaxLevel")
+//			continue
+//		}
+//		list = append(list, &ShopItem{
+//			Name:        mi.Name,
+//			Emoji:       mi.Emoji,
+//			BuyLevel:    current.CurrentLevel + 1,
+//			MaxLevel:    mi.MaxLevel,
+//			Description: mi.Description,
+//			Price:       mi.Prices[current.CurrentLevel+1],
+//			Buffs:       mi.Buffs[current.CurrentLevel+1],
+//		})
+//	}
+//	return list
+//}

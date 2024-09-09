@@ -11,6 +11,30 @@ type Score struct {
 	Exponent int   `bson:"exponent" default:"0"`
 }
 
+func (u *Score) GetSaleScore(sale float64) *Score {
+	if sale <= 0 || sale >= 1 {
+		return nil
+	}
+	discountedMantissa := float64(u.Mantissa) * (1 - sale)
+
+	discountedScore := &Score{
+		Mantissa: int64(discountedMantissa),
+		Exponent: u.Exponent,
+	}
+
+	for discountedScore.Mantissa < 1e17 && discountedScore.Exponent > 0 {
+		discountedScore.Mantissa *= 10
+		discountedScore.Exponent--
+	}
+
+	if discountedScore.Mantissa < 0 {
+		discountedScore.Mantissa = u.Mantissa
+		discountedScore.Exponent = u.Exponent
+	}
+
+	return discountedScore
+}
+
 func (u *Score) GetFormattedScore() string {
 	if u.Exponent < 3 {
 		return formatSmallNumber(u.Mantissa * int64Pow(10, u.Exponent))
