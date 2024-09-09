@@ -25,11 +25,7 @@ type Brak struct {
 	Score          *common.Score        `bson:"score"`
 	SubscribeEnd   *time.Time           `bson:"subscribe_end"`
 	Inventory      *inventory.Inventory `bson:"inventory"`
-	//Casino         *casino.Casino       `bson:"casino"`
-	//Hamster        *hamster.Hamster     `bson:"hamster"`
-	//GrowKid        *growkid.GrowKid     `bson:"grow_kid"`
-	//Anubis         *anubis.Anubis       `bson:"anubis"`
-	Events *events.Events `bson:"events"`
+	Events         *events.Events       `bson:"events"`
 }
 
 func (b *Brak) ApplyBuffs(manager *item.Manager) {
@@ -78,6 +74,16 @@ func (b *Brak) SubDaysCount() int {
 		return 0
 	}
 	return int(b.SubscribeEnd.Sub(time.Now()).Hours() / 24)
+}
+
+func (b *Brak) AddSubDays(d time.Duration) {
+	if b.SubscribeEnd == nil {
+		subEnd := time.Now().Add(d)
+		b.SubscribeEnd = &subEnd
+	} else {
+		subEnd := b.SubscribeEnd.Add(d)
+		b.SubscribeEnd = &subEnd
+	}
 }
 
 type UsersBrak struct {

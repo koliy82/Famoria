@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	AppEnv        string `envconfig:"APP_ENV" default:"dev"`
-	AppTimeZone   string `envconfig:"APP_TIMEZONE" default:"Europe/Moscow"`
-	TelegramToken string `envconfig:"TELEGRAM_TOKEN" required:"true"`
+	AppEnv            string  `envconfig:"APP_ENV" default:"dev"`
+	AppTimeZone       string  `envconfig:"APP_TIMEZONE" default:"Europe/Moscow"`
+	TelegramToken     string  `envconfig:"TELEGRAM_TOKEN" required:"true"`
+	TelegramTestToken *string `envconfig:"TELEGRAM_TEST_TOKEN"`
 
 	InfoChatID   *int64 `envconfig:"INFO_CHAT_ID"`
 	WarnChatID   *int64 `envconfig:"WARN_CHAT_ID"`

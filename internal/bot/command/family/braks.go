@@ -167,21 +167,24 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 		return "В этом чате нет браков"
 	}
 	for index, m := range braks {
-		text += fmt.Sprintf("%d.", index+1+(int(page)-1)*int(limit))
+		text += fmt.Sprintf("%d. ", index+1+(int(page)-1)*int(limit))
+
 		if m.First == nil {
-			text += html.Bold(" ?")
+			text += "?"
 		} else {
-			text += fmt.Sprintf(" %s",
-				m.First.UsernameOrFull(),
-			)
+			text += m.First.UsernameOrFull()
+		}
+
+		if m.Brak.IsSub() {
+			text += " ❤️‍🔥 "
+		} else {
+			text += " и "
 		}
 
 		if m.Second == nil {
-			text += html.Bold(" ?")
+			text += "?"
 		} else {
-			text += fmt.Sprintf(" и %s",
-				m.Second.UsernameOrFull(),
-			)
+			text += m.Second.UsernameOrFull()
 		}
 
 		if m.Brak.BabyUserID != nil && m.Baby != nil {
