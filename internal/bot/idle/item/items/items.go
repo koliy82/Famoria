@@ -16,6 +16,9 @@ const (
 	HamsterWheel
 	LuckyCharm
 	FertilityRing
+	HamsterCape
+	FortuneTalisman
+	MagicSunflower
 )
 
 func (n Name) String() string {
@@ -46,6 +49,12 @@ func (n Name) String() string {
 		return "Амулет удачи"
 	case FertilityRing:
 		return "Кольцо плодородия"
+	case HamsterCape:
+		return "Плащ хомяка"
+	case FortuneTalisman:
+		return "Талисман удачи"
+	case MagicSunflower:
+		return "Волшебный подсолнух"
 	default:
 		return "Неизвестный предмет"
 	}

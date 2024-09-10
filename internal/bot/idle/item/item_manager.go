@@ -198,6 +198,40 @@ func New(log *zap.Logger) *Manager {
 					5: {Mantissa: 10_000},
 				},
 			},
+			items.HamsterCape: {
+				Emoji:       "🦸‍♂️",
+				Name:        items.HamsterCape,
+				MaxLevel:    5,
+				Description: "Плащ супергероя для хомяков, который придаёт невероятную силу каждому действию.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&hamster.PercentagePowerBuff{Percentage: 0.5},
+					},
+					2: {
+						&hamster.PercentagePowerBuff{Percentage: 1.0},
+						&hamster.PlayPowerBuff{Power: 1},
+					},
+					3: {
+						&hamster.PercentagePowerBuff{Percentage: 1.5},
+						&hamster.PlayPowerBuff{Power: 2},
+					},
+					4: {
+						&hamster.PercentagePowerBuff{Percentage: 2.0},
+						&hamster.PlayPowerBuff{Power: 3},
+					},
+					5: {
+						&hamster.PercentagePowerBuff{Percentage: 3.0},
+						&hamster.PlayPowerBuff{Power: 5},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 25_000},
+					2: {Mantissa: 50_500},
+					3: {Mantissa: 75_000},
+					4: {Mantissa: 100_000},
+					5: {Mantissa: 250_000},
+				},
+			},
 
 			// Casino items
 			items.GoldenDice: {
@@ -346,6 +380,44 @@ func New(log *zap.Logger) *Manager {
 					5: {Mantissa: 500_000},
 				},
 			},
+			items.FortuneTalisman: {
+				Emoji:       "🧿",
+				Name:        items.FortuneTalisman,
+				MaxLevel:    5,
+				Description: "Талисман удачи, который притягивает богатство и усиливает все действия в казино.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&casino.LuckBuff{Luck: 10},
+					},
+					2: {
+						&casino.LuckBuff{Luck: 15},
+						&casino.PlayPowerBuff{Power: 100},
+					},
+					3: {
+						&casino.LuckBuff{Luck: 20},
+						&casino.PlayPowerBuff{Power: 200},
+						&casino.PercentagePowerBuff{Percentage: 0.2},
+					},
+					4: {
+						&casino.LuckBuff{Luck: 25},
+						&casino.PlayPowerBuff{Power: 300},
+						&casino.PercentagePowerBuff{Percentage: 0.5},
+					},
+					5: {
+						&casino.LuckBuff{Luck: 30},
+						&casino.PlayPowerBuff{Power: 500},
+						&casino.PercentagePowerBuff{Percentage: 1.0},
+						&casino.PlayCountBuff{Count: 1},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 1_000_000},
+					2: {Mantissa: 2_000_000},
+					3: {Mantissa: 5_000_000},
+					4: {Mantissa: 10_000_000},
+					5: {Mantissa: 25_000_000},
+				},
+			},
 
 			// Grow items
 			items.MagicSpoon: {
@@ -482,6 +554,42 @@ func New(log *zap.Logger) *Manager {
 					3: {Mantissa: 10_000},
 					4: {Mantissa: 20_000},
 					5: {Mantissa: 50_000},
+				},
+			},
+			items.MagicSunflower: {
+				Emoji:       "🌻",
+				Name:        items.MagicSunflower,
+				MaxLevel:    5,
+				Description: "Волшебный подсолнух, излучающий свет, который ускоряет рост ребёнка и увеличивает эффективность тренировок.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&growkid.PlayPowerBuff{Power: 250},
+						&growkid.PercentagePowerBuff{Percentage: 0.25},
+					},
+					2: {
+						&growkid.PlayPowerBuff{Power: 500},
+						&growkid.PercentagePowerBuff{Percentage: 0.5},
+					},
+					3: {
+						&growkid.PlayPowerBuff{Power: 750},
+						&growkid.PercentagePowerBuff{Percentage: 1.0},
+					},
+					4: {
+						&growkid.PlayPowerBuff{Power: 1000},
+						&growkid.PercentagePowerBuff{Percentage: 1.5},
+					},
+					5: {
+						&growkid.PlayPowerBuff{Power: 2500},
+						&growkid.PercentagePowerBuff{Percentage: 2.0},
+						&growkid.PlayCountBuff{Count: 1},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 300_000},
+					2: {Mantissa: 1_200_000},
+					3: {Mantissa: 3_500_000},
+					4: {Mantissa: 5_000_000},
+					5: {Mantissa: 10_000_000},
 				},
 			},
 		},
