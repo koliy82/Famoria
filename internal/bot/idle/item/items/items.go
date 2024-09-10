@@ -13,6 +13,9 @@ const (
 	GrowthPotion
 	EndlessMilk
 	Subscribe
+	HamsterWheel
+	LuckyCharm
+	FertilityRing
 )
 
 func (n Name) String() string {
@@ -37,6 +40,12 @@ func (n Name) String() string {
 		return "Бесконечное молоко"
 	case Subscribe:
 		return "Сияющий кристалл"
+	case HamsterWheel:
+		return "Хомячье колесо"
+	case LuckyCharm:
+		return "Амулет удачи"
+	case FertilityRing:
+		return "Кольцо плодородия"
 	default:
 		return "Неизвестный предмет"
 	}

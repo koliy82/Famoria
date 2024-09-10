@@ -76,7 +76,7 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 			c.log.Sugar().Error(err)
 			return nil, err
 		}
-		c.log.Sugar().Info("Insert new user:", model)
+		c.log.Sugar().Debug("Insert new user:", model)
 		return model, nil
 	}
 
@@ -96,7 +96,7 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 			c.log.Sugar().Error(err)
 			return nil, err
 		}
-		c.log.Sugar().Info("User updated: ", user)
+		c.log.Sugar().Debug("User updated: ", user)
 	} else {
 		return actual, nil
 	}

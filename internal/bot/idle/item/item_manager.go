@@ -163,6 +163,41 @@ func New(log *zap.Logger) *Manager {
 					5: {Mantissa: 50000},
 				},
 			},
+			items.HamsterWheel: {
+				Emoji:       "🏃‍♂️",
+				Name:        items.HamsterWheel,
+				MaxLevel:    5,
+				Description: "Колесо хомяка, которое увеличивает скорость и силу их тренировок.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&hamster.PlayPowerBuff{Power: 2},
+					},
+					2: {
+						&hamster.PlayPowerBuff{Power: 4},
+					},
+					3: {
+						&hamster.PlayPowerBuff{Power: 6},
+						&hamster.PlayCountBuff{Count: 1},
+					},
+					4: {
+						&hamster.PlayPowerBuff{Power: 8},
+						&hamster.PlayCountBuff{Count: 20},
+						&hamster.PercentagePowerBuff{Percentage: 0.2},
+					},
+					5: {
+						&hamster.PlayPowerBuff{Power: 10},
+						&hamster.PlayCountBuff{Count: 10},
+						&hamster.PercentagePowerBuff{Percentage: 0.4},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 500},
+					2: {Mantissa: 1000},
+					3: {Mantissa: 2000},
+					4: {Mantissa: 5000},
+					5: {Mantissa: 10_000},
+				},
+			},
 
 			// Casino items
 			items.GoldenDice: {
@@ -266,11 +301,49 @@ func New(log *zap.Logger) *Manager {
 					},
 				},
 				Prices: map[int]*common.Score{
-					1: {Mantissa: 50_000},
-					2: {Mantissa: 100_000},
-					3: {Mantissa: 250_000},
-					4: {Mantissa: 500_000},
-					5: {Mantissa: 1_000_000},
+					1: {Mantissa: 100_000},
+					2: {Mantissa: 250_000},
+					3: {Mantissa: 500_000},
+					4: {Mantissa: 1_000_000},
+					5: {Mantissa: 2_500_000},
+				},
+			},
+			items.LuckyCharm: {
+				Emoji:       "🧲",
+				Name:        items.LuckyCharm,
+				MaxLevel:    5,
+				Description: "Амулет удачи, притягивающий счастливые моменты и увеличивающий шанс на выигрыш.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&casino.LuckBuff{Luck: 2},
+					},
+					2: {
+						&casino.LuckBuff{Luck: 3},
+						&casino.PercentagePowerBuff{Percentage: 0.1},
+					},
+					3: {
+						&casino.LuckBuff{Luck: 5},
+						&casino.PercentagePowerBuff{Percentage: 0.1},
+						&casino.PlayPowerBuff{Power: 50},
+					},
+					4: {
+						&casino.LuckBuff{Luck: 7},
+						&casino.PercentagePowerBuff{Percentage: 0.2},
+						&casino.PlayPowerBuff{Power: 50},
+					},
+					5: {
+						&casino.LuckBuff{Luck: 10},
+						&casino.PercentagePowerBuff{Percentage: 0.3},
+						&casino.PlayPowerBuff{Power: 100},
+						&casino.PlayCountBuff{Count: 1},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 10_000},
+					2: {Mantissa: 25_000},
+					3: {Mantissa: 50_000},
+					4: {Mantissa: 200_000},
+					5: {Mantissa: 500_000},
 				},
 			},
 
@@ -374,6 +447,41 @@ func New(log *zap.Logger) *Manager {
 					3: {Mantissa: 35_000},
 					4: {Mantissa: 100_000},
 					5: {Mantissa: 500_000},
+				},
+			},
+			items.FertilityRing: {
+				Emoji:       "💍",
+				Name:        items.FertilityRing,
+				MaxLevel:    5,
+				Description: "Магическое кольцо, которое ускоряет рост ребенка и улучшает его состояние.",
+				Buffs: map[int][]event.Buff{
+					1: {
+						&growkid.PlayPowerBuff{Power: 50},
+						&growkid.PercentagePowerBuff{Percentage: 0.1},
+					},
+					2: {
+						&growkid.PlayPowerBuff{Power: 100},
+						&growkid.PercentagePowerBuff{Percentage: 0.2},
+					},
+					3: {
+						&growkid.PlayPowerBuff{Power: 150},
+						&growkid.PercentagePowerBuff{Percentage: 0.3},
+					},
+					4: {
+						&growkid.PlayPowerBuff{Power: 200},
+						&growkid.PercentagePowerBuff{Percentage: 0.4},
+					},
+					5: {
+						&growkid.PlayPowerBuff{Power: 300},
+						&growkid.PercentagePowerBuff{Percentage: 0.5},
+					},
+				},
+				Prices: map[int]*common.Score{
+					1: {Mantissa: 2000},
+					2: {Mantissa: 5000},
+					3: {Mantissa: 10_000},
+					4: {Mantissa: 20_000},
+					5: {Mantissa: 50_000},
 				},
 			},
 		},
