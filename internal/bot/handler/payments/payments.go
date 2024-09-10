@@ -29,13 +29,17 @@ type Opts struct {
 
 func Register(opts Opts) {
 	opts.Bh.HandlePreCheckoutQuery(func(bot *telego.Bot, update telego.PreCheckoutQuery) {
-		from, err := opts.UserRepo.FindOrUpdate(&update.From)
-		if err != nil {
-			opts.Log.Sugar().Error(err)
-		}
 		params := &telego.AnswerPreCheckoutQueryParams{
 			PreCheckoutQueryID: update.ID,
 			Ok:                 false,
+		}
+		from, err := opts.UserRepo.FindOrUpdate(&update.From)
+		if err != nil {
+			err = bot.AnswerPreCheckoutQuery(params.WithErrorMessage("Брак не найден, покупка отменена."))
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+			}
+			return
 		}
 		err = opts.CheckoutRepo.Insert(&checkout.Checkout{
 			ID:               update.ID,

@@ -75,7 +75,7 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 
 		if b.IsSub() {
 			days := b.SubDaysCount()
-			text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
+			text += html.Bold(fmt.Sprintf("💎 Подписка на %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
 			keyboard.Add(tu.InlineKeyboardButton("💎").WithCallbackData(static.AnubisData))
 		} else {
 			text += fmt.Sprintf("😿 Нет активной подписки\n")

@@ -89,11 +89,11 @@ func Register(opts Opts) {
 		brakRepo: opts.BrakRepo,
 		userRepo: opts.UserRepo,
 		log:      opts.Log,
-	}.Handle, th.CommandEqualArgc("deposit", 1))
+	}.Handle, th.Or(th.CommandEqualArgc("deposit", 1), th.CommandEqualArgc("dep", 1)))
 
 	opts.Bh.Handle(withdrawCmd{
 		brakRepo: opts.BrakRepo,
 		userRepo: opts.UserRepo,
 		log:      opts.Log,
-	}.Handle, th.CommandEqualArgc("withdraw", 1))
+	}.Handle, th.Or(th.CommandEqualArgc("withdraw", 1), th.CommandEqualArgc("with", 1)))
 }
