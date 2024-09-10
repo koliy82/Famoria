@@ -19,14 +19,14 @@ type Opts struct {
 }
 
 func Register(opts Opts) {
-	opts.Bh.Handle(help{
+	opts.Bh.Handle(helpCmd{
 		brakRepo: opts.BrakRepo,
 		log:      opts.Log,
 	}.Handle, th.And(
 		th.Or(th.CommandEqual("help"), th.CommandEqual("start")),
 	))
 
-	opts.Bh.Handle(menu{
+	opts.Bh.Handle(menuCmd{
 		brakRepo: opts.BrakRepo,
 		log:      opts.Log,
 	}.Handle, th.And(

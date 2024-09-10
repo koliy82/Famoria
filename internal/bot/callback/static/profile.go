@@ -2,24 +2,25 @@ package static
 
 import (
 	"famoria/internal/bot/callback"
+	"famoria/internal/bot/idle/event/anubis"
+	"famoria/internal/bot/idle/event/casino"
+	"famoria/internal/bot/idle/event/growkid"
+	"famoria/internal/bot/idle/event/hamster"
+	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
-	"famoria/internal/pkg/date"
-	"famoria/internal/pkg/html"
-	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"math/rand"
-	"time"
 )
 
 const (
 	GrowKidData = "grow_kid"
 	CasinoData  = "casino"
 	HamsterData = "hamster"
+	AnubisData  = "anubis"
 )
 
 type Opts struct {
@@ -29,11 +30,12 @@ type Opts struct {
 	UserRepo user.Repository
 	Cm       *callback.CallbacksManager
 	Bot      *telego.Bot
+	M        *item.Manager
 }
 
 func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(CasinoData, func(query telego.CallbackQuery) {
-		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -43,45 +45,39 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if date.HasUpdated(b.LastCasinoPlay) {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Играть в казино можно раз в сутки.",
-				ShowAlert:       true,
-			})
+		response := b.Events.Casino.Play(&casino.PlayOpts{
+			Log:   opts.Log,
+			Bot:   opts.Bot,
+			Query: query,
+		})
+		if response == nil {
 			return
 		}
 
-		score := rand.Intn(500) - 300
+		if response.IsWin {
+			b.Score.Increase(response.Score)
+		} else if response.Score != 0 {
+			b.Score.Decrease(response.Score)
+		}
+
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
-				"$inc": bson.M{"score": score},
-				"$set": bson.M{"last_casino_play": time.Now()},
+				"$set": bson.M{
+					"score":         b.Score,
+					"events.casino": b.Events.Casino,
+				},
 			},
 		)
 		if err != nil {
-			opts.Log.Sugar().Error(err)
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Ошибка при обновлении счёта.",
-				ShowAlert:       true,
-			})
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #casino (", response.Score, response.IsWin, ") пользователя ", query.From.ID, ":", err)
 			return
 		}
-		text := ""
-		switch {
-		case score > 0:
-			text = fmt.Sprintf("%s выйграл в казино %d хинкалей!", html.UserMention(&query.From), score)
-		case score < 0:
-			text = fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&query.From), score)
-		default:
-			text = "%s играл сегодня в казино, но остался в нуле."
-		}
+
 		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
-			Text:      text,
+			Text:      response.Text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
@@ -98,7 +94,7 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(GrowKidData, func(query telego.CallbackQuery) {
-		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -107,7 +103,6 @@ func ProfileCallbacks(opts Opts) {
 			})
 			return
 		}
-
 		if b.BabyUserID == nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
@@ -117,45 +112,33 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if date.HasUpdated(b.LastGrowKid) {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Кормить ребёнка можно раз в сутки.",
-				ShowAlert:       true,
-			})
+		response := b.Events.GrowKid.Play(&growkid.PlayOpts{
+			Log:   opts.Log,
+			Bot:   opts.Bot,
+			Query: query,
+		})
+		if response == nil {
 			return
 		}
+		b.Score.Increase(response.Score)
 
-		score := rand.Intn(30) + 20
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
-				"$inc": bson.M{"score": score},
-				"$set": bson.M{"last_grow_kid": time.Now()},
+				"$set": bson.M{
+					"score":           b.Score,
+					"events.grow_kid": b.Events.GrowKid,
+				},
 			},
 		)
 		if err != nil {
-			opts.Log.Sugar().Error(err)
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Ошибка при обновлении счёта.",
-				ShowAlert:       true,
-			})
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #grow_kid (", response.Score, ") пользователя ", query.From.ID, ":", err)
 			return
-		}
-		text := ""
-		switch {
-		case score > 0:
-			text = fmt.Sprintf("%s покормил своего ребёнка и получил от жены %d хинкалей!", html.UserMention(&query.From), score)
-		case score < 0:
-			text = fmt.Sprintf("You lose %d!", score)
-		default:
-			text = "You don't win or lose."
 		}
 		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
-			Text:      text,
+			Text:      response.Text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
@@ -166,58 +149,104 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(HamsterData, func(query telego.CallbackQuery) {
-		b, err := opts.BrakRepo.FindByUserID(query.From.ID)
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
-				Text:            "Для использования казино необходимо жениться.",
+				Text:            "Для тапа хомяка необходимо жениться.",
 				ShowAlert:       true,
 			})
 			return
 		}
 
-		if !date.HasUpdated(b.LastHamsterUpdate) {
-			err = opts.BrakRepo.Update(
-				bson.M{"_id": b.OID},
-				bson.M{
-					"$inc": bson.M{"score": 1},
-					"$set": bson.M{
-						"tap_count":           49,
-						"last_hamster_update": time.Now(),
-					},
-				},
-			)
-		} else if b.TapCount == 0 {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Хомяк устал, он разрешит себя тапать завтра.",
-				ShowAlert:       true,
-			})
+		response := b.Events.Hamster.Play(&hamster.PlayOpts{
+			Log:   opts.Log,
+			Bot:   opts.Bot,
+			Query: query,
+		})
+		if response == nil {
 			return
-		} else {
-			err = opts.BrakRepo.Update(
-				bson.M{"_id": b.OID},
-				bson.M{
-					"$inc": bson.M{"score": 1, "tap_count": -1},
-				},
-			)
 		}
-
+		b.Score.Increase(response.Score)
+		err = opts.BrakRepo.Update(
+			bson.M{"_id": b.OID},
+			bson.M{
+				"$set": bson.M{
+					"score":          b.Score,
+					"events.hamster": b.Events.Hamster,
+				},
+			},
+		)
 		if err != nil {
-			opts.Log.Sugar().Error(err)
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "Ошибка при обновлении счёта.",
-				ShowAlert:       true,
-			})
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #hamster (", response.Score, ") пользователя ", query.From.ID, ":", err)
 			return
 		}
 
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 			Text:            "Успешный тап по хомяку",
 		})
-		return
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
+	})
 
+	opts.Cm.StaticCallback(AnubisData, func(query telego.CallbackQuery) {
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
+		if err != nil {
+			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "Для игры в анубис вы должны быть в браке и иметь действующую подписку.",
+				ShowAlert:       true,
+			})
+			return
+		}
+		response := b.Events.Anubis.Play(&anubis.PlayOpts{
+			Log:   opts.Log,
+			Bot:   opts.Bot,
+			Query: query,
+			IsSub: b.IsSub(),
+		})
+		if response == nil {
+			return
+		}
+
+		if response.IsWin {
+			b.Score.Increase(response.Score)
+		} else if response.Score != 0 {
+			b.Score.Decrease(response.Score)
+		}
+
+		err = opts.BrakRepo.Update(
+			bson.M{"_id": b.OID},
+			bson.M{
+				"$set": bson.M{
+					"score":         b.Score,
+					"events.anubis": b.Events.Anubis,
+				},
+			},
+		)
+		if err != nil {
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #anubis (", response.Score, response.IsWin, ") пользователя ", query.From.ID, ":", err)
+			return
+		}
+
+		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    tu.ID(query.Message.GetChat().ID),
+			ParseMode: telego.ModeHTML,
+			Text:      response.Text,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: query.Message.GetMessageID(),
+			},
+		})
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
+		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: query.ID,
+		})
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
 	})
 }

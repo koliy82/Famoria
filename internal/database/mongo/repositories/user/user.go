@@ -9,4 +9,5 @@ type Repository interface {
 	FindOrUpdate(user *telego.User) (*User, error)
 	Insert(user *User) error
 	Replace(user *User) error
+	Update(filter interface{}, update interface{}) error
 }

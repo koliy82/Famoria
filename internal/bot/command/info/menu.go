@@ -7,14 +7,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type menu struct {
+type menuCmd struct {
 	brakRepo brak.Repository
 	log      *zap.Logger
 }
 
 func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboardMarkup {
 	var rows [][]telego.KeyboardButton
-	userBrak, _ := brakRepo.FindByUserID(userID)
+	userBrak, _ := brakRepo.FindByUserID(userID, nil)
 	if userBrak != nil {
 		rows = append(rows, []telego.KeyboardButton{
 			tu.KeyboardButton("👤 Профиль"),
@@ -58,7 +58,7 @@ func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboa
 	}
 }
 
-func (m menu) Handle(bot *telego.Bot, update telego.Update) {
+func (c menuCmd) Handle(bot *telego.Bot, update telego.Update) {
 	_, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   "Меню показано ✅",
@@ -66,9 +66,9 @@ func (m menu) Handle(bot *telego.Bot, update telego.Update) {
 			MessageID:                update.Message.MessageID,
 			AllowSendingWithoutReply: true,
 		},
-		ReplyMarkup: GenerateButtons(m.brakRepo, update.Message.From.ID),
+		ReplyMarkup: GenerateButtons(c.brakRepo, update.Message.From.ID),
 	})
 	if err != nil {
-		m.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

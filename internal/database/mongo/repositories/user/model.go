@@ -1,6 +1,7 @@
 package user
 
 import (
+	"famoria/internal/pkg/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
 	"strings"
@@ -13,7 +14,7 @@ type User struct {
 	LastName     *string            `bson:"last_name"`
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
-	IsAdmin      *bool              `bson:"is_admin"`
+	Score        common.Score       `bson:"score"`
 }
 
 func (u *User) IsEquals(other *User) bool {

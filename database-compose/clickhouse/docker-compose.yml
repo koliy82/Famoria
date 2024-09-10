@@ -9,5 +9,5 @@ services:
         source: ./data
         target: /bitnami/clickhouse/data
     ports:
-      - 8123:8123
-      - 9000:9000
+      - "8123:8123"
+      - "9000:9000"

@@ -2,7 +2,11 @@ package family
 
 import (
 	"famoria/internal/bot/callback"
+	"famoria/internal/bot/idle/event/events"
+	"famoria/internal/bot/idle/item/inventory"
+	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"fmt"
 	"github.com/mymmrac/telego"
@@ -13,13 +17,13 @@ import (
 	"time"
 )
 
-type goFamily struct {
+type goFamilyCmd struct {
 	cm       *callback.CallbacksManager
 	brakRepo brak.Repository
 	log      *zap.Logger
 }
 
-func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
+func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	fUser := update.Message.From
 	reply := update.Message.ReplyToMessage
 
@@ -39,7 +43,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 				html.UserMention(fUser),
 			)))
 		if err != nil {
-			g.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
@@ -51,7 +55,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 			html.UserMention(fUser),
 		)))
 		if err != nil {
-			g.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
@@ -62,12 +66,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 			html.UserMention(fUser),
 		)))
 		if err != nil {
-			g.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	fBrakCount, _ := g.brakRepo.Count(bson.M{"$or": []interface{}{
+	fBrakCount, _ := c.brakRepo.Count(bson.M{"$or": []interface{}{
 		bson.M{"first_user_id": fUser.ID},
 		bson.M{"second_user_id": fUser.ID},
 	}})
@@ -77,12 +81,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 			html.UserMention(fUser),
 		)))
 		if err != nil {
-			g.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	tBrakCount, _ := g.brakRepo.Count(bson.M{"$or": []interface{}{
+	tBrakCount, _ := c.brakRepo.Count(bson.M{"$or": []interface{}{
 		bson.M{"first_user_id": tUser.ID},
 		bson.M{"second_user_id": tUser.ID},
 	}})
@@ -92,24 +96,29 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 			html.UserMention(fUser),
 		)))
 		if err != nil {
-			g.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	yesCallback := g.cm.DynamicCallback(callback.DynamicOpts{
+	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Да!❤️‍🔥",
 		CtxType:  callback.ChooseOne,
 		OwnerIDs: []int64{tUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_ = g.brakRepo.Insert(&brak.Brak{
+			_ = c.brakRepo.Insert(&brak.Brak{
 				OID:          primitive.NewObjectID(),
 				ChatID:       update.Message.Chat.ID,
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Score:        0,
+				Inventory:    &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
+				Score: &common.Score{
+					Mantissa: 0,
+					Exponent: 0,
+				},
+				Events: events.New(),
 			})
 
 			_, err := bot.SendMessage(&telego.SendMessageParams{
@@ -124,12 +133,12 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 				},
 			})
 			if err != nil {
-				g.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
 
-	noCallback := g.cm.DynamicCallback(callback.DynamicOpts{
+	noCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:      "Нет!💔",
 		CtxType:    callback.ChooseOne,
 		OwnerIDs:   []int64{tUser.ID},
@@ -144,7 +153,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 				},
 			})
 			if err != nil {
-				g.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 				return
 			}
 		},
@@ -161,7 +170,7 @@ func (g goFamily) Handle(bot *telego.Bot, update telego.Update) {
 		),
 	)))
 	if err != nil {
-		g.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 
 }

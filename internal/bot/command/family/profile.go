@@ -6,7 +6,9 @@ import (
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/plural"
 	"fmt"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -14,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type profile struct {
+type profileCmd struct {
 	cm          *callback.CallbacksManager
 	log         *zap.Logger
 	userRepo    user.Repository
@@ -22,52 +24,64 @@ type profile struct {
 	messageRepo message.Repository
 }
 
-func (p profile) Handle(bot *telego.Bot, update telego.Update) {
+func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	fUser, err := p.userRepo.FindOrUpdate(from)
+	fUser, err := c.userRepo.FindOrUpdate(from)
 	if err != nil {
 		return
 	}
 
 	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
 	text += fmt.Sprintf("👤 %s\n", html.CodeInline(fUser.UsernameOrFull()))
-	messageCount, err := p.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
+	text += fmt.Sprintf("💰 %s\n", fUser.Score.GetFormattedScore())
+
+	messageCount, err := c.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
 
-	keyboard := tu.InlineKeyboardRow()
+	keyboard := buttons.New(5, 3)
 
-	b, _ := p.brakRepo.FindByUserID(from.ID)
-
+	b, err := c.brakRepo.FindByUserID(from.ID, nil)
+	if err != nil {
+		c.log.Sugar().Error(err)
+	}
 	if b != nil {
 		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
 			b.ChatID = update.Message.Chat.ID
-			err = p.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
+			err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
 			if err != nil {
-				p.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 				return
 			}
 		}
 
-		keyboard = append(keyboard, tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
-		keyboard = append(keyboard, tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
+		keyboard.Add(tu.InlineKeyboardButton("🎰").WithCallbackData(static.CasinoData))
+		keyboard.Add(tu.InlineKeyboardButton("🐹").WithCallbackData(static.HamsterData))
 
-		tUser, _ := p.userRepo.FindByID(b.PartnerID(fUser.ID))
+		tUser, _ := c.userRepo.FindByID(b.PartnerID(fUser.ID))
 		text += fmt.Sprintf("\n❤️‍🔥❤️‍🔥      %s      ️‍❤️‍🔥❤️‍🔥\n", html.Bold("Брак"))
 		if tUser != nil {
 			text += fmt.Sprintf("🫂 %s [%s]\n", html.CodeInline(tUser.UsernameOrFull()), b.Duration())
 		}
 
 		if b.BabyUserID != nil {
-			keyboard = append(keyboard, tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
-			bUser, err := p.userRepo.FindByID(*b.BabyUserID)
+			keyboard.Add(tu.InlineKeyboardButton("🍼").WithCallbackData(static.GrowKidData))
+			bUser, err := c.userRepo.FindByID(*b.BabyUserID)
 			if err == nil {
 				text += fmt.Sprintf("👼 %s [%s]\n", html.CodeInline(bUser.UsernameOrFull()), b.DurationKid())
 			}
 		}
 
-		text += fmt.Sprintf("💰 %v\n", b.Score)
+		if b.IsSub() {
+			days := b.SubDaysCount()
+			text += html.Bold(fmt.Sprintf("💎 %s\n", fmt.Sprintf("%v %s", days, plural.Declension(days, "день", "дня", "дней"))))
+			keyboard.Add(tu.InlineKeyboardButton("💎").WithCallbackData(static.AnubisData))
+		} else {
+			text += fmt.Sprintf("😿 Нет активной подписки\n")
+		}
+
+		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
 	}
 
 	params := &telego.SendMessageParams{
@@ -77,12 +91,12 @@ func (p profile) Handle(bot *telego.Bot, update telego.Update) {
 		DisableNotification: true,
 	}
 
-	if len(keyboard) != 0 {
-		params.ReplyMarkup = tu.InlineKeyboard(keyboard)
+	if len(keyboard.Buttons) != 0 {
+		params.ReplyMarkup = keyboard.Build()
 	}
 
 	_, err = bot.SendMessage(params)
 	if err != nil {
-		p.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }

@@ -34,3 +34,4 @@ go.work.sum
 
 database-compose/mongo/data
 database-compose/clickhouse/data
+qodana.yaml

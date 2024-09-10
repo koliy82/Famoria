@@ -13,16 +13,16 @@ import (
 	"time"
 )
 
-type endKid struct {
+type endKidCmd struct {
 	cm       *callback.CallbacksManager
 	brakRepo brak.Repository
 	userRepo user.Repository
 	log      *zap.Logger
 }
 
-func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
+func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	b, _ := e.brakRepo.FindByUserID(from.ID)
+	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -34,7 +34,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
 		if err != nil {
-			e.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
@@ -44,27 +44,27 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 			WithText(fmt.Sprintf("%s, у вас нет детей. 🤔", html.UserMention(from))),
 		)
 		if err != nil {
-			e.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	sUser, _ := e.userRepo.FindByID(b.PartnerID(from.ID))
+	sUser, _ := c.userRepo.FindByID(b.PartnerID(from.ID))
 	if sUser == nil {
 		return
 	}
-	bUser, _ := e.userRepo.FindByID(*b.BabyUserID)
+	bUser, _ := c.userRepo.FindByID(*b.BabyUserID)
 	if bUser == nil {
 		return
 	}
 
-	yesCallback := e.cm.DynamicCallback(callback.DynamicOpts{
+	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Да.",
 		CtxType:  callback.OneClick,
 		OwnerIDs: []int64{sUser.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.brakRepo.Update(
+			err := c.brakRepo.Update(
 				bson.M{"_id": b.OID},
 				bson.M{"$set": bson.D{
 					{"baby_user_id", nil},
@@ -72,7 +72,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 				}},
 			)
 			if err != nil {
-				e.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 				return
 			}
 
@@ -82,7 +82,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 				WithReplyMarkup(nil),
 			)
 			if err != nil {
-				e.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
@@ -95,7 +95,7 @@ func (e endKid) Handle(bot *telego.Bot, update telego.Update) {
 		)),
 	)
 	if err != nil {
-		e.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 
 }

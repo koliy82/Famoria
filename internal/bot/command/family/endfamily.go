@@ -12,64 +12,64 @@ import (
 	"time"
 )
 
-type endFamily struct {
+type endFamilyCmd struct {
 	cm       *callback.CallbacksManager
 	log      *zap.Logger
 	brakRepo brak.Repository
 	userRepo user.Repository
 }
 
-func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
+func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	from := update.Message.From
-	brak, _ := e.brakRepo.FindByUserID(from.ID)
+	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,
 	}
 
-	if brak == nil {
+	if b == nil {
 		_, err := bot.SendMessage(params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
 		if err != nil {
-			e.log.Sugar().Error(err)
+			c.log.Sugar().Error(err)
 		}
 		return
 	}
 
-	yesCallback := e.cm.DynamicCallback(callback.DynamicOpts{
+	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Да.",
 		CtxType:  callback.OneClick,
 		OwnerIDs: []int64{from.ID},
 		Time:     time.Duration(60) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			err := e.brakRepo.Delete(brak.OID)
+			err := c.brakRepo.Delete(b.OID)
 			if err != nil {
 				_, err := bot.SendMessage(params.
 					WithText(fmt.Sprintf("%s, произошла ошибка при разводе. 😥", html.UserMention(from))).
 					WithReplyMarkup(nil),
 				)
 				if err != nil {
-					e.log.Sugar().Error(err)
+					c.log.Sugar().Error(err)
 				}
 				return
 			}
-			fuser, err := e.userRepo.FindByID(brak.FirstUserID)
+			fuser, err := c.userRepo.FindByID(b.FirstUserID)
 			if err != nil {
 				return
 			}
-			tuser, err := e.userRepo.FindByID(brak.SecondUserID)
+			tuser, err := c.userRepo.FindByID(b.SecondUserID)
 			if err != nil {
 				return
 			}
 			_, err = bot.SendMessage(params.
 				WithText(fmt.Sprintf(
 					"Брак между %s и %s распался. 💔\nОни прожили вместе %s",
-					html.ModelMention(fuser), html.ModelMention(tuser), brak.Duration(),
+					html.ModelMention(fuser), html.ModelMention(tuser), b.Duration(),
 				)).WithReplyMarkup(nil),
 			)
 			if err != nil {
-				e.log.Sugar().Error(err)
+				c.log.Sugar().Error(err)
 			}
 		},
 	})
@@ -83,6 +83,6 @@ func (e endFamily) Handle(bot *telego.Bot, update telego.Update) {
 		)),
 	)
 	if err != nil {
-		e.log.Sugar().Error(err)
+		c.log.Sugar().Error(err)
 	}
 }
