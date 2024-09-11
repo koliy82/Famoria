@@ -42,14 +42,14 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 		a.LastPlay = time.Now()
 	}
 
-	//if a.PlayCount == 0 {
-	//	_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-	//		CallbackQueryID: opts.Query.ID,
-	//		Text:            "Сегодня вы уже прошли испытание Анубиса.",
-	//		ShowAlert:       true,
-	//	})
-	//	return nil
-	//}
+	if a.PlayCount == 0 {
+		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: opts.Query.ID,
+			Text:            "Сегодня вы уже прошли испытание Анубиса.",
+			ShowAlert:       true,
+		})
+		return nil
+	}
 
 	if !opts.IsSub {
 		score := uint64(rand.Intn(100) + 1)
@@ -63,7 +63,6 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 	chance := rand.Intn(100) + a.Luck
 	score := uint64(float64(uint64(rand.Int31n(200))+a.BasePlayPower)*a.PercentagePower) + 1
 	a.PlayCount--
-	chance = 100
 	switch {
 	case chance == 1:
 		score *= 3
