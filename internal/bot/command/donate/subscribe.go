@@ -6,6 +6,8 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common"
+	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
 	"fmt"
 	"github.com/mymmrac/telego"
@@ -15,11 +17,12 @@ import (
 )
 
 type SubscribeCmd struct {
-	brakRepo brak.Repository
-	userRepo user.Repository
-	log      *zap.Logger
-	cm       *callback.CallbacksManager
-	m        *item.Manager
+	brakRepo    brak.Repository
+	userRepo    user.Repository
+	log         *zap.Logger
+	cm          *callback.CallbacksManager
+	m           *item.Manager
+	yKassaToken *string
 }
 
 func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
@@ -54,7 +57,9 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 		}
 	}
 	fUser.UsernameOrFull()
-	s30Callback := c.cm.DynamicCallback(callback.DynamicOpts{
+
+	builder := buttons.New(5, 1)
+	starsCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "⭐️ Telegram Stars",
 		CtxType:  callback.OneClick,
 		OwnerIDs: []int64{b.FirstUserID, b.SecondUserID},
@@ -93,19 +98,79 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 			c.log.Sugar().Info(invoice)
 		},
 	})
-	text := "Famoria - подписка, дающая следующие преимужества:\n"
+	builder.Add(starsCallback.Inline())
 
+	if c.yKassaToken != nil {
+		data := common.ProviderData{
+			Receipt: common.Receipt{
+				Items: []common.Item{
+					{
+						Description: "Игровая подписка на Telegram-бота (30 дней)",
+						Quantity:    1,
+						Amount: common.Amount{
+							Currency: "RUB",
+							Value:    "139.00",
+						},
+						VatCode: 1,
+					},
+				},
+			},
+		}
+		yooKCallback := c.cm.DynamicCallback(callback.DynamicOpts{
+			Label:    "🇷🇺 ЮKassa",
+			CtxType:  callback.OneClick,
+			OwnerIDs: []int64{b.FirstUserID, b.SecondUserID},
+			Time:     time.Duration(1) * time.Hour,
+			Callback: func(query telego.CallbackQuery) {
+				invoice, err := bot.SendInvoice(&telego.SendInvoiceParams{
+					ChatID: params.ChatID,
+					Title:  "Famoria - подписка на 30 дней.",
+					Description: fmt.Sprintf(
+						"Подписка для брака %s и %s.",
+						fUser.UsernameOrFull(), sUser.UsernameOrFull(),
+					),
+					Payload:  payments.Sub30,
+					Currency: "RUB",
+					Prices: []telego.LabeledPrice{
+						{
+							Label:  "30 дней",
+							Amount: 13900,
+						},
+					},
+					NeedEmail:           true,
+					SendEmailToProvider: true,
+					ProviderToken:       *c.yKassaToken,
+					ProviderData:        data.ToJson(),
+					PhotoURL:            "https://i.ytimg.com/vi/QFYpp-cpy9w/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCWdu-QiXAtWE67vOH-7FEldF6KFw",
+					DisableNotification: false,
+					ProtectContent:      false,
+					ReplyParameters:     params.ReplyParameters,
+				})
+				if err != nil {
+					c.log.Sugar().Error(err)
+					return
+				}
+				c.log.Sugar().Info(invoice)
+			},
+		})
+		builder.Add(yooKCallback.Inline())
+	}
+
+	text := "Famoria - подписка за 139₽ <s>(459₽)</s>, дающая следующие преимужества:\n"
 	body := "+ 20% больше монет с любых источников дохода.\n"
-	body += "+ В топе отображается с эмодзи.\n"
 	body += "+ 20% скидка в потайной лавке.\n"
-	body += "+ Доступ к премиум-игре Анубис.\n"
 	body += "+ Действует на обоих участников брака.\n"
+	body += "+ В топе отображается с эмодзи.\n"
+	body += "+ Доступ к премиум-игре Анубис:\n"
+	body += "  - 3 попытки в день.\n"
+	body += "  - 1000 базовой силы.\n"
+	body += "  - 75% шанс на победу.\n"
+	body += "  - 1% на x20 выйгрыша.\n"
+	body += "  - 1% умножения счёта на 20%.\n"
 	text += html.CodeBlockWithLang(body, "Subscription buffs")
 	text += html.Italic("Помогает оплачивать хостинг боту.")
 	_, err = bot.SendMessage(params.WithText(text).
-		WithReplyMarkup(tu.InlineKeyboard(
-			tu.InlineKeyboardRow(s30Callback.Inline()),
-		)),
+		WithReplyMarkup(builder.Build()),
 	)
 	if err != nil {
 		c.log.Sugar().Error(err)

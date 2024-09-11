@@ -44,8 +44,7 @@ func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboa
 		})
 	}
 	rows = append(rows, tu.KeyboardRow(
-		tu.KeyboardButton("🌱 Древо (текст)"),
-		tu.KeyboardButton("🌳 Древо (картинка)"),
+		tu.KeyboardButton("🌱 Семейное древо"),
 	))
 	rows = append(rows, tu.KeyboardRow(
 		tu.KeyboardButton("❌ Закрыть"),

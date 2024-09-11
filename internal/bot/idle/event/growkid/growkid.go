@@ -47,7 +47,7 @@ func (g *GrowKid) Play(opts *PlayOpts) *PlayResponse {
 		return nil
 	}
 
-	score := uint64(float64(rand.Int63n(int64(g.BasePlayPower)))*g.PercentagePower) + 1
+	score := uint64((float64(rand.Int63n(50))+float64(g.BasePlayPower))*g.PercentagePower) + 1
 	g.PlayCount--
 	return &PlayResponse{
 		Score: score,

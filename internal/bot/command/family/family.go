@@ -83,7 +83,7 @@ func Register(opts Opts) {
 	opts.Bh.Handle(treeCmd{
 		cfg: opts.Cfg,
 		log: opts.Log,
-	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Древо (текст)")))
+	}.Handle, th.Or(th.CommandEqual("tree"), th.TextEqual("🌱 Семейное древо")))
 
 	opts.Bh.Handle(depositCmd{
 		brakRepo: opts.BrakRepo,

@@ -186,3 +186,22 @@ func (u *Score) IsBiggerOrEquals(other *Score) bool {
 	}
 	return u.Mantissa >= other.Mantissa
 }
+
+func (u *Score) Multiply(factor float64) {
+	discountedMantissa := float64(u.Mantissa) * factor
+	u.Mantissa = int64(discountedMantissa)
+	
+	for u.Mantissa >= 1e18 {
+		u.Mantissa /= 10
+		u.Exponent++
+	}
+	for u.Mantissa < 1e17 && u.Exponent > 0 {
+		u.Mantissa *= 10
+		u.Exponent--
+	}
+
+	if u.Mantissa < 0 {
+		u.Mantissa = 0
+		u.Exponent = 0
+	}
+}

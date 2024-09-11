@@ -202,10 +202,11 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 		response := b.Events.Anubis.Play(&anubis.PlayOpts{
-			Log:   opts.Log,
-			Bot:   opts.Bot,
-			Query: query,
-			IsSub: b.IsSub(),
+			Log:      opts.Log,
+			Bot:      opts.Bot,
+			Query:    query,
+			IsSub:    b.IsSub(),
+			OldScore: b.Score,
 		})
 		if response == nil {
 			return
