@@ -34,6 +34,7 @@ type PlayResponse struct {
 	Score uint64
 	Text  string
 	IsWin bool
+	Path  string
 }
 
 func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
@@ -51,8 +52,11 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 		return nil
 	}
 
+	a.PlayCount--
+
 	if !opts.IsSub {
 		score := uint64(rand.Intn(100) + 1)
+
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s ты пытался обмануть Анубиса? У тебя нет подписки, анубис забрал у тебя %v хинкалей.", html.UserMention(&opts.Query.From), score),
@@ -62,7 +66,6 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 
 	chance := rand.Intn(100) + a.Luck
 	score := uint64(float64(uint64(rand.Int31n(200))+a.BasePlayPower)*a.PercentagePower) + 1
-	a.PlayCount--
 	switch {
 	case chance == 1:
 		score *= 3
@@ -109,8 +112,9 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 		opts.OldScore.Multiply(1.2)
 		return &PlayResponse{
 			Score: score,
-			Text:  fmt.Sprintf("Анубис использовал древнюю магию и умножил счёт %s на 20%%, %s -> %s! (Вы также дополнительно нашли скрытый сундук и нашли %v хинкаль)", html.UserMention(&opts.Query.From), oldShow.GetFormattedScore(), opts.OldScore.GetFormattedScore(), score),
+			Text:  fmt.Sprintf("Анубис использовал древнюю магию и умножил счёт %s на 20%%.\nБаланс %s -> %s. \n(Вы также обнаружили скрытый сундук и нашли в нём %v хинкаль)", html.UserMention(&opts.Query.From), oldShow.GetFormattedScore(), opts.OldScore.GetFormattedScore(), score),
 			IsWin: true,
+			Path:  "resources/gifs/bigwin.gif.mp4",
 		}
 	default:
 		return &PlayResponse{

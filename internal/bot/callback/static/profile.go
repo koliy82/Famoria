@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"os"
 )
 
 const (
@@ -232,17 +233,37 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
+		params := &telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
 			Text:      response.Text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
-		})
-		if err != nil {
-			opts.Log.Sugar().Error(err)
 		}
+
+		if response.Path == "" {
+			_, err = opts.Bot.SendMessage(params)
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+			}
+		} else {
+			gif, err := os.Open(response.Path)
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+			}
+			_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
+				Caption:   response.Text,
+				ParseMode: telego.ModeHTML,
+				ChatID:    params.ChatID,
+				Animation: tu.File(gif),
+			})
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+				_, err = opts.Bot.SendMessage(params)
+			}
+		}
+
 		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
