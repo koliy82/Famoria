@@ -52,7 +52,6 @@ func (c *Casino) Play(opts *PlayOpts) *PlayResponse {
 	chance := rand.Intn(100) + c.Luck
 	score := uint64(float64(uint64(rand.Int31n(100))+c.BasePlayPower)*c.PercentagePower) + 1
 	c.PlayCount--
-	chance = 100
 	switch {
 	case chance == 1:
 		score *= 3
