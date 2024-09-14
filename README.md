@@ -10,17 +10,25 @@
 </div>
 
 ## Commands
-- `/start` - Start the bot.
-- `/help` - Get help.
-- `/gobrak` - Invite someone to marry.
+- `/help` or `/start` - Get help.
+- `/menu` - Open bot menu.
+- `/gobrak` - Invite someone to create family. (Use as a reply to a user's message)
 - `/endbrak` - End the marriage.
-- `/profile` - Get your profile.
-- `/braks` - Get a list of marriages in current chat.
-- `/braksglobal` - Get a list of global marriages.
-- `/gokids` - Give birth to a child.
+- `/profile` - Get your profile with family (if exist).
+- `/braks` - Get a list of families in current chat.
+- `/braksglobal` - Get a list of global families.
+![bots](resources/images/braks.png)
+- `/gokids` - Give birth to a child. (Use as a reply to a user's message)
 - `/detdom` - Disown of marriage.
 - `/kidannihilate` - Annihilate a child.
-- `/tree` - Get a family tree. (in development...)
+- `/tree` - Get a family tree. (Without number - text format, with number from 1 to 5 - picture format)
+![bots](resources/images/tree.png)
+- `/deposit` or `/dep` - Transfer in-game currency from the user balance to the family balance. (Use - `/dep 1`)
+- `/withdraw` or `/with` - Transfer in-game currency from your family's balance to your own balance. (Use - `/with 1`)
+- `/inventory` - Reviewing purchased family items.
+- `/shop` - Purchase items from the secret shop to enhance the rewards of in-game events
+- `/subscribe` - Take out a family subscription.
+![bots](resources/images/subscribe.png)
 
 # Self-hosting
 ### Clone the Repository:
