@@ -90,10 +90,7 @@ func contains(slice []int64, item int64) bool {
 }
 
 func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.CallbackQuery) {
-	cm.log.Sugar().Debug(query)
-
 	cm.mu.Lock()
-	//defer cm.mu.Unlock()
 	callback, exists := cm.Callbacks[query.Data]
 	cm.mu.Unlock()
 

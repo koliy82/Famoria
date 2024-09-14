@@ -206,9 +206,28 @@ func (s *Shop) SetNavigateButtons() {
 		}})
 }
 
+func (s *Shop) UpdateDescription() {
+	s.Label = fmt.Sprintf("Потайная лавка (%d/%d стр.)\n", s.CurrentPage, s.MaxPages)
+	startIndex := (s.CurrentPage - 1) * s.MaxRows * s.MaxCells
+	endIndex := startIndex + s.MaxRows*s.MaxCells
+	if endIndex > len(s.Items) {
+		endIndex = len(s.Items)
+	}
+	for i := 0; i < s.MaxRows; i++ {
+		for j := 0; j < s.MaxCells; j++ {
+			itemIndex := startIndex + i*s.MaxCells + j
+			if itemIndex >= endIndex {
+				break
+			}
+			si := s.Items[itemIndex]
+			s.Label += si.SmallDescription() + "\n"
+		}
+	}
+}
+
 func (s *Shop) SetItemCallbacks() {
 	s.BackCallback = s.Opts.Cm.DynamicCallback(callback.DynamicOpts{
-		Label:    "Назад",
+		Label:    "⬅️ Назад",
 		CtxType:  callback.Temporary,
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
@@ -233,7 +252,7 @@ func (s *Shop) SetItemCallbacks() {
 	})
 
 	s.BuyCallback = s.Opts.Cm.DynamicCallback(callback.DynamicOpts{
-		Label:    "Купить",
+		Label:    "💳 Купить",
 		CtxType:  callback.Temporary,
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
@@ -280,11 +299,21 @@ func (s *Shop) SetItemCallbacks() {
 					WithText("Произошла ошибка при покупке/улучшении предмета."),
 				)
 			}
+			// Update item in shop list
+			for i, ui := range s.Items {
+				if ui.Name == si.Name {
+					s.Items[i].BuyLevel++
+				}
+			}
+			s.UpdateDescription()
 			_, err = s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
 				Text:      "Поздравляю, вы купили " + si.Name.String() + " " + strconv.Itoa(si.BuyLevel) + "/" + strconv.Itoa(si.MaxLevel) + " ур.",
+				ReplyMarkup: tu.InlineKeyboard(
+					tu.InlineKeyboardRow(s.BackCallback.Inline()),
+				),
 			})
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
