@@ -23,8 +23,8 @@
 - `/kidannihilate` - Annihilate a child.
 - `/tree` - Get a family tree. (Without number - text format, with number from 1 to 5 - picture format)
 <br> ![bots](resources/images/tree-text.png)
-- `/deposit` or `/dep` - Transfer in-game currency from the user balance to the family balance. (Use - `/dep 1`)
-- `/withdraw` or `/with` - Transfer in-game currency from your family's balance to your own balance. (Use - `/with 1`)
+- `/deposit` or `/dep` - Transfer in-game currency from the user balance to the family balance. (Use `/dep 1`)
+- `/withdraw` or `/with` - Transfer in-game currency from your family's balance to your own balance. (Use `/with 1`)
 - `/inventory` - Reviewing purchased family items.
 - `/shop` - Purchase items from the secret shop to enhance the rewards of in-game events
 - `/subscribe` - Take out a family subscription.
