@@ -38,7 +38,7 @@ func (c shopCmd) Handle(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	s := shop.New(&shop.Opts{
+	s, err := shop.New(&shop.Opts{
 		B:        b,
 		Params:   params,
 		Bot:      bot,
@@ -47,14 +47,15 @@ func (c shopCmd) Handle(bot *telego.Bot, update telego.Update) {
 		Log:      c.log,
 		BrakRepo: c.brakRepo,
 	})
-
-	_, err := bot.SendMessage(params.
-		WithText(s.Label).
-		WithReplyMarkup(&telego.InlineKeyboardMarkup{
-			InlineKeyboard: s.ShopCallbacks,
-		}),
-	)
-	if err != nil {
-		c.log.Sugar().Error(err)
+	if err == nil {
+		_, err = bot.SendMessage(params.
+			WithText(s.Label).
+			WithReplyMarkup(&telego.InlineKeyboardMarkup{
+				InlineKeyboard: s.ShopCallbacks,
+			}),
+		)
+		if err != nil {
+			c.log.Sugar().Error(err)
+		}
 	}
 }

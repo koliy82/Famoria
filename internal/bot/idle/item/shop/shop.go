@@ -1,6 +1,7 @@
 package shop
 
 import (
+	"errors"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
@@ -41,42 +42,18 @@ type Opts struct {
 	BrakRepo brak.Repository
 }
 
-func New(opts *Opts) *Shop {
+func New(opts *Opts) (*Shop, error) {
 	s := &Shop{
 		CurrentPage: 1,
 		MaxRows:     3,
 		MaxCells:    4,
 		Opts:        opts,
 	}
-	s.Items = opts.B.GetAvailableItems(opts.Manager)
-	sort.Slice(s.Items, func(i, j int) bool {
-		if s.Items[i].Price.Exponent == s.Items[j].Price.Exponent {
-			return s.Items[i].Price.Mantissa < s.Items[j].Price.Mantissa
-		}
-		return s.Items[i].Price.Exponent < s.Items[j].Price.Exponent
-	})
-	if len(s.Items) == 0 {
-		_, err := opts.Bot.SendMessage(opts.Params.
-			WithText("Вы скупили все доступные предметы на данный момент, милорд."),
-		)
-		if err != nil {
-			opts.Log.Sugar().Error(err)
-		}
-		return nil
+	err := s.UpdateShop()
+	if err != nil {
+		return nil, err
 	}
-	//for i := 0; i < 4; i++ {
-	//	s.Items = append(s.Items, s.Items...)
-	//}
-	s.MaxPages = len(s.Items) / (s.MaxRows * s.MaxCells)
-	if len(s.Items)%(s.MaxRows*s.MaxCells) != 0 {
-		s.MaxPages++
-	}
-	s.SetItemCallbacks()
-	if s.MaxPages > 1 {
-		s.SetNavigateButtons()
-	}
-	s.CurrentButtonsPage()
-	return s
+	return s, nil
 }
 
 func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
@@ -206,23 +183,33 @@ func (s *Shop) SetNavigateButtons() {
 		}})
 }
 
-func (s *Shop) UpdateDescription() {
-	s.Label = fmt.Sprintf("Потайная лавка (%d/%d стр.)\n", s.CurrentPage, s.MaxPages)
-	startIndex := (s.CurrentPage - 1) * s.MaxRows * s.MaxCells
-	endIndex := startIndex + s.MaxRows*s.MaxCells
-	if endIndex > len(s.Items) {
-		endIndex = len(s.Items)
-	}
-	for i := 0; i < s.MaxRows; i++ {
-		for j := 0; j < s.MaxCells; j++ {
-			itemIndex := startIndex + i*s.MaxCells + j
-			if itemIndex >= endIndex {
-				break
-			}
-			si := s.Items[itemIndex]
-			s.Label += si.SmallDescription() + "\n"
+func (s *Shop) UpdateShop() error {
+	s.Items = s.Opts.B.GetAvailableItems(s.Opts.Manager)
+	sort.Slice(s.Items, func(i, j int) bool {
+		if s.Items[i].Price.Exponent == s.Items[j].Price.Exponent {
+			return s.Items[i].Price.Mantissa < s.Items[j].Price.Mantissa
 		}
+		return s.Items[i].Price.Exponent < s.Items[j].Price.Exponent
+	})
+	if len(s.Items) == 0 {
+		_, err := s.Opts.Bot.SendMessage(s.Opts.Params.
+			WithText("Вы скупили все доступные предметы на данный момент, милорд."),
+		)
+		if err != nil {
+			s.Opts.Log.Sugar().Error(err)
+		}
+		return errors.New("no items in shop")
 	}
+	s.MaxPages = len(s.Items) / (s.MaxRows * s.MaxCells)
+	if len(s.Items)%(s.MaxRows*s.MaxCells) != 0 {
+		s.MaxPages++
+	}
+	s.SetItemCallbacks()
+	if s.MaxPages > 1 {
+		s.SetNavigateButtons()
+	}
+	s.CurrentButtonsPage()
+	return nil
 }
 
 func (s *Shop) SetItemCallbacks() {
@@ -300,12 +287,13 @@ func (s *Shop) SetItemCallbacks() {
 				)
 			}
 			// Update item in shop list
+			s.Opts.B = actualBrak
 			for i, ui := range s.Items {
 				if ui.Name == si.Name {
 					s.Items[i].BuyLevel++
 				}
 			}
-			s.UpdateDescription()
+			err = s.UpdateShop()
 			_, err = s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
