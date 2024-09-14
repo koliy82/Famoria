@@ -75,14 +75,39 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		_, err = opts.Bot.SendMessage(&telego.SendMessageParams{
+		params := &telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
 			Text:      response.Text,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
-		})
+		}
+
+		if response.Path == "" {
+			_, err = opts.Bot.SendMessage(params)
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+			}
+		} else {
+			gif, err := os.Open(response.Path)
+			if err == nil {
+				_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
+					Caption:   response.Text,
+					ParseMode: telego.ModeHTML,
+					ChatID:    params.ChatID,
+					Animation: tu.File(gif),
+				})
+				err := gif.Close()
+				if err != nil {
+					opts.Log.Sugar().Error(err)
+				}
+			} else {
+				opts.Log.Sugar().Error(err)
+				_, err = opts.Bot.SendMessage(params)
+			}
+		}
+
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
@@ -249,16 +274,18 @@ func ProfileCallbacks(opts Opts) {
 			}
 		} else {
 			gif, err := os.Open(response.Path)
-			if err != nil {
-				opts.Log.Sugar().Error(err)
-			}
-			_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
-				Caption:   response.Text,
-				ParseMode: telego.ModeHTML,
-				ChatID:    params.ChatID,
-				Animation: tu.File(gif),
-			})
-			if err != nil {
+			if err == nil {
+				_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
+					Caption:   response.Text,
+					ParseMode: telego.ModeHTML,
+					ChatID:    params.ChatID,
+					Animation: tu.File(gif),
+				})
+				err := gif.Close()
+				if err != nil {
+					opts.Log.Sugar().Error(err)
+				}
+			} else {
 				opts.Log.Sugar().Error(err)
 				_, err = opts.Bot.SendMessage(params)
 			}
