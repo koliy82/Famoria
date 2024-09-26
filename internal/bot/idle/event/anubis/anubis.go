@@ -64,7 +64,7 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 		}
 	}
 
-	chance := rand.Intn(100) + a.Luck
+	chance := rand.Intn(101) + a.Luck
 	score := uint64(float64(uint64(rand.Int31n(200))+a.BasePlayPower)*a.PercentagePower) + 1
 	switch {
 	case chance == 1:
