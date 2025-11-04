@@ -2,6 +2,7 @@ package message
 
 import (
 	"context"
+
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	sq "github.com/Masterminds/squirrel"
 	"go.uber.org/zap"
