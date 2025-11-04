@@ -1,20 +1,22 @@
 package payments
 
 import (
+	"context"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/checkout"
 	"famoria/internal/database/mongo/repositories/payment"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"strconv"
-	"time"
 )
 
 type Opts struct {
@@ -28,18 +30,18 @@ type Opts struct {
 }
 
 func Register(opts Opts) {
-	opts.Bh.HandlePreCheckoutQuery(func(bot *telego.Bot, update telego.PreCheckoutQuery) {
+	opts.Bh.HandlePreCheckoutQuery(func(ctx *th.Context, update telego.PreCheckoutQuery) error {
 		params := &telego.AnswerPreCheckoutQueryParams{
 			PreCheckoutQueryID: update.ID,
 			Ok:                 false,
 		}
 		from, err := opts.UserRepo.FindOrUpdate(&update.From)
 		if err != nil {
-			err = bot.AnswerPreCheckoutQuery(params.WithErrorMessage("Брак не найден, покупка отменена."))
+			err = ctx.Bot().AnswerPreCheckoutQuery(context.Background(), params.WithErrorMessage("Брак не найден, покупка отменена."))
 			if err != nil {
 				opts.Log.Sugar().Error(err)
 			}
-			return
+			return err
 		}
 		err = opts.CheckoutRepo.Insert(&checkout.Checkout{
 			ID:               update.ID,
@@ -52,17 +54,18 @@ func Register(opts Opts) {
 		})
 		if err != nil {
 			opts.Log.Sugar().Error(err)
-			err = bot.AnswerPreCheckoutQuery(params.WithErrorMessage("Произошла ошибка при обработке вашего платежа: " + err.Error()))
-			return
+			err = ctx.Bot().AnswerPreCheckoutQuery(context.Background(), params.WithErrorMessage("Произошла ошибка при обработке вашего платежа: "+err.Error()))
+			return err
 		}
-		err = bot.AnswerPreCheckoutQuery(params.WithOk())
+		err = ctx.Bot().AnswerPreCheckoutQuery(context.Background(), params.WithOk())
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
 		opts.Log.Sugar().Info("PreCheckoutQuery: ", zap.Any("update", update))
+		return err
 	})
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
+	opts.Bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		m := update.Message
 		err := opts.PaymentRepo.Insert(m)
 		if err != nil {
@@ -76,10 +79,10 @@ func Register(opts Opts) {
 			}
 			b, err := opts.BrakRepo.FindByUserID(m.From.ID, nil)
 			if err != nil {
-				_, _ = bot.SendMessage(params.WithText("🚫 Ошибка при получении брака. Свяжитесь с администратором бота для решения проблемы."))
+				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("🚫 Ошибка при получении брака. Свяжитесь с администратором бота для решения проблемы."))
 				opts.Log.Sugar().Error("#Subscribe Payment Error (get brak), user_id: " + strconv.FormatInt(m.From.ID, 10))
 				opts.Log.Sugar().Error(err)
-				return
+				return err
 			}
 			b.AddSubDays(time.Duration(30) * time.Hour * 24)
 			err = opts.BrakRepo.Update(
@@ -87,23 +90,24 @@ func Register(opts Opts) {
 				bson.M{"$set": bson.M{"subscribe_end": b.SubscribeEnd}},
 			)
 			if err != nil {
-				_, _ = bot.SendMessage(params.WithText("🚫 Ошибка при обновлении подписки. Свяжитесь с администратором бота для решения проблемы."))
+				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("🚫 Ошибка при обновлении подписки. Свяжитесь с администратором бота для решения проблемы."))
 				opts.Log.Sugar().Error("#Subscribe Payment Error (add 30 days), user_id: " + strconv.FormatInt(m.From.ID, 10))
 				opts.Log.Sugar().Error(err)
-				return
+				return err
 			}
 			fUser, err := opts.UserRepo.FindByID(m.From.ID)
 			if err != nil {
-				_, _ = bot.SendMessage(params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
+				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
 			}
 			sUser, err := opts.UserRepo.FindByID(b.PartnerID(m.From.ID))
 			if err != nil {
-				_, _ = bot.SendMessage(params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
+				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
 			}
-			_, _ = bot.SendMessage(params.WithText(fmt.Sprintf(
+			_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 				"%s, вы успешно приобрели подписку на 30 дней для брака с %s.",
 				html.ModelMention(fUser), html.ModelMention(sUser),
 			)))
 		}
+		return err
 	}, th.SuccessPayment())
 }

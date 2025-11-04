@@ -1,15 +1,18 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"time"
 )
 
 type endFamilyCmd struct {
@@ -19,7 +22,7 @@ type endFamilyCmd struct {
 	userRepo user.Repository
 }
 
-func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c endFamilyCmd) Handle(ctx *th.Context, update telego.Update) error {
 	from := update.Message.From
 	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	params := &telego.SendMessageParams{
@@ -28,13 +31,13 @@ func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if b == nil {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
@@ -45,7 +48,7 @@ func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		Callback: func(query telego.CallbackQuery) {
 			err := c.brakRepo.Delete(b.OID)
 			if err != nil {
-				_, err := bot.SendMessage(params.
+				_, err := ctx.Bot().SendMessage(context.Background(), params.
 					WithText(fmt.Sprintf("%s, произошла ошибка при разводе. 😥", html.UserMention(from))).
 					WithReplyMarkup(nil),
 				)
@@ -62,7 +65,7 @@ func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 			if err != nil {
 				return
 			}
-			_, err = bot.SendMessage(params.
+			_, err = ctx.Bot().SendMessage(context.Background(), params.
 				WithText(fmt.Sprintf(
 					"Брак между %s и %s распался. 💔\nОни прожили вместе %s",
 					html.ModelMention(fuser), html.ModelMention(tuser), b.Duration(),
@@ -74,7 +77,7 @@ func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, err := bot.SendMessage(params.
+	_, err := ctx.Bot().SendMessage(context.Background(), params.
 		WithText(fmt.Sprintf("%s, ты уверен? 💔", html.UserMention(from))).
 		WithReplyMarkup(tu.InlineKeyboard(
 			tu.InlineKeyboardRow(
@@ -85,4 +88,5 @@ func (c endFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

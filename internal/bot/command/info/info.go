@@ -1,8 +1,10 @@
 package info
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
+
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -33,8 +35,8 @@ func Register(opts Opts) {
 		th.CommandEqual("menu"),
 	))
 
-	opts.Bh.Handle(func(bot *telego.Bot, update telego.Update) {
-		_, err := bot.SendMessage(&telego.SendMessageParams{
+	opts.Bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 			ChatID: tu.ID(update.Message.Chat.ID),
 			Text:   "Меню закрыто, повторно открыть его можно написав /menu.",
 			ReplyParameters: &telego.ReplyParameters{
@@ -46,6 +48,7 @@ func Register(opts Opts) {
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
+		return err
 	}, th.And(
 		th.Or(th.CommandEqual("closemenu"), th.TextEqual("❌ Закрыть")),
 	))

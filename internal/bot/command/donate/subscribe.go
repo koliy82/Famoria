@@ -1,6 +1,7 @@
 package donate
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/handler/payments"
 	"famoria/internal/bot/idle/item"
@@ -10,10 +11,12 @@ import (
 	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"time"
 )
 
 type SubscribeCmd struct {
@@ -25,7 +28,7 @@ type SubscribeCmd struct {
 	yKassaToken *string
 }
 
-func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c SubscribeCmd) Handle(ctx *th.Context, update telego.Update) error {
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
 		ParseMode: telego.ModeHTML,
@@ -36,11 +39,11 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 	b, err := c.brakRepo.FindByUserID(update.Message.From.ID, c.m)
 	if err != nil {
-		_, err := bot.SendMessage(params.WithText("🚫 Вы не состоите в браке, подписка покупается на действующий брак. Женитесь пожалуйста командой /gobrak. 🥺"))
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText("🚫 Вы не состоите в браке, подписка покупается на действующий брак. Женитесь пожалуйста командой /gobrak. 🥺"))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 	fUser, err := c.userRepo.FindByID(b.FirstUserID)
 	if err != nil {
@@ -65,7 +68,7 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{b.FirstUserID, b.SecondUserID},
 		Time:     time.Duration(1) * time.Hour,
 		Callback: func(query telego.CallbackQuery) {
-			invoice, err := bot.SendInvoice(&telego.SendInvoiceParams{
+			invoice, err := ctx.Bot().SendInvoice(context.Background(), &telego.SendInvoiceParams{
 				ChatID: params.ChatID,
 				Title:  "Famoria - подписка на 30 дней.",
 				Description: fmt.Sprintf(
@@ -122,7 +125,7 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 			OwnerIDs: []int64{b.FirstUserID, b.SecondUserID},
 			Time:     time.Duration(1) * time.Hour,
 			Callback: func(query telego.CallbackQuery) {
-				invoice, err := bot.SendInvoice(&telego.SendInvoiceParams{
+				invoice, err := ctx.Bot().SendInvoice(context.Background(), &telego.SendInvoiceParams{
 					ChatID: params.ChatID,
 					Title:  "Famoria - подписка на 30 дней.",
 					Description: fmt.Sprintf(
@@ -169,10 +172,11 @@ func (c SubscribeCmd) Handle(bot *telego.Bot, update telego.Update) {
 	body += "  - 1% умножения счёта на 20%.\n"
 	text += html.CodeBlockWithLang(body, "Subscription buffs")
 	text += html.Italic("Помогает оплачивать хостинг боту.")
-	_, err = bot.SendMessage(params.WithText(text).
-		WithReplyMarkup(builder.Build()),
+	_, err = ctx.Bot().SendMessage(context.Background(),
+		params.WithText(text).WithReplyMarkup(builder.Build()),
 	)
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

@@ -1,12 +1,14 @@
 package config
 
 import (
+	"context"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"time"
 )
 
 type telegramCore struct {
@@ -74,10 +76,11 @@ func (t *telegramCore) sendToTelegram(ent zapcore.Entry) {
 	if chatId == nil {
 		return
 	}
-	_, _ = t.bot.SendMessage(&telego.SendMessageParams{
+	_, _ = t.bot.SendMessage(context.Background(), &telego.SendMessageParams{
 		ChatID: tu.ID(*chatId),
 		Text: fmt.Sprintf("[%s]\n%s: %s", ent.Time.Format(time.RFC850),
 			ent.Level.CapitalString(), ent.Message,
 		),
 	})
+
 }

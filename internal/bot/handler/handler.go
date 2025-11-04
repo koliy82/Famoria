@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 )
 
 func New(bot *telego.Bot) *th.BotHandler {
-	updates, _ := bot.UpdatesViaLongPolling(nil)
+	updates, _ := bot.UpdatesViaLongPolling(context.Background(), nil)
 
 	bh, err := th.NewBotHandler(bot, updates)
 
@@ -19,9 +21,9 @@ func New(bot *telego.Bot) *th.BotHandler {
 
 func StartHandle(bot *telego.Bot, bh *th.BotHandler) {
 
-	defer bh.Stop()
+	defer func() { _ = bh.Stop() }()
 
-	defer bot.StopLongPolling()
+	//defer bot.StopLongPolling()
 
-	bh.Start()
+	_ = bh.Start()
 }

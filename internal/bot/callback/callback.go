@@ -31,8 +31,9 @@ func (callback *Callback) Inline() telego.InlineKeyboardButton {
 
 func Register(bh *th.BotHandler, cm *CallbacksManager) {
 	bh.HandleCallbackQuery(
-		func(bot *telego.Bot, query telego.CallbackQuery) {
-			cm.HandleCallback(bot, query)
+		func(ctx *th.Context, query telego.CallbackQuery) error {
+			cm.HandleCallback(ctx, query)
+			return nil
 		},
 		th.AnyCallbackQuery(),
 	)

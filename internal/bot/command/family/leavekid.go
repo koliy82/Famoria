@@ -1,17 +1,20 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"math/rand/v2"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
-	"math/rand/v2"
-	"time"
 )
 
 type leaveKidCmd struct {
@@ -21,7 +24,7 @@ type leaveKidCmd struct {
 	log      *zap.Logger
 }
 
-func (c leaveKidCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c leaveKidCmd) Handle(ctx *th.Context, update telego.Update) error {
 	from := update.Message.From
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -33,13 +36,13 @@ func (c leaveKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 	b, _ := c.brakRepo.FindByKidID(from.ID)
 	if b == nil {
-		_, err := bot.SendMessage(params.WithText(
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(
 			fmt.Sprintf("%s, ты ещё не родился. ⌚", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
@@ -77,7 +80,7 @@ func (c leaveKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 				text = "Что-то пошло не так..."
 			}
 
-			_, err = bot.SendMessage(params.
+			_, err = ctx.Bot().SendMessage(context.Background(), params.
 				WithText(text).
 				WithReplyMarkup(nil),
 			)
@@ -87,11 +90,12 @@ func (c leaveKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, err := bot.SendMessage(params.
+	_, err := ctx.Bot().SendMessage(context.Background(), params.
 		WithText(fmt.Sprintf("%s, ты уверен, что хочешь покинуть свою семью? 🏠", html.UserMention(from))).
 		WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(yesCallback.Inline()))),
 	)
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

@@ -4,6 +4,7 @@ import (
 	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/fx"
@@ -16,15 +17,15 @@ type MessageLogger struct {
 	brakRepo    brak.Repository
 }
 
-func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
+func (l MessageLogger) Handle(ctx *th.Context, update telego.Update) error {
 	msg := update.Message
 	from := msg.From
 	if from == nil {
-		return
+		return nil
 	}
 	_, err := l.userRepo.FindOrUpdate(update.Message.From)
 	if err != nil {
-		return
+		return err
 	}
 
 	newMessage := &message.Message{
@@ -43,6 +44,7 @@ func (l MessageLogger) Handle(bot *telego.Bot, update telego.Update) {
 	l.messageRepo.Insert(
 		newMessage,
 	)
+	return nil
 }
 
 type Opts struct {

@@ -1,15 +1,17 @@
 package anubis
 
 import (
+	"context"
 	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/date"
 	"famoria/internal/pkg/html"
 	"fmt"
-	"github.com/mymmrac/telego"
-	"go.uber.org/zap"
 	"math/rand"
 	"time"
+
+	"github.com/mymmrac/telego"
+	"go.uber.org/zap"
 )
 
 type Anubis struct {
@@ -44,7 +46,7 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 	}
 
 	if a.PlayCount == 0 {
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: opts.Query.ID,
 			Text:            "Сегодня вы уже прошли испытание Анубиса.",
 			ShowAlert:       true,

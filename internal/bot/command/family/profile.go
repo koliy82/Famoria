@@ -1,6 +1,7 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/callback/static"
 	"famoria/internal/database/clickhouse/repositories/message"
@@ -10,7 +11,9 @@ import (
 	"famoria/internal/pkg/html"
 	"famoria/internal/pkg/plural"
 	"fmt"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
@@ -24,11 +27,11 @@ type profileCmd struct {
 	messageRepo message.Repository
 }
 
-func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 	from := update.Message.From
 	fUser, err := c.userRepo.FindOrUpdate(from)
 	if err != nil {
-		return
+		return err
 	}
 
 	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
@@ -52,7 +55,7 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 			err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"chat_id": b.ChatID}})
 			if err != nil {
 				c.log.Sugar().Error(err)
-				return
+				return err
 			}
 		}
 
@@ -95,8 +98,9 @@ func (c profileCmd) Handle(bot *telego.Bot, update telego.Update) {
 		params.ReplyMarkup = keyboard.Build()
 	}
 
-	_, err = bot.SendMessage(params)
+	_, err = ctx.Bot().SendMessage(context.Background(), params)
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

@@ -1,16 +1,19 @@
 package showInventory
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/brak"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"time"
 )
 
 type Inventory struct {
@@ -30,7 +33,7 @@ type Inventory struct {
 type Opts struct {
 	B              *brak.Brak
 	Params         *telego.SendMessageParams
-	Bot            *telego.Bot
+	BotCtx         *th.Context
 	Manager        *item.Manager
 	Log            *zap.Logger
 	Cm             *callback.CallbacksManager
@@ -59,7 +62,7 @@ func New(opts *Opts) *Inventory {
 		})
 	}
 	if len(p.Items) == 0 {
-		_, err := opts.Bot.SendMessage(opts.Params.WithText("Инвентарь пуст, милорд."))
+		_, err := opts.BotCtx.Bot().SendMessage(context.Background(), opts.Params.WithText("Инвентарь пуст, милорд."))
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
@@ -102,13 +105,13 @@ func (p *Inventory) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 				Time:     time.Duration(30) * time.Minute,
 				Callback: func(query telego.CallbackQuery) {
 					if p.SelectedItem != nil && p.SelectedItem.Name == si.Name {
-						_ = p.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+						_ = p.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 							CallbackQueryID: query.ID,
 						})
 						return
 					}
 					p.SelectedItem = si
-					_, err := p.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+					_, err := p.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 						MessageID: query.Message.GetMessageID(),
 						ChatID:    tu.ID(query.Message.GetChat().ID),
 						ParseMode: telego.ModeHTML,
@@ -120,9 +123,10 @@ func (p *Inventory) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 					if err != nil {
 						p.Opts.Log.Sugar().Error(err)
 					}
-					_ = p.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-						CallbackQueryID: query.ID,
-					})
+					_ = p.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(),
+						&telego.AnswerCallbackQueryParams{
+							CallbackQueryID: query.ID,
+						})
 				},
 			})
 			row = append(row, iCallback.Inline())
@@ -142,7 +146,7 @@ func (p *Inventory) SetNavigateButtons() {
 		OwnerIDs: []int64{p.Opts.B.FirstUserID, p.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, err := p.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err := p.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -154,7 +158,7 @@ func (p *Inventory) SetNavigateButtons() {
 			if err != nil {
 				p.Opts.Log.Sugar().Error(err)
 			}
-			_ = p.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = p.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			})
 		}})
@@ -165,7 +169,7 @@ func (p *Inventory) SetNavigateButtons() {
 		OwnerIDs: []int64{p.Opts.B.FirstUserID, p.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, err := p.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err := p.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -177,7 +181,7 @@ func (p *Inventory) SetNavigateButtons() {
 			if err != nil {
 				p.Opts.Log.Sugar().Error(err)
 			}
-			_ = p.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = p.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			})
 		}})

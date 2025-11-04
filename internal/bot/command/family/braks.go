@@ -1,18 +1,21 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/pkg/html"
 	"famoria/internal/pkg/plural"
 	"fmt"
-	"github.com/mymmrac/telego"
-	tu "github.com/mymmrac/telego/telegoutil"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.uber.org/zap"
 	"math"
 	"strconv"
 	"time"
+
+	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
+	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.uber.org/zap"
 )
 
 type pagesCmd struct {
@@ -22,7 +25,7 @@ type pagesCmd struct {
 	log      *zap.Logger
 }
 
-func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 	var page int64 = 1
 	var limit int64 = 5
 	var keyboard *telego.InlineKeyboardMarkup
@@ -51,11 +54,11 @@ func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 	pages = int64(math.Ceil(float64(count) / float64(limit)))
 
 	if err != nil {
-		_, err = bot.SendMessage(params.WithText("Произошла ошибка при получении списка браков"))
+		_, err = ctx.Bot().SendMessage(context.Background(), params.WithText("Произошла ошибка при получении списка браков"))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	if c.isLocal {
@@ -86,7 +89,7 @@ func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 			}
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
-			_, err = bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err = ctx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
 				ChatID:      tu.ID(update.Message.Chat.ID),
 				ParseMode:   telego.ModeHTML,
@@ -105,7 +108,7 @@ func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 		OwnerIDs: []int64{update.Message.From.ID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_ = bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = ctx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            fmt.Sprintf("Страница №%d (На ней же не написано? =/)", page),
 			})
@@ -130,7 +133,7 @@ func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 			}
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
-			_, err = bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err = ctx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
 				ChatID:      tu.ID(update.Message.Chat.ID),
 				ParseMode:   telego.ModeHTML,
@@ -151,14 +154,15 @@ func (c pagesCmd) Handle(bot *telego.Bot, update telego.Update) {
 		),
 	)
 
-	_, err = bot.SendMessage(params.
-		WithText(header + fillPage(braks, page, limit)).
+	_, err = ctx.Bot().SendMessage(context.Background(), params.
+		WithText(header+fillPage(braks, page, limit)).
 		WithReplyMarkup(keyboard).
 		WithDisableNotification(),
 	)
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }
 
 func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {

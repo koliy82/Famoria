@@ -1,6 +1,7 @@
 package static
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/event/anubis"
 	"famoria/internal/bot/idle/event/casino"
@@ -9,12 +10,13 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"os"
+
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"os"
 )
 
 const (
@@ -38,7 +40,7 @@ func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(CasinoData, func(query telego.CallbackQuery) {
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для использования казино необходимо жениться.",
 				ShowAlert:       true,
@@ -85,14 +87,14 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if response.Path == "" {
-			_, err = opts.Bot.SendMessage(params)
+			_, err = opts.Bot.SendMessage(context.Background(), params)
 			if err != nil {
 				opts.Log.Sugar().Error(err)
 			}
 		} else {
 			gif, err := os.Open(response.Path)
 			if err == nil {
-				_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
+				_, err = opts.Bot.SendAnimation(context.Background(), &telego.SendAnimationParams{
 					Caption:   response.Text,
 					ParseMode: telego.ModeHTML,
 					ChatID:    params.ChatID,
@@ -104,14 +106,14 @@ func ProfileCallbacks(opts Opts) {
 				}
 			} else {
 				opts.Log.Sugar().Error(err)
-				_, err = opts.Bot.SendMessage(params)
+				_, err = opts.Bot.SendMessage(context.Background(), params)
 			}
 		}
 
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
-		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
 		if err != nil {
@@ -122,7 +124,7 @@ func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(GrowKidData, func(query telego.CallbackQuery) {
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для кормления ребёнка необходимо жениться.",
 				ShowAlert:       true,
@@ -130,7 +132,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 		if b.BabyUserID == nil {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для кормления ребёнка его необходимо родить.",
 				ShowAlert:       true,
@@ -161,7 +163,7 @@ func ProfileCallbacks(opts Opts) {
 			opts.Log.Sugar().Error("Ошибка при обновлении счёта #grow_kid (", response.Score, ") пользователя ", query.From.ID, ":", err)
 			return
 		}
-		_, _ = opts.Bot.SendMessage(&telego.SendMessageParams{
+		_, _ = opts.Bot.SendMessage(context.Background(), &telego.SendMessageParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
 			ParseMode: telego.ModeHTML,
 			Text:      response.Text,
@@ -169,7 +171,7 @@ func ProfileCallbacks(opts Opts) {
 				MessageID: query.Message.GetMessageID(),
 			},
 		})
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
 	})
@@ -177,7 +179,7 @@ func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(HamsterData, func(query telego.CallbackQuery) {
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для тапа хомяка необходимо жениться.",
 				ShowAlert:       true,
@@ -208,7 +210,7 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 			Text:            "Успешный тап по хомяку",
 		})
@@ -220,7 +222,7 @@ func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(AnubisData, func(query telego.CallbackQuery) {
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
-			_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Для игры в анубис вы должны быть в браке и иметь действующую подписку.",
 				ShowAlert:       true,
@@ -268,14 +270,14 @@ func ProfileCallbacks(opts Opts) {
 		}
 
 		if response.Path == "" {
-			_, err = opts.Bot.SendMessage(params)
+			_, err = opts.Bot.SendMessage(context.Background(), params)
 			if err != nil {
 				opts.Log.Sugar().Error(err)
 			}
 		} else {
 			gif, err := os.Open(response.Path)
 			if err == nil {
-				_, err = opts.Bot.SendAnimation(&telego.SendAnimationParams{
+				_, err = opts.Bot.SendAnimation(context.Background(), &telego.SendAnimationParams{
 					Caption:   response.Text,
 					ParseMode: telego.ModeHTML,
 					ChatID:    params.ChatID,
@@ -287,11 +289,11 @@ func ProfileCallbacks(opts Opts) {
 				}
 			} else {
 				opts.Log.Sugar().Error(err)
-				_, err = opts.Bot.SendMessage(params)
+				_, err = opts.Bot.SendMessage(context.Background(), params)
 			}
 		}
 
-		err = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})
 		if err != nil {

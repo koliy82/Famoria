@@ -1,14 +1,16 @@
 package predicate
 
 import (
+	"context"
 	admin2 "famoria/internal/database/mongo/repositories/admin"
+	"strings"
+
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
-	"strings"
 )
 
 func AdminCommand(repo admin2.Repository, level int) th.Predicate {
-	return func(update telego.Update) bool {
+	return func(_ context.Context, update telego.Update) bool {
 		from := update.Message.From
 		if from == nil {
 			return false
@@ -22,7 +24,7 @@ func AdminCommand(repo admin2.Repository, level int) th.Predicate {
 }
 
 func CommandOnlyBotName(command string) th.Predicate {
-	return func(update telego.Update) bool {
+	return func(_ context.Context, update telego.Update) bool {
 		if update.Message == nil || !strings.HasPrefix(update.Message.Text, "/") {
 			return false
 		}

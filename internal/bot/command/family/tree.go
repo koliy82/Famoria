@@ -2,15 +2,19 @@ package family
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"famoria/internal/config"
 	"fmt"
-	"github.com/mymmrac/telego"
-	tu "github.com/mymmrac/telego/telegoutil"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
+	tu "github.com/mymmrac/telego/telegoutil"
+	"go.uber.org/zap"
 )
 
 type treeCmd struct {
@@ -45,7 +49,7 @@ const (
 	Networkx
 )
 
-func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c treeCmd) Handle(ctx *th.Context, update telego.Update) error {
 	args := strings.Split(update.Message.Text, " ")
 	mode := "text"
 	if len(args) > 1 {
@@ -58,24 +62,25 @@ func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.log.Sugar().Error("client: could not create request: %s\n", err)
-		return
+		return err
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		c.log.Sugar().Error("client: error making http request: %s\n", err)
-		return
+		return err
 	}
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		c.log.Sugar().Error("client: could not read response body: %s\n", err)
-		return
+		return err
 	}
 
 	switch mode {
 	case "text":
-		_, err = bot.SendMessage(
+		_, err = ctx.Bot().SendMessage(
+			context.Background(),
 			&telego.SendMessageParams{
 				ChatID: tu.ID(update.Message.Chat.ID),
 				Text:   string(resBody),
@@ -85,10 +90,10 @@ func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
 		contentType := res.Header.Get("Content-Type")
 		if !strings.HasPrefix(contentType, "image/") {
 			c.log.Sugar().Error("client: expected image but got: %s", contentType)
-			return
+			return errors.New("expected image but got: " + contentType)
 		}
 
-		_, err = bot.SendPhoto(&telego.SendPhotoParams{
+		_, err = ctx.Bot().SendPhoto(context.Background(), &telego.SendPhotoParams{
 			ChatID: tu.ID(update.Message.Chat.ID),
 			Photo: tu.File(
 				tu.NameReader(
@@ -102,4 +107,5 @@ func (c treeCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

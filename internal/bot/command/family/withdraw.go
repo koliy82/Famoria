@@ -1,18 +1,22 @@
 package family
 
 import (
+	"context"
+	"errors"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 type withdrawCmd struct {
@@ -22,7 +26,7 @@ type withdrawCmd struct {
 	log      *zap.Logger
 }
 
-func (c withdrawCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c withdrawCmd) Handle(ctx *th.Context, update telego.Update) error {
 	from := update.Message.From
 	params := &telego.SendMessageParams{
 		ChatID:    tu.ID(update.Message.Chat.ID),
@@ -31,45 +35,45 @@ func (c withdrawCmd) Handle(bot *telego.Bot, update telego.Update) {
 	args := strings.Split(update.Message.Text, " ")
 
 	if len(args) < 2 {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, укажи сумму для вывода", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	amount, err := strconv.ParseUint(args[1], 10, 64)
 	if err != nil {
 		// TODO parse exponential (3e3)
 		c.log.Sugar().Error(err)
-		return
+		return err
 	}
 
 	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	if b == nil {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	u, _ := c.userRepo.FindByID(from.ID)
 	if u == nil {
-		return
+		return errors.New("user not found")
 	}
 	if !b.Score.IsBiggerOrEquals(&common.Score{Mantissa: int64(amount)}) {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, вы ввели сликом большое число для вывода", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	u.Score.Increase(amount)
@@ -77,15 +81,16 @@ func (c withdrawCmd) Handle(bot *telego.Bot, update telego.Update) {
 	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"score": b.Score}})
 	if err != nil {
 		c.log.Sugar().Error(err)
-		return
+		return err
 	}
 	err = c.userRepo.Update(bson.M{"_id": u.OID}, bson.M{"$set": bson.M{"score": u.Score}})
 	if err != nil {
 		c.log.Sugar().Error(err)
-		return
+		return err
 	}
 
-	_, err = bot.SendMessage(
+	_, err = ctx.Bot().SendMessage(
+		context.Background(),
 		params.WithText(
 			fmt.Sprintf("%s, ты успешно вывел из брака %d💰",
 				html.UserMention(from), amount),
@@ -94,4 +99,5 @@ func (c withdrawCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

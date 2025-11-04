@@ -1,19 +1,22 @@
 package shop
 
 import (
+	"context"
 	"errors"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/database/mongo/repositories/brak"
 	"fmt"
-	"github.com/mymmrac/telego"
-	tu "github.com/mymmrac/telego/telegoutil"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.uber.org/zap"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
+	tu "github.com/mymmrac/telego/telegoutil"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.uber.org/zap"
 )
 
 type Shop struct {
@@ -35,7 +38,7 @@ type Shop struct {
 type Opts struct {
 	B        *brak.Brak
 	Params   *telego.SendMessageParams
-	Bot      *telego.Bot
+	BotCtx   *th.Context
 	Manager  *item.Manager
 	Log      *zap.Logger
 	Cm       *callback.CallbacksManager
@@ -85,7 +88,7 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 				Time:     time.Duration(30) * time.Minute,
 				Callback: func(query telego.CallbackQuery) {
 					s.SelectedItem = si
-					_, err := s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+					_, err := s.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 						MessageID: query.Message.GetMessageID(),
 						ChatID:    tu.ID(query.Message.GetChat().ID),
 						ParseMode: telego.ModeHTML,
@@ -100,9 +103,10 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 					if err != nil {
 						s.Opts.Log.Sugar().Error(err)
 					}
-					_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-						CallbackQueryID: query.ID,
-					})
+					_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(),
+						&telego.AnswerCallbackQueryParams{
+							CallbackQueryID: query.ID,
+						})
 				},
 			})
 			s.ShopCallbacks[i] = append(s.ShopCallbacks[i], dCallback.Inline())
@@ -142,7 +146,7 @@ func (s *Shop) SetNavigateButtons() {
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, err := s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err := s.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -154,7 +158,7 @@ func (s *Shop) SetNavigateButtons() {
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
 			}
-			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			})
 		}})
@@ -165,7 +169,7 @@ func (s *Shop) SetNavigateButtons() {
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, err := s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err := s.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -177,7 +181,7 @@ func (s *Shop) SetNavigateButtons() {
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
 			}
-			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			})
 		}})
@@ -192,7 +196,7 @@ func (s *Shop) UpdateShop() error {
 		return s.Items[i].Price.Exponent < s.Items[j].Price.Exponent
 	})
 	if len(s.Items) == 0 {
-		_, err := s.Opts.Bot.SendMessage(s.Opts.Params.
+		_, err := s.Opts.BotCtx.Bot().SendMessage(context.Background(), s.Opts.Params.
 			WithText("Вы скупили все доступные предметы на данный момент, милорд."),
 		)
 		if err != nil {
@@ -219,7 +223,7 @@ func (s *Shop) SetItemCallbacks() {
 		OwnerIDs: []int64{s.Opts.B.FirstUserID, s.Opts.B.SecondUserID},
 		Time:     time.Duration(30) * time.Minute,
 		Callback: func(query telego.CallbackQuery) {
-			_, err := s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err := s.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -232,7 +236,7 @@ func (s *Shop) SetItemCallbacks() {
 				s.Opts.Log.Sugar().Error(err)
 			}
 			s.SelectedItem = nil
-			_ = s.Opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			})
 		},
@@ -253,7 +257,7 @@ func (s *Shop) SetItemCallbacks() {
 				si.Price = si.Price.GetSaleScore(actualBrak.Events.Shop.Sale)
 			}
 			if !actualBrak.Score.IsBiggerOrEquals(si.Price) {
-				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+				_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams.
 					WithText("У вас недостаточно средств для покупки/улучшения предмета."),
 				)
 				return
@@ -267,7 +271,7 @@ func (s *Shop) SetItemCallbacks() {
 			}
 			buyItem := ii.GetItem(s.Opts.Manager)
 			if si.BuyLevel >= si.MaxLevel || ii.CurrentLevel >= buyItem.MaxLevel {
-				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+				_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams.
 					WithText("Предмет уже максимального уровня."),
 				)
 				return
@@ -282,7 +286,7 @@ func (s *Shop) SetItemCallbacks() {
 				})
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
-				_ = s.Opts.Bot.AnswerCallbackQuery(answerParams.
+				_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams.
 					WithText("Произошла ошибка при покупке/улучшении предмета."),
 				)
 			}
@@ -294,7 +298,7 @@ func (s *Shop) SetItemCallbacks() {
 				}
 			}
 			err = s.UpdateShop()
-			_, err = s.Opts.Bot.EditMessageText(&telego.EditMessageTextParams{
+			_, err = s.Opts.BotCtx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID: query.Message.GetMessageID(),
 				ChatID:    tu.ID(query.Message.GetChat().ID),
 				ParseMode: telego.ModeHTML,
@@ -307,7 +311,7 @@ func (s *Shop) SetItemCallbacks() {
 				s.Opts.Log.Sugar().Error(err)
 			}
 			s.SelectedItem = nil
-			_ = s.Opts.Bot.AnswerCallbackQuery(answerParams)
+			_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams)
 		},
 	})
 }

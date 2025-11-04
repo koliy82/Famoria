@@ -1,6 +1,7 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/event/events"
 	"famoria/internal/bot/idle/item/inventory"
@@ -9,12 +10,14 @@ import (
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
-	"time"
 )
 
 type goFamilyCmd struct {
@@ -23,7 +26,7 @@ type goFamilyCmd struct {
 	log      *zap.Logger
 }
 
-func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c goFamilyCmd) Handle(ctx *th.Context, update telego.Update) error {
 	fUser := update.Message.From
 	reply := update.Message.ReplyToMessage
 
@@ -37,7 +40,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if reply == nil {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf(
 				"%s, ответь на любое сообщение партнёра. 😘💬",
 				html.UserMention(fUser),
@@ -45,30 +48,30 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	tUser := reply.From
 	if tUser.ID == fUser.ID {
-		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 			"%s, брак с собой нельзя, придётся искать пару. 😥",
 			html.UserMention(fUser),
 		)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	if tUser.IsBot {
-		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 			"%s, бота не трогай. 👿",
 			html.UserMention(fUser),
 		)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	fBrakCount, _ := c.brakRepo.Count(bson.M{"$or": []interface{}{
@@ -76,14 +79,14 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		bson.M{"second_user_id": fUser.ID},
 	}})
 	if fBrakCount != 0 {
-		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 			"%s, у вас уже есть брак! 💍",
 			html.UserMention(fUser),
 		)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	tBrakCount, _ := c.brakRepo.Count(bson.M{"$or": []interface{}{
@@ -91,14 +94,14 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		bson.M{"second_user_id": tUser.ID},
 	}})
 	if tBrakCount != 0 {
-		_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 			"%s, у вашего партнёра уже есть брак! 💍",
 			html.UserMention(fUser),
 		)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
@@ -121,7 +124,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 				Events: events.New(),
 			})
 
-			_, err := bot.SendMessage(&telego.SendMessageParams{
+			_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 				ChatID:    tu.ID(update.Message.Chat.ID),
 				ParseMode: telego.ModeHTML,
 				Text: fmt.Sprintf(
@@ -145,7 +148,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		Time:       time.Duration(60) * time.Minute,
 		AnswerText: "Отказ 🖤",
 		Callback: func(query telego.CallbackQuery) {
-			_, err := bot.SendMessage(&telego.SendMessageParams{
+			_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 				ChatID: tu.ID(update.Message.Chat.ID),
 				Text:   "Отказ 🖤",
 				ReplyParameters: &telego.ReplyParameters{
@@ -159,7 +162,7 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, err := bot.SendMessage(params.WithText(fmt.Sprintf(
+	_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 		"💍 %s, минуточку внимания.\n"+
 			"💖 %s сделал вам предложение руки и сердца.",
 		html.UserMention(tUser), html.UserMention(fUser),
@@ -172,5 +175,5 @@ func (c goFamilyCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
-
+	return err
 }

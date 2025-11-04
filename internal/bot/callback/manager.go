@@ -1,11 +1,14 @@
 package callback
 
 import (
-	"github.com/google/uuid"
-	"github.com/mymmrac/telego"
-	"go.uber.org/zap"
+	"context"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
+	"go.uber.org/zap"
 )
 
 type CallbacksManager struct {
@@ -89,13 +92,14 @@ func contains(slice []int64, item int64) bool {
 	return false
 }
 
-func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.CallbackQuery) {
+func (cm *CallbacksManager) HandleCallback(ctx *th.Context, query telego.CallbackQuery) {
 	cm.mu.Lock()
 	callback, exists := cm.Callbacks[query.Data]
 	cm.mu.Unlock()
 
 	if !exists {
-		err := bot.AnswerCallbackQuery(
+		err := ctx.Bot().AnswerCallbackQuery(
+			context.Background(),
 			&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "У кнопки истёк срок действия.",
@@ -108,7 +112,8 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 	}
 
 	if len(callback.OwnerIDs) > 0 && !contains(callback.OwnerIDs, query.From.ID) {
-		err := bot.AnswerCallbackQuery(
+		err := ctx.Bot().AnswerCallbackQuery(
+			context.Background(),
 			&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            "Кнопка запривачена, ты не можешь её нажать.",
@@ -123,7 +128,8 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 	callback.Callback(query)
 
 	if callback.AnswerText != "" {
-		err := bot.AnswerCallbackQuery(
+		err := ctx.Bot().AnswerCallbackQuery(
+			context.Background(),
 			&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 				Text:            callback.AnswerText,
@@ -133,7 +139,8 @@ func (cm *CallbacksManager) HandleCallback(bot *telego.Bot, query telego.Callbac
 			cm.log.Sugar().Error(err)
 		}
 	} else if callback.Type != Static {
-		err := bot.AnswerCallbackQuery(
+		err := ctx.Bot().AnswerCallbackQuery(
+			context.Background(),
 			&telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
 			},

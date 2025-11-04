@@ -1,11 +1,13 @@
 package hamster
 
 import (
+	"context"
 	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/date"
+	"time"
+
 	"github.com/mymmrac/telego"
 	"go.uber.org/zap"
-	"time"
 )
 
 type Hamster struct {
@@ -35,7 +37,7 @@ func (h *Hamster) Play(opts *PlayOpts) *PlayResponse {
 	}
 
 	if h.PlayCount == 0 {
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: opts.Query.ID,
 			Text:            "Хомяк устал, он разрешит себя тапать завтра.",
 			ShowAlert:       true,

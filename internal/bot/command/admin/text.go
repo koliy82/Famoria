@@ -1,20 +1,24 @@
 package admin
 
 import (
+	"context"
+	"strings"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type sendTextCmd struct {
 	log *zap.Logger
 }
 
-func (c sendTextCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c sendTextCmd) Handle(ctx *th.Context, update telego.Update) error {
 	chatID := tu.ID(update.Message.Chat.ID)
 	args := strings.Split(update.Message.Text, " ")
-	err := bot.DeleteMessage(
+	err := ctx.Bot().DeleteMessage(
+		context.Background(),
 		&telego.DeleteMessageParams{
 			ChatID:    chatID,
 			MessageID: update.Message.MessageID,
@@ -22,9 +26,10 @@ func (c sendTextCmd) Handle(bot *telego.Bot, update telego.Update) {
 	)
 	if err != nil {
 		c.log.Error(err.Error())
-		return
+		return err
 	}
-	_, err = bot.SendMessage(
+	_, err = ctx.Bot().SendMessage(
+		context.Background(),
 		tu.Messagef(
 			chatID,
 			strings.Join(args[1:], " "),
@@ -32,6 +37,7 @@ func (c sendTextCmd) Handle(bot *telego.Bot, update telego.Update) {
 	)
 	if err != nil {
 		c.log.Sugar().Error(err)
-		return
+		return err
 	}
+	return nil
 }

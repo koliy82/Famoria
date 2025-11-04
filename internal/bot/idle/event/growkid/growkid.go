@@ -1,14 +1,16 @@
 package growkid
 
 import (
+	"context"
 	"famoria/internal/bot/idle/event"
 	"famoria/internal/pkg/date"
 	"famoria/internal/pkg/html"
 	"fmt"
-	"github.com/mymmrac/telego"
-	"go.uber.org/zap"
 	"math/rand"
 	"time"
+
+	"github.com/mymmrac/telego"
+	"go.uber.org/zap"
 )
 
 type GrowKid struct {
@@ -39,7 +41,7 @@ func (g *GrowKid) Play(opts *PlayOpts) *PlayResponse {
 	}
 
 	if g.PlayCount == 0 {
-		_ = opts.Bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+		_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: opts.Query.ID,
 			Text:            "Вы сегодня уже кормили ребёнка.",
 			ShowAlert:       true,

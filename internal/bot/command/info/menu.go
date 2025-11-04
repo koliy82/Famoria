@@ -1,8 +1,11 @@
 package info
 
 import (
+	"context"
 	"famoria/internal/database/mongo/repositories/brak"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
 )
@@ -57,8 +60,8 @@ func GenerateButtons(brakRepo brak.Repository, userID int64) *telego.ReplyKeyboa
 	}
 }
 
-func (c menuCmd) Handle(bot *telego.Bot, update telego.Update) {
-	_, err := bot.SendMessage(&telego.SendMessageParams{
+func (c menuCmd) Handle(ctx *th.Context, update telego.Update) error {
+	_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   "Меню показано ✅",
 		ReplyParameters: &telego.ReplyParameters{
@@ -70,4 +73,5 @@ func (c menuCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

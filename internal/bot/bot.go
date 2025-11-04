@@ -1,7 +1,9 @@
 package bot
 
 import (
+	"context"
 	"famoria/internal/config"
+
 	"github.com/mymmrac/telego"
 	"go.uber.org/zap"
 )
@@ -28,7 +30,7 @@ func New(cfg config.Config) *telego.Bot {
 }
 
 func PrintMe(log *zap.Logger, bot *telego.Bot) {
-	me, err := bot.GetMe()
+	me, err := bot.GetMe(context.Background())
 	if err != nil {
 		panic(err)
 	}

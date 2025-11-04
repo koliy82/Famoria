@@ -1,11 +1,14 @@
 package info
 
 import (
+	"context"
 	"famoria/internal/database/mongo/repositories/brak"
+	"strings"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type helpCmd struct {
@@ -13,17 +16,17 @@ type helpCmd struct {
 	log      *zap.Logger
 }
 
-func (c helpCmd) Handle(bot *telego.Bot, update telego.Update) {
-	commands, err := bot.GetMyCommands(&telego.GetMyCommandsParams{})
+func (c helpCmd) Handle(ctx *th.Context, update telego.Update) error {
+	commands, err := ctx.Bot().GetMyCommands(context.Background(), &telego.GetMyCommandsParams{})
 	if err != nil {
 		c.log.Sugar().Error(err)
-		return
+		return err
 	}
 	text := ""
 	for _, command := range commands {
 		text += "/" + command.Command + " - " + command.Description + "\n"
 	}
-	_, err = bot.SendMessage(&telego.SendMessageParams{
+	_, err = ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 		ChatID: tu.ID(update.Message.Chat.ID),
 		Text:   strings.TrimSpace(text),
 		ReplyParameters: &telego.ReplyParameters{
@@ -36,4 +39,5 @@ func (c helpCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
+	return err
 }

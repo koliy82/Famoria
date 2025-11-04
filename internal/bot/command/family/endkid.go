@@ -1,16 +1,19 @@
 package family
 
 import (
+	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"time"
+
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
-	"time"
 )
 
 type endKidCmd struct {
@@ -20,7 +23,7 @@ type endKidCmd struct {
 	log      *zap.Logger
 }
 
-func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
+func (c endKidCmd) Handle(ctx *th.Context, update telego.Update) error {
 	from := update.Message.From
 	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 
@@ -30,32 +33,32 @@ func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 	}
 
 	if b == nil {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, ты не состоишь в браке. 😥", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	if b.BabyUserID == nil {
-		_, err := bot.SendMessage(params.
+		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, у вас нет детей. 🤔", html.UserMention(from))),
 		)
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
-		return
+		return err
 	}
 
 	sUser, _ := c.userRepo.FindByID(b.PartnerID(from.ID))
 	if sUser == nil {
-		return
+		return nil
 	}
 	bUser, _ := c.userRepo.FindByID(*b.BabyUserID)
 	if bUser == nil {
-		return
+		return nil
 	}
 
 	yesCallback := c.cm.DynamicCallback(callback.DynamicOpts{
@@ -76,7 +79,7 @@ func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 				return
 			}
 
-			_, err = bot.SendMessage(params.
+			_, err = ctx.Bot().SendMessage(context.Background(), params.
 				WithText(fmt.Sprintf("Внимание! ⚠️\n%s был аннигилирован %s и %s!\n Он прожил %s",
 					html.ModelMention(bUser), html.UserMention(from), html.ModelMention(sUser), b.DurationKid())).
 				WithReplyMarkup(nil),
@@ -87,7 +90,7 @@ func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 		},
 	})
 
-	_, err := bot.SendMessage(params.
+	_, err := ctx.Bot().SendMessage(context.Background(), params.
 		WithText(fmt.Sprintf("%s, ты тоже хочешь аннигилировать %s? 😐",
 			html.ModelMention(sUser), html.ModelMention(bUser))).
 		WithReplyMarkup(tu.InlineKeyboard(
@@ -97,5 +100,5 @@ func (c endKidCmd) Handle(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		c.log.Sugar().Error(err)
 	}
-
+	return err
 }
