@@ -46,9 +46,9 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 	keyboard := buttons.New(5, 3)
 
 	b, err := c.brakRepo.FindByUserID(from.ID, nil)
-	if err != nil {
-		c.log.Sugar().Error("Брак не найден:", err)
-	}
+	//if err != nil {
+	//	c.log.Sugar().Error("Брак не найден:", err)
+	//}
 	if b != nil {
 		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
 			b.ChatID = update.Message.Chat.ID

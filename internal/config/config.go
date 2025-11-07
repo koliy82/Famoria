@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
@@ -17,12 +18,6 @@ type Config struct {
 	InfoChatID   *int64 `envconfig:"INFO_CHAT_ID"`
 	WarnChatID   *int64 `envconfig:"WARN_CHAT_ID"`
 	ErrorsChatID *int64 `envconfig:"ERRORS_CHAT_ID"`
-
-	ClickhouseURL      string `envconfig:"CLICKHOUSE_URL" required:"true"`
-	ClickhousePort     int    `envconfig:"CLICKHOUSE_PORT" required:"true"`
-	ClickhouseUser     string `envconfig:"CLICKHOUSE_USER" required:"true"`
-	ClickhousePassword string `envconfig:"CLICKHOUSE_PASSWORD" required:"true"`
-	ClickhouseDatabase string `envconfig:"CLICKHOUSE_DATABASE" default:"koliy82"`
 
 	MongoURI              string  `envconfig:"MONGO_URI" required:"true"`
 	MongoDatabase         string  `envconfig:"MONGO_DATABASE" required:"true"`

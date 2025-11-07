@@ -14,7 +14,6 @@ import (
 	"famoria/internal/bot/handler/payments"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/config"
-	"famoria/internal/database/clickhouse"
 	"famoria/internal/database/mongo"
 	admin2 "famoria/internal/database/mongo/repositories/admin"
 	"famoria/internal/database/mongo/repositories/brak"
@@ -32,9 +31,8 @@ var App = fx.Options(
 		config.SetupLogger,
 	),
 	fx.Provide(
-		clickhouse.New,
-		fx.Annotate(message.New, fx.As(new(message.Repository))),
 		mongo.New,
+		fx.Annotate(message.New, fx.As(new(message.Repository))),
 		fx.Annotate(user.New, fx.As(new(user.Repository))),
 		fx.Annotate(brak.New, fx.As(new(brak.Repository))),
 		fx.Annotate(admin2.New, fx.As(new(admin2.Repository))),
