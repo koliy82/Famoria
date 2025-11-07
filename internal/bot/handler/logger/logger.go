@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/user"
 
 	"github.com/mymmrac/telego"

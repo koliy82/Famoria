@@ -1,4 +1,4 @@
-package message
+package message2
 
 type Repository interface {
 	Insert(message *Message)

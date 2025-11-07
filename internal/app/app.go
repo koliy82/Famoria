@@ -15,13 +15,14 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/config"
 	"famoria/internal/database/clickhouse"
-	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo"
 	admin2 "famoria/internal/database/mongo/repositories/admin"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/checkout"
+	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/payment"
 	"famoria/internal/database/mongo/repositories/user"
+
 	"go.uber.org/fx"
 )
 

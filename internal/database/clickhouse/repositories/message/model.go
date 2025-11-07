@@ -1,4 +1,4 @@
-package message
+package message2
 
 type Message struct {
 	ID      int     `ch:"id"`

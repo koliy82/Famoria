@@ -4,8 +4,8 @@ import (
 	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/callback/static"
-	"famoria/internal/database/clickhouse/repositories/message"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
@@ -47,7 +47,7 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 
 	b, err := c.brakRepo.FindByUserID(from.ID, nil)
 	if err != nil {
-		c.log.Sugar().Error(err)
+		c.log.Sugar().Error("Брак не найден:", err)
 	}
 	if b != nil {
 		if b.ChatID == 0 && update.Message.Chat.Type != "private" {
