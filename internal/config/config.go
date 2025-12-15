@@ -26,6 +26,9 @@ type Config struct {
 	ApiURL string `envconfig:"API_URL" default:"http://localhost:8000"`
 
 	YKassaToken *string `envconfig:"YKASSA_TOKEN" required:"false"`
+
+	SteamAPIURI string `envconfig:"Steam_API_URI" required:"true"`
+	SteamAPIKEY string `envconfig:"Steam_API_KEY" required:"true"`
 }
 
 func New() Config {
