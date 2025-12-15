@@ -29,3 +29,7 @@ func (b *Builder) Add(button telego.InlineKeyboardButton) {
 func (b *Builder) Build() telego.ReplyMarkup {
 	return tu.InlineKeyboardGrid(b.Buttons)
 }
+
+func (b *Builder) InlineBuild() *telego.InlineKeyboardMarkup {
+	return tu.InlineKeyboardGrid(b.Buttons)
+}

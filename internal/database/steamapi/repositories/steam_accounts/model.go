@@ -1,6 +1,11 @@
 package steam_accounts
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"fmt"
+	"strings"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type SteamAccount struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
@@ -13,11 +18,15 @@ type SteamAccount struct {
 	PersonaState PersonaState       `bson:"persona_state"`
 }
 
-func (account *SteamAccount) Name() string {
-	if account.Username == nil {
+func (a *SteamAccount) Name() string {
+	if a.Username == nil {
 		return "?"
 	}
-	return *account.Username
+	return *a.Username
+}
+
+func (a *SteamAccount) Games() string {
+	return strings.Trim(strings.Replace(fmt.Sprint(a.GameIDs), " ", ", ", -1), "[]")
 }
 
 type PersonaState int
@@ -35,4 +44,8 @@ const (
 
 func (s PersonaState) String() string {
 	return [...]string{"Офлайн", "В сети", "Занят", "Нет на месте", "Спит", "Ищет трейды", "Ищет игры", "Невидимка"}[s]
+}
+
+func AvailableStates() []PersonaState {
+	return []PersonaState{Online, Busy, Away, Snooze, LookingToTrade, LookingToPlay, Invisible}
 }

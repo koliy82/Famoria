@@ -17,7 +17,7 @@ func (A SteamAPI) ApiRequest(shortURL string, method string, body io.Reader) (*h
 		return nil, err
 	}
 	req.Header.Add("Authorization", "Bearer "+A.ApiKey)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	return A.Client.Do(req)
 }
 

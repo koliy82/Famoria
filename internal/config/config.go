@@ -23,7 +23,7 @@ type Config struct {
 	MongoDatabase         string  `envconfig:"MONGO_DATABASE" required:"true"`
 	TransferMongoDatabase *string `envconfig:"TRANSFER_MONGO_DATABASE"`
 
-	ApiURL string `envconfig:"API_URL" default:"http://localhost:8000"`
+	TreeApiURL string `envconfig:"TREE_API_URL" default:"http://localhost:8000"`
 
 	YKassaToken *string `envconfig:"YKASSA_TOKEN" required:"false"`
 
