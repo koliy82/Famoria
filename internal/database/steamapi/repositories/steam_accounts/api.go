@@ -71,7 +71,7 @@ func (A SteamAPI) UpdateStatus(accountId string, state PersonaState) error {
 	return nil
 }
 
-func (A SteamAPI) UpdateGames(accountId string, gameIds []uint32) error {
+func (A SteamAPI) UpdateGames(accountId string, gameIds []any) error {
 	bodyBytes, err := json.Marshal(gameIds)
 	if err != nil {
 		return err

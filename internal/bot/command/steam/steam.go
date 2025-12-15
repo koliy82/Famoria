@@ -2,6 +2,7 @@ package steam
 
 import (
 	"famoria/internal/bot/callback"
+	"famoria/internal/bot/handler/waiter"
 	"famoria/internal/database/steamapi/repositories/steam_accounts"
 
 	th "github.com/mymmrac/telego/telegohandler"
@@ -15,6 +16,7 @@ type Opts struct {
 	Log *zap.Logger
 	Api *steam_accounts.SteamAPI
 	Cm  *callback.CallbacksManager
+	Mw  *waiter.MessageWaiter
 }
 
 func Register(opts Opts) {
@@ -22,5 +24,6 @@ func Register(opts Opts) {
 		api: opts.Api,
 		log: opts.Log,
 		cm:  opts.Cm,
+		mw:  opts.Mw,
 	}.Handle, th.Or(th.CommandEqual("steam"), th.TextEqual("🎮 Steam аккаунты")))
 }

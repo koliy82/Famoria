@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"famoria/internal/bot/callback"
+	"famoria/internal/bot/handler/waiter"
 	"famoria/internal/database/steamapi/repositories/steam_accounts"
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
 	"fmt"
-	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 
 type listCmd struct {
 	cm  *callback.CallbacksManager
+	mw  *waiter.MessageWaiter
 	api *steam_accounts.SteamAPI
 	log *zap.Logger
 }
@@ -178,48 +180,48 @@ func (c listCmd) accountButtons(account *steam_accounts.SteamAccount, ctx *th.Co
 			if err != nil {
 				c.log.Error("failed to edit update game ids text", zap.Error(err))
 			}
-			// read text user input
-			input := "570, 219780"
-			input = strings.Replace(input, " ", "", -1)
-			strIds := strings.Split(input, ",")
-			newIds := make([]uint32, len(strIds))
-			for i, s := range strIds {
-				u64, err := strconv.ParseUint(s, 10, 32)
-				if err != nil {
-					_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
-						ChatID: query.Message.GetChat().ChatID(),
-						Text:   "Неправильный формат, надо вот так:\n570\n570, 219780\n570, 219780, 12552, ...",
-					})
-					if err != nil {
-						c.log.Error("failed to send games message", zap.Error(err))
+			// wait for user's next message in the same chat
+			c.mw.WaitForMessage(query.From.ID, query.Message.GetChat().ID, 0, time.Duration(30)*time.Minute, func(msgCtx *th.Context, msg telego.Message) {
+				// parse text from message (Text or Caption)
+				input := ""
+				if msg.Text != "" {
+					input = msg.Text
+				} else if msg.Caption != "" {
+					input = msg.Caption
+				}
+				input = strings.Replace(input, " ", "", -1)
+				strIds := strings.Split(input, ",")
+				newIds := make([]any, 0, len(strIds))
+				for _, s := range strIds {
+					if s == "" {
+						continue
 					}
+					id, err := strconv.ParseUint(s, 10, 64)
+					if err != nil {
+						newIds = append(newIds, s)
+						continue
+					}
+					newIds = append(newIds, id)
+				}
+
+				if slices.EqualFunc(account.GameIDs, newIds, func(a any, a2 any) bool { return a == a2 }) {
+					_, _ = msgCtx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
+						ChatID: msg.Chat.ChatID(),
+						Text:   "новые id == старые айди, дурак?",
+					})
 					return
 				}
-				newIds[i] = uint32(u64)
-			}
-			if reflect.DeepEqual(account.GameIDs, newIds) {
-				_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
-					ChatID: query.Message.GetChat().ChatID(),
-					Text:   "новые id == старые айди, дурак?",
-				})
+				err = c.api.UpdateGames(account.ID.Hex(), newIds)
 				if err != nil {
-					c.log.Error("failed to send update games message", zap.Error(err))
+					c.log.Error("failed to edit update game ids text", zap.Error(err))
+					return
 				}
-				return
-			}
-			err = c.api.UpdateGames(account.ID.Hex(), newIds)
-			if err != nil {
-				c.log.Error("failed to edit update game ids text", zap.Error(err))
-				return
-			}
-			account.GameIDs = newIds
-			_, err = ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
-				ChatID: query.Message.GetChat().ChatID(),
-				Text:   "новые id: " + account.Games(),
+				account.GameIDs = newIds
+				_, _ = msgCtx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
+					ChatID: msg.Chat.ChatID(),
+					Text:   "новые id: " + account.Games(),
+				})
 			})
-			if err != nil {
-				c.log.Error("failed to send update games message", zap.Error(err))
-			}
 		},
 	})
 	deleteCallback := c.cm.DynamicCallback(callback.DynamicOpts{

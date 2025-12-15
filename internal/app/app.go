@@ -13,6 +13,7 @@ import (
 	"famoria/internal/bot/handler"
 	"famoria/internal/bot/handler/logger"
 	"famoria/internal/bot/handler/payments"
+	"famoria/internal/bot/handler/waiter"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/config"
 	"famoria/internal/database/mongo"
@@ -47,6 +48,7 @@ var App = fx.Options(
 		bot.New,
 		handler.New,
 		callback.New,
+		waiter.New,
 	),
 	fx.Invoke(
 		static.ProfileCallbacks,
@@ -56,8 +58,8 @@ var App = fx.Options(
 		idle.Register,
 		info.Register,
 		donate.Register,
-		callback.Register,
 		steam.Register,
+		callback.Register,
 		logger.Register,
 		bot.PrintMe,
 		handler.StartHandle,

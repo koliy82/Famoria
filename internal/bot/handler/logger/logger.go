@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"famoria/internal/bot/handler/waiter"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/user"
@@ -14,10 +15,11 @@ import (
 type MessageLogger struct {
 	messageRepo message.Repository
 	userRepo    user.Repository
-	brakRepo    brak.Repository
+	mw          *waiter.MessageWaiter
 }
 
 func (l MessageLogger) Handle(ctx *th.Context, update telego.Update) error {
+	l.mw.HandleMessageUpdate(ctx, update)
 	msg := update.Message
 	from := msg.From
 	if from == nil {
@@ -54,12 +56,13 @@ type Opts struct {
 	MessageRepo message.Repository
 	UserRepo    user.Repository
 	BrakRepo    brak.Repository
+	Mw          *waiter.MessageWaiter
 }
 
 func Register(opts Opts) {
 	opts.Bh.Handle(MessageLogger{
 		messageRepo: opts.MessageRepo,
 		userRepo:    opts.UserRepo,
-		brakRepo:    opts.BrakRepo,
+		mw:          opts.Mw,
 	}.Handle, th.AnyMessage())
 }

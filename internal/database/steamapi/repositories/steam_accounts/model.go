@@ -13,7 +13,7 @@ type SteamAccount struct {
 	Username     *string            `bson:"username,omitempty"`
 	Password     *string            `bson:"password,omitempty"`
 	RefreshToken *string            `bson:"refresh_token,omitempty"`
-	GameIDs      []uint32           `bson:"game_ids,omitempty"`
+	GameIDs      []any              `bson:"game_ids,omitempty"`
 	IsFarming    bool               `bson:"is_farming"`
 	PersonaState PersonaState       `bson:"persona_state"`
 }
