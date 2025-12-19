@@ -57,7 +57,7 @@ func (c listCmd) Handle(ctx *th.Context, update telego.Update) error {
 			}
 			_, err = ctx.Bot().SendPhoto(context.Background(), &telego.SendPhotoParams{
 				ChatID:  tu.ID(update.Message.From.ID),
-				Caption: fmt.Sprintf("Отсканируйте QR-код в приложении Steam, либо вручную введите команду /addsteam login123:password228:2FA-guard-code"),
+				Caption: "Отсканируйте QR-код в приложении Steam, либо отправьте данны от аккаунта в формате: login:password",
 				Photo: tu.File(
 					tu.NameReader(
 						bytes.NewReader(qrBytes),
@@ -68,7 +68,7 @@ func (c listCmd) Handle(ctx *th.Context, update telego.Update) error {
 			if err != nil {
 				c.log.Error("failed to send auth message", zap.Error(err))
 			}
-			// wait user message and validate login:password:guard-code(code optional)
+			c.basicAuthMessage(update)
 		},
 	})
 
@@ -120,8 +120,40 @@ func (c listCmd) Handle(ctx *th.Context, update telego.Update) error {
 	return err
 }
 
+func (c listCmd) basicAuthMessage(update telego.Update) {
+	c.mw.WaitForMessage(update.Message.From.ID, update.Message.Chat.ID, 0, time.Duration(60)*time.Minute, func(ctx *th.Context, msg telego.Message) {
+		split := strings.Split(msg.Text, ":")
+		if len(split) != 2 {
+			_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
+				ChatID: msg.Chat.ChatID(),
+				Text:   "Неправильный формат, пример: login:password",
+			})
+			if err != nil {
+				c.log.Error("failed to send format message", zap.Error(err))
+			}
+			c.basicAuthMessage(update)
+			return
+		}
+		login := split[0]
+		password := split[1]
+		err := c.api.BasicAuth(msg.From.ID, login, password)
+		if err != nil {
+			_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
+				ChatID: msg.Chat.ChatID(),
+				Text:   "Неправильный логин или пароль, попробуйте ещё раз отправить login:password.",
+			})
+			if err != nil {
+				c.log.Error("failed to send format message", zap.Error(err))
+			}
+			c.basicAuthMessage(update)
+			return
+		}
+		// 2fa и там бла бла бла
+	})
+}
+
 func (c listCmd) accountButtons(account *steam_accounts.SteamAccount, ctx *th.Context, fromIDs []int64) *buttons.Builder {
-	keyboard := buttons.New(1, 5)
+	keyboard := buttons.New(2, 3)
 	editStatusCallback := c.cm.DynamicCallback(callback.DynamicOpts{
 		Label:    "Изменить статус",
 		CtxType:  callback.OneClick,
@@ -180,9 +212,7 @@ func (c listCmd) accountButtons(account *steam_accounts.SteamAccount, ctx *th.Co
 			if err != nil {
 				c.log.Error("failed to edit update game ids text", zap.Error(err))
 			}
-			// wait for user's next message in the same chat
 			c.mw.WaitForMessage(query.From.ID, query.Message.GetChat().ID, 0, time.Duration(30)*time.Minute, func(msgCtx *th.Context, msg telego.Message) {
-				// parse text from message (Text or Caption)
 				input := ""
 				if msg.Text != "" {
 					input = msg.Text
@@ -204,7 +234,7 @@ func (c listCmd) accountButtons(account *steam_accounts.SteamAccount, ctx *th.Co
 					newIds = append(newIds, id)
 				}
 
-				if slices.EqualFunc(account.GameIDs, newIds, func(a any, a2 any) bool { return a == a2 }) {
+				if slices.EqualFunc(account.GameIDs, newIds, func(a any, a2 any) bool { return fmt.Sprint(a) == fmt.Sprint(a2) }) {
 					_, _ = msgCtx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{
 						ChatID: msg.Chat.ChatID(),
 						Text:   "новые id == старые айди, дурак?",
@@ -246,6 +276,26 @@ func (c listCmd) accountButtons(account *steam_accounts.SteamAccount, ctx *th.Co
 			}
 		},
 	})
+	startCallback := c.cm.DynamicCallback(callback.DynamicOpts{
+		Label:    common.Ternary(account.IsFarming, "Остановить фарм ⏸️", "Запустить фарм ▶️"),
+		CtxType:  callback.OneClick,
+		OwnerIDs: fromIDs,
+		Time:     time.Duration(30) * time.Minute,
+		Callback: func(query telego.CallbackQuery) {
+			var err error
+			if account.IsFarming {
+				err = c.api.StopFarming(account.ID.Hex())
+			} else {
+				err = c.api.StartFarming(account.ID.Hex())
+			}
+			if err != nil {
+				c.log.Error("failed to edit update status message text", zap.Error(err))
+				return
+			}
+			//account.IsFarming = !account.IsFarming
+		},
+	})
+	keyboard.Add(startCallback.Inline())
 	keyboard.Add(editStatusCallback.Inline())
 	keyboard.Add(gamesCallback.Inline())
 	keyboard.Add(deleteCallback.Inline())

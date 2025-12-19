@@ -30,7 +30,7 @@ func (q qrWriteCloser) Close() error {
 }
 
 func (A SteamAPI) GenerateQRCode(telegramID int64) ([]byte, error) {
-	url, err := A.CreateAccount(telegramID)
+	url, err := A.CreateWithQR(telegramID)
 	if err != nil {
 		A.Log.Error("failed to create qr code url", zap.Int64("user_id", telegramID), zap.Error(err))
 		return nil, err

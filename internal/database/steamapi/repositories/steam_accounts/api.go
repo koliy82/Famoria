@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ Repository = (*SteamAPI)(nil)
+
 type SteamAPI struct {
 	URL    string
 	ApiKey string
@@ -18,7 +20,17 @@ type SteamAPI struct {
 	Client *http.Client
 }
 
-func (A SteamAPI) CreateAccount(telegramId int64) (string, error) {
+func (A SteamAPI) Confirm2FA(telegramId int64, code string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (A SteamAPI) BasicAuth(telegramId int64, login string, password string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (A SteamAPI) CreateWithQR(telegramId int64) (string, error) {
 	//TODO implement me
 	return "https://www.youtube.com/", nil
 }

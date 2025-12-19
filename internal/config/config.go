@@ -22,6 +22,8 @@ type Config struct {
 	MongoURI              string  `envconfig:"MONGO_URI" required:"true"`
 	MongoDatabase         string  `envconfig:"MONGO_DATABASE" required:"true"`
 	TransferMongoDatabase *string `envconfig:"TRANSFER_MONGO_DATABASE"`
+	MongoSteamDatabase    *string `envconfig:"MONGO_STEAM_DATABASE"`
+	MongoFarmLogsCollName *string `envconfig:"MONGO_FARM_LOGS_COLL_NAME"`
 
 	TreeApiURL string `envconfig:"TREE_API_URL" default:"http://localhost:8000"`
 

@@ -16,6 +16,7 @@ type MessageLogger struct {
 	messageRepo message.Repository
 	userRepo    user.Repository
 	mw          *waiter.MessageWaiter
+	log         *zap.Logger
 }
 
 func (l MessageLogger) Handle(ctx *th.Context, update telego.Update) error {
@@ -64,5 +65,6 @@ func Register(opts Opts) {
 		messageRepo: opts.MessageRepo,
 		userRepo:    opts.UserRepo,
 		mw:          opts.Mw,
+		log:         opts.Log,
 	}.Handle, th.AnyMessage())
 }

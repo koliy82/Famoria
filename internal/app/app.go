@@ -24,6 +24,7 @@ import (
 	"famoria/internal/database/mongo/repositories/payment"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/database/steamapi"
+	"famoria/internal/database/steamapi/repositories/farm_logger"
 
 	"go.uber.org/fx"
 )
@@ -61,6 +62,7 @@ var App = fx.Options(
 		steam.Register,
 		callback.Register,
 		logger.Register,
+		farm_logger.New,
 		bot.PrintMe,
 		handler.StartHandle,
 	),
