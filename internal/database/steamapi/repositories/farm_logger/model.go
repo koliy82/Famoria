@@ -47,4 +47,9 @@ const (
 	AuthError
 	ConnectionError
 	UnknownError
+	LoggedInElsewhere
 )
+
+func (s LogReason) String() string {
+	return [...]string{"Запуск игр", "Остановка пользователем", "Удаление аккаунта", "Ошибка авторизации", "Ошибка подключения", "Неизвестная ощибка", "Игра пользователя"}[s]
+}

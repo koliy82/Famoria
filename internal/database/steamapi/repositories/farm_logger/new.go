@@ -116,7 +116,7 @@ func (l *FarmLogger) handleFarmLog(fl FarmLog) {
 	}
 	isFarming := fl.Reason == GamesSend
 	switch fl.Reason {
-	case GamesSend, UserStop:
+	case GamesSend, UserStop, LoggedInElsewhere:
 		Callback := l.cm.DynamicCallback(callback.DynamicOpts{
 			Label:    common.Ternary(isFarming, "Остановить фарм ⏸️", "Продолжить фарм ▶️"),
 			CtxType:  callback.OneClick,
@@ -135,7 +135,9 @@ func (l *FarmLogger) handleFarmLog(fl FarmLog) {
 				}
 			},
 		})
-		params.WithText("Фарм для аккаунта " + fl.SteamUsername() + common.Ternary(isFarming, " начат.", " остановлен."))
+		text := "Фарм для аккаунта " + fl.SteamUsername() + common.Ternary(isFarming, " начат.\n", " остановлен.\n")
+		text += "Причина: " + fl.Reason.String()
+		params.WithText(text)
 		params.WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(Callback.Inline())))
 	case UserDelete:
 		params.WithText("Аккаунт " + fl.SteamUsername() + " успешно удалён из бота.")
