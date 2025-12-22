@@ -19,8 +19,8 @@ type Opts struct {
 
 func New(opts Opts) *steam_accounts.SteamAPI {
 	return &steam_accounts.SteamAPI{
-		URL:    opts.Cfg.SteamAPIURI,
-		ApiKey: opts.Cfg.SteamAPIKEY,
+		URL:    opts.Cfg.SteamURI,
+		ApiKey: opts.Cfg.SteamKEY,
 		Log:    opts.Log,
 		Client: &http.Client{},
 	}

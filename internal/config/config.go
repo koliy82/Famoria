@@ -29,8 +29,8 @@ type Config struct {
 
 	YKassaToken *string `envconfig:"YKASSA_TOKEN" required:"false"`
 
-	SteamAPIURI string `envconfig:"Steam_API_URI" required:"true"`
-	SteamAPIKEY string `envconfig:"Steam_API_KEY" required:"true"`
+	SteamURI string `envconfig:"STEAM_URL"`
+	SteamKEY string `envconfig:"STEAM_KEY"`
 }
 
 func New() Config {
