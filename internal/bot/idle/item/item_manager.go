@@ -9,6 +9,7 @@ import (
 	"famoria/internal/bot/idle/event/subscribe"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/pkg/common"
+
 	"go.uber.org/zap"
 )
 
@@ -46,9 +47,9 @@ func New(log *zap.Logger) *Manager {
 				Description: "Древний артефакт, испускающий мощную магическую ауру. Этот кристалл дарует владельцу невероятное везение и усиливает все его способности. Легенда гласит, что тот, кто овладеет кристаллом, сможет изменить судьбу своего рода.",
 				Buffs: map[int][]event.Buff{
 					0: {
-						&hamster.PercentagePowerBuff{Percentage: 0.2},
-						&casino.PercentagePowerBuff{Percentage: 0.2},
-						&growkid.PercentagePowerBuff{Percentage: 0.2},
+						&hamster.PercentagePowerBuff{Percentage: 1.0},
+						&casino.PercentagePowerBuff{Percentage: 1.0},
+						&growkid.PercentagePowerBuff{Percentage: 1.0},
 						&casino.LuckBuff{Luck: 15},
 						&subscribe.SaleBuff{Percentage: 0.2},
 						&anubis.AccessBuff{},
@@ -135,32 +136,34 @@ func New(log *zap.Logger) *Manager {
 				Description: "Тренажер для хомяков, увеличивающий их силу.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&hamster.PlayPowerBuff{Power: 1},
+						&hamster.PlayPowerBuff{Power: 2},
 						&hamster.PercentagePowerBuff{Percentage: 1.0},
 					},
 					2: {
-						&hamster.PlayPowerBuff{Power: 2},
+						&hamster.PlayPowerBuff{Power: 5},
 						&hamster.PercentagePowerBuff{Percentage: 1.25},
 					},
 					3: {
-						&hamster.PlayPowerBuff{Power: 3},
+						&hamster.PlayPowerBuff{Power: 7},
 						&hamster.PercentagePowerBuff{Percentage: 1.5},
 					},
 					4: {
-						&hamster.PlayPowerBuff{Power: 4},
+						&hamster.PlayPowerBuff{Power: 10},
 						&hamster.PercentagePowerBuff{Percentage: 1.75},
+						&hamster.PlayCountBuff{Count: 3},
 					},
 					5: {
-						&hamster.PlayPowerBuff{Power: 5},
+						&hamster.PlayPowerBuff{Power: 15},
 						&hamster.PercentagePowerBuff{Percentage: 2.5},
+						&hamster.PlayCountBuff{Count: 5},
 					},
 				},
 				Prices: map[int]*common.Score{
-					1: {Mantissa: 2000},
-					2: {Mantissa: 5000},
-					3: {Mantissa: 10000},
-					4: {Mantissa: 20000},
-					5: {Mantissa: 50000},
+					1: {Mantissa: 2_000},
+					2: {Mantissa: 5_000},
+					3: {Mantissa: 10_000},
+					4: {Mantissa: 20_000},
+					5: {Mantissa: 50_000},
 				},
 			},
 			items.HamsterWheel: {
@@ -173,19 +176,19 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PlayPowerBuff{Power: 2},
 					},
 					2: {
-						&hamster.PlayPowerBuff{Power: 4},
+						&hamster.PlayPowerBuff{Power: 10},
 					},
 					3: {
-						&hamster.PlayPowerBuff{Power: 6},
+						&hamster.PlayPowerBuff{Power: 12},
 						&hamster.PlayCountBuff{Count: 1},
 					},
 					4: {
-						&hamster.PlayPowerBuff{Power: 8},
-						&hamster.PlayCountBuff{Count: 20},
+						&hamster.PlayPowerBuff{Power: 15},
+						&hamster.PlayCountBuff{Count: 2},
 						&hamster.PercentagePowerBuff{Percentage: 0.2},
 					},
 					5: {
-						&hamster.PlayPowerBuff{Power: 10},
+						&hamster.PlayPowerBuff{Power: 20},
 						&hamster.PlayCountBuff{Count: 10},
 						&hamster.PercentagePowerBuff{Percentage: 0.4},
 					},
@@ -205,31 +208,31 @@ func New(log *zap.Logger) *Manager {
 				Description: "Плащ супергероя для хомяков, который придаёт невероятную силу каждому действию.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&hamster.PercentagePowerBuff{Percentage: 0.5},
+						&hamster.PercentagePowerBuff{Percentage: 1.0},
 					},
 					2: {
-						&hamster.PercentagePowerBuff{Percentage: 1.0},
-						&hamster.PlayPowerBuff{Power: 1},
+						&hamster.PercentagePowerBuff{Percentage: 1.5},
+						&hamster.PlayPowerBuff{Power: 10},
 					},
 					3: {
-						&hamster.PercentagePowerBuff{Percentage: 1.5},
-						&hamster.PlayPowerBuff{Power: 2},
+						&hamster.PercentagePowerBuff{Percentage: 2.0},
+						&hamster.PlayPowerBuff{Power: 20},
 					},
 					4: {
-						&hamster.PercentagePowerBuff{Percentage: 2.0},
-						&hamster.PlayPowerBuff{Power: 3},
+						&hamster.PercentagePowerBuff{Percentage: 2.5},
+						&hamster.PlayPowerBuff{Power: 25},
 					},
 					5: {
 						&hamster.PercentagePowerBuff{Percentage: 3.0},
-						&hamster.PlayPowerBuff{Power: 5},
+						&hamster.PlayPowerBuff{Power: 50},
 					},
 				},
 				Prices: map[int]*common.Score{
-					1: {Mantissa: 25_000},
-					2: {Mantissa: 50_500},
-					3: {Mantissa: 75_000},
-					4: {Mantissa: 100_000},
-					5: {Mantissa: 250_000},
+					1: {Mantissa: 50_000},
+					2: {Mantissa: 100_500},
+					3: {Mantissa: 150_000},
+					4: {Mantissa: 200_000},
+					5: {Mantissa: 500_000},
 				},
 			},
 
@@ -241,31 +244,31 @@ func New(log *zap.Logger) *Manager {
 				Description: "Эти золотые кости, выкованные богами удачи, увеличивают твой выигрыш на каждом броске.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&casino.PlayPowerBuff{Power: 250},
+						&casino.PlayPowerBuff{Power: 1000},
 					},
 					2: {
-						&casino.PlayPowerBuff{Power: 500},
-						&casino.PercentagePowerBuff{Percentage: 0.05},
-					},
-					3: {
-						&casino.PlayPowerBuff{Power: 750},
+						&casino.PlayPowerBuff{Power: 2000},
 						&casino.PercentagePowerBuff{Percentage: 0.1},
 					},
-					4: {
-						&casino.PlayPowerBuff{Power: 1000},
+					3: {
+						&casino.PlayPowerBuff{Power: 3000},
 						&casino.PercentagePowerBuff{Percentage: 0.25},
 					},
+					4: {
+						&casino.PlayPowerBuff{Power: 5000},
+						&casino.PercentagePowerBuff{Percentage: 0.5},
+					},
 					5: {
-						&casino.PlayPowerBuff{Power: 1500},
-						&casino.PercentagePowerBuff{Percentage: 0.3},
+						&casino.PlayPowerBuff{Power: 10000},
+						&casino.PercentagePowerBuff{Percentage: 1.0},
 					},
 				},
 				Prices: map[int]*common.Score{
-					1: {Mantissa: 2000},
-					2: {Mantissa: 5000},
-					3: {Mantissa: 10000},
-					4: {Mantissa: 20000},
-					5: {Mantissa: 50000},
+					1: {Mantissa: 2_500},
+					2: {Mantissa: 5_000},
+					3: {Mantissa: 10_000},
+					4: {Mantissa: 25_000},
+					5: {Mantissa: 100_000},
 				},
 			},
 			items.InfiniteSpins: {
@@ -427,29 +430,29 @@ func New(log *zap.Logger) *Manager {
 				Description: "Эта ложка, выкованная из звёздного света, увеличивает эффект каждого кормления.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&growkid.PlayPowerBuff{Power: 50},
-					},
-					2: {
 						&growkid.PlayPowerBuff{Power: 100},
 					},
+					2: {
+						&growkid.PlayPowerBuff{Power: 250},
+					},
 					3: {
-						&growkid.PlayPowerBuff{Power: 150},
+						&growkid.PlayPowerBuff{Power: 1000},
 					},
 					4: {
-						&growkid.PlayPowerBuff{Power: 200},
-						&growkid.PercentagePowerBuff{Percentage: 0.05},
+						&growkid.PlayPowerBuff{Power: 2500},
+						&growkid.PercentagePowerBuff{Percentage: 0.1},
 					},
 					5: {
-						&growkid.PlayPowerBuff{Power: 250},
-						&growkid.PercentagePowerBuff{Percentage: 0.1},
+						&growkid.PlayPowerBuff{Power: 5000},
+						&growkid.PercentagePowerBuff{Percentage: 0.25},
 					},
 				},
 				Prices: map[int]*common.Score{
 					1: {Mantissa: 100},
-					2: {Mantissa: 500},
-					3: {Mantissa: 1000},
-					4: {Mantissa: 2500},
-					5: {Mantissa: 5000},
+					2: {Mantissa: 2500},
+					3: {Mantissa: 5000},
+					4: {Mantissa: 10000},
+					5: {Mantissa: 50000},
 				},
 			},
 			items.GrowthPotion: {
@@ -462,20 +465,20 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PercentagePowerBuff{Percentage: 0.25},
 					},
 					2: {
-						&growkid.PercentagePowerBuff{Percentage: 0.35},
+						&growkid.PercentagePowerBuff{Percentage: 0.5},
 						&growkid.PlayPowerBuff{Power: 50},
 					},
 					3: {
-						&growkid.PercentagePowerBuff{Percentage: 0.5},
+						&growkid.PercentagePowerBuff{Percentage: 1.0},
 						&growkid.PlayPowerBuff{Power: 100},
 					},
 					4: {
-						&growkid.PercentagePowerBuff{Percentage: 0.75},
+						&growkid.PercentagePowerBuff{Percentage: 1.5},
 						&growkid.PlayPowerBuff{Power: 150},
 					},
 					5: {
-						&growkid.PercentagePowerBuff{Percentage: 1.0},
-						&growkid.PlayPowerBuff{Power: 200},
+						&growkid.PercentagePowerBuff{Percentage: 2.0},
+						&growkid.PlayPowerBuff{Power: 250},
 					},
 				},
 				Prices: map[int]*common.Score{
@@ -528,24 +531,24 @@ func New(log *zap.Logger) *Manager {
 				Description: "Магическое кольцо, которое ускоряет рост ребенка и улучшает его состояние.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&growkid.PlayPowerBuff{Power: 50},
-						&growkid.PercentagePowerBuff{Percentage: 0.1},
-					},
-					2: {
-						&growkid.PlayPowerBuff{Power: 100},
+						&growkid.PlayPowerBuff{Power: 250},
 						&growkid.PercentagePowerBuff{Percentage: 0.2},
 					},
+					2: {
+						&growkid.PlayPowerBuff{Power: 500},
+						&growkid.PercentagePowerBuff{Percentage: 0.5},
+					},
 					3: {
-						&growkid.PlayPowerBuff{Power: 150},
-						&growkid.PercentagePowerBuff{Percentage: 0.3},
+						&growkid.PlayPowerBuff{Power: 1500},
+						&growkid.PercentagePowerBuff{Percentage: 0.75},
 					},
 					4: {
-						&growkid.PlayPowerBuff{Power: 200},
-						&growkid.PercentagePowerBuff{Percentage: 0.4},
+						&growkid.PlayPowerBuff{Power: 3000},
+						&growkid.PercentagePowerBuff{Percentage: 1.0},
 					},
 					5: {
-						&growkid.PlayPowerBuff{Power: 300},
-						&growkid.PercentagePowerBuff{Percentage: 0.5},
+						&growkid.PlayPowerBuff{Power: 5000},
+						&growkid.PercentagePowerBuff{Percentage: 1.0},
 					},
 				},
 				Prices: map[int]*common.Score{
@@ -563,24 +566,24 @@ func New(log *zap.Logger) *Manager {
 				Description: "Волшебный подсолнух, излучающий свет, который ускоряет рост ребёнка и увеличивает эффективность тренировок.",
 				Buffs: map[int][]event.Buff{
 					1: {
-						&growkid.PlayPowerBuff{Power: 250},
-						&growkid.PercentagePowerBuff{Percentage: 0.25},
-					},
-					2: {
-						&growkid.PlayPowerBuff{Power: 500},
+						&growkid.PlayPowerBuff{Power: 1500},
 						&growkid.PercentagePowerBuff{Percentage: 0.5},
 					},
-					3: {
-						&growkid.PlayPowerBuff{Power: 750},
+					2: {
+						&growkid.PlayPowerBuff{Power: 5000},
 						&growkid.PercentagePowerBuff{Percentage: 1.0},
 					},
+					3: {
+						&growkid.PlayPowerBuff{Power: 10000},
+						&growkid.PercentagePowerBuff{Percentage: 2.0},
+					},
 					4: {
-						&growkid.PlayPowerBuff{Power: 1000},
-						&growkid.PercentagePowerBuff{Percentage: 1.5},
+						&growkid.PlayPowerBuff{Power: 20000},
+						&growkid.PercentagePowerBuff{Percentage: 2.5},
 					},
 					5: {
-						&growkid.PlayPowerBuff{Power: 2500},
-						&growkid.PercentagePowerBuff{Percentage: 2.0},
+						&growkid.PlayPowerBuff{Power: 50000},
+						&growkid.PercentagePowerBuff{Percentage: 3.0},
 						&growkid.PlayCountBuff{Count: 1},
 					},
 				},
