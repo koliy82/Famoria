@@ -12,6 +12,7 @@ const (
 	GrowKid
 	Shop
 	Subscribe
+	Mining
 )
 
 type Base struct {

@@ -10,8 +10,9 @@ import (
 	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/plural"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Brak struct {
@@ -57,6 +58,8 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 				buff.Apply(&b.Events.Casino.Base)
 			case event.GrowKid:
 				buff.Apply(&b.Events.GrowKid.Base)
+			case event.Mining:
+				buff.Apply(&b.Events.Mining.Base)
 			case event.Shop:
 				buff.Apply(b.Events.Shop)
 			case event.Subscribe:

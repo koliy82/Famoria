@@ -10,7 +10,9 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/html"
 	"os"
+	"strconv"
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -24,6 +26,7 @@ const (
 	CasinoData  = "casino"
 	HamsterData = "hamster"
 	AnubisData  = "anubis"
+	MiningData  = "mining"
 )
 
 type Opts struct {
@@ -212,7 +215,7 @@ func ProfileCallbacks(opts Opts) {
 
 		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
-			Text:            "Успешный тап по хомяку",
+			Text:            "Успешный тап по хомяку +" + strconv.FormatUint(response.Score, 10),
 		})
 		if err != nil {
 			opts.Log.Sugar().Error(err)
@@ -293,6 +296,53 @@ func ProfileCallbacks(opts Opts) {
 			}
 		}
 
+		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: query.ID,
+		})
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
+	})
+
+	opts.Cm.StaticCallback(MiningData, func(query telego.CallbackQuery) {
+		if query.From.ID != 725757421 {
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+				CallbackQueryID: query.ID,
+				Text:            "В разработке",
+			})
+			return
+		}
+		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
+		params := &telego.SendPhotoParams{
+			ChatID:    tu.ID(query.Message.GetChat().ID),
+			ParseMode: telego.ModeHTML,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: query.Message.GetMessageID(),
+			},
+		}
+		if b.Events.Mining == nil {
+			photo, err := os.Open("resources/images/mining-cat.png")
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+				return
+			}
+
+			_, err = opts.Bot.SendPhoto(context.Background(), params.
+				WithPhoto(tu.File(photo)).
+				WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(tu.InlineKeyboardButton("КУПИТЬ ВСЕГО ЗА 5 000 000").WithCallbackData(MiningData)))).
+				WithCaption(html.Bold("Есть пару лишних хинкалей, но для счастья твоей второй половинки всё равно не хватает? Купи брутальную майнинг ферму для своей семьи всего за 5 000 000 хинкалей и начинай майнить хинкали по крупному!\n")+"(Каждый час есть шанс добыть биткоин который автоматически продаётся по выгодному курсу хинкалей)"))
+			err = photo.Close()
+			if err != nil {
+				opts.Log.Sugar().Error(err)
+			}
+		}
+
+		if err != nil {
+			opts.Log.Sugar().Error(err)
+		}
 		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
 		})

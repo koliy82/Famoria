@@ -6,6 +6,7 @@ import (
 	"famoria/internal/bot/idle/event/casino"
 	"famoria/internal/bot/idle/event/growkid"
 	"famoria/internal/bot/idle/event/hamster"
+	"famoria/internal/bot/idle/event/mining"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type Events struct {
 	Hamster *hamster.Hamster `bson:"hamster"`
 	GrowKid *growkid.GrowKid `bson:"grow_kid"`
 	Anubis  *anubis.Anubis   `bson:"anubis"`
+	Mining  *mining.Mining   `bson:"mining"`
 	Shop    *event.Base      `bson:"-"`
 }
 
@@ -22,6 +24,7 @@ func (e *Events) DefaultStats() {
 	e.Hamster.DefaultStats()
 	e.GrowKid.DefaultStats()
 	e.Anubis.DefaultStats()
+	e.Mining.DefaultStats()
 }
 
 func New() *Events {

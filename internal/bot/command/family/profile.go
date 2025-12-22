@@ -43,7 +43,7 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 		text += fmt.Sprintf("💬 %v\n", messageCount)
 	}
 
-	keyboard := buttons.New(5, 3)
+	keyboard := buttons.New(3, 3)
 
 	b, err := c.brakRepo.FindByUserID(from.ID, nil)
 	//if err != nil {
@@ -83,6 +83,8 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 		} else {
 			text += fmt.Sprintf("😿 Нет активной подписки\n")
 		}
+
+		keyboard.Add(tu.InlineKeyboardButton("💸⛏️👷").WithCallbackData(static.MiningData))
 
 		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
 	}

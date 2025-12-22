@@ -12,7 +12,7 @@ type PlayPowerBuff struct {
 }
 
 func (b *PlayPowerBuff) Apply(base *event.Base) {
-	base.BasePlayPower = b.Power
+	base.BasePlayPower += b.Power
 }
 
 func (b *PlayPowerBuff) Type() event.GameType {
