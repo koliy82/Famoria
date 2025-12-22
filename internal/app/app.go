@@ -9,9 +9,11 @@ import (
 	"famoria/internal/bot/command/family"
 	"famoria/internal/bot/command/idle"
 	"famoria/internal/bot/command/info"
+	"famoria/internal/bot/command/steam"
 	"famoria/internal/bot/handler"
 	"famoria/internal/bot/handler/logger"
 	"famoria/internal/bot/handler/payments"
+	"famoria/internal/bot/handler/waiter"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/config"
 	"famoria/internal/database/mongo"
@@ -21,6 +23,8 @@ import (
 	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/payment"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/database/steamapi"
+	"famoria/internal/database/steamapi/repositories/farm_logger"
 
 	"go.uber.org/fx"
 )
@@ -39,11 +43,13 @@ var App = fx.Options(
 		fx.Annotate(checkout.New, fx.As(new(checkout.Repository))),
 		fx.Annotate(payment.New, fx.As(new(payment.Repository))),
 		item.New,
+		steamapi.New,
 	),
 	fx.Provide(
 		bot.New,
 		handler.New,
 		callback.New,
+		waiter.New,
 	),
 	fx.Invoke(
 		static.ProfileCallbacks,
@@ -53,8 +59,10 @@ var App = fx.Options(
 		idle.Register,
 		info.Register,
 		donate.Register,
+		steam.Register,
 		callback.Register,
 		logger.Register,
+		farm_logger.New,
 		bot.PrintMe,
 		handler.StartHandle,
 	),

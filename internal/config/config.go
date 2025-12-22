@@ -22,10 +22,15 @@ type Config struct {
 	MongoURI              string  `envconfig:"MONGO_URI" required:"true"`
 	MongoDatabase         string  `envconfig:"MONGO_DATABASE" required:"true"`
 	TransferMongoDatabase *string `envconfig:"TRANSFER_MONGO_DATABASE"`
+	MongoSteamDatabase    *string `envconfig:"MONGO_STEAM_DATABASE"`
+	MongoFarmLogsCollName *string `envconfig:"MONGO_FARM_LOGS_COLL_NAME"`
 
-	ApiURL string `envconfig:"API_URL" default:"http://localhost:8000"`
+	TreeApiURL string `envconfig:"TREE_API_URL" default:"http://localhost:8000"`
 
 	YKassaToken *string `envconfig:"YKASSA_TOKEN" required:"false"`
+
+	SteamAPIURI string `envconfig:"Steam_API_URI" required:"true"`
+	SteamAPIKEY string `envconfig:"Steam_API_KEY" required:"true"`
 }
 
 func New() Config {

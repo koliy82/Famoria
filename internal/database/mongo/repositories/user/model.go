@@ -2,9 +2,10 @@ package user
 
 import (
 	"famoria/internal/pkg/common"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type User struct {
