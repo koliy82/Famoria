@@ -1,9 +1,9 @@
 package items
 
-type Name int
+type ItemId int
 
 const (
-	MegaTap Name = iota
+	MegaTap ItemId = iota
 	TapCount
 	TapPower
 	GoldenDice
@@ -21,7 +21,7 @@ const (
 	MagicSunflower
 )
 
-func (n Name) String() string {
+func (n ItemId) String() string {
 	switch n {
 	case MegaTap:
 		return "Усиленный тап"

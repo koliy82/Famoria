@@ -265,7 +265,7 @@ func (s *Shop) SetItemCallbacks() {
 			ii, ok := actualBrak.Inventory.Items[si.Name]
 			if !ok {
 				ii = inventory.Item{
-					Name:         si.Name,
+					Id:           si.Name,
 					CurrentLevel: 0,
 				}
 			}

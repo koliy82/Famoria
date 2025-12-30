@@ -125,6 +125,10 @@ func (c SubscribeCmd) Handle(ctx *th.Context, update telego.Update) error {
 			OwnerIDs: []int64{b.FirstUserID, b.SecondUserID},
 			Time:     time.Duration(1) * time.Hour,
 			Callback: func(query telego.CallbackQuery) {
+				jData, err := data.ToJson()
+				if err != nil {
+					c.log.Sugar().Error(err)
+				}
 				invoice, err := ctx.Bot().SendInvoice(context.Background(), &telego.SendInvoiceParams{
 					ChatID: params.ChatID,
 					Title:  "Famoria - подписка на 30 дней.",
@@ -143,7 +147,7 @@ func (c SubscribeCmd) Handle(ctx *th.Context, update telego.Update) error {
 					NeedEmail:           true,
 					SendEmailToProvider: true,
 					ProviderToken:       *c.yKassaToken,
-					ProviderData:        data.ToJson(),
+					ProviderData:        jData,
 					PhotoURL:            "https://i.ytimg.com/vi/QFYpp-cpy9w/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCWdu-QiXAtWE67vOH-7FEldF6KFw",
 					DisableNotification: false,
 					ProtectContent:      false,

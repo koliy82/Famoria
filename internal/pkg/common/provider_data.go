@@ -2,20 +2,18 @@ package common
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type ProviderData struct {
 	Receipt Receipt `json:"receipt"`
 }
 
-func (d *ProviderData) ToJson() string {
+func (d *ProviderData) ToJson() (string, error) {
 	b, err := json.Marshal(d)
 	if err != nil {
-		fmt.Println(err)
-		return ""
+		return "", err
 	}
-	return string(b)
+	return string(b), nil
 }
 
 type Receipt struct {

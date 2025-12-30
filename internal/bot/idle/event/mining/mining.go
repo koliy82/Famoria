@@ -2,33 +2,57 @@ package mining
 
 import (
 	"famoria/internal/bot/idle/event"
-
-	"github.com/mymmrac/telego"
-	"go.uber.org/zap"
+	"fmt"
+	"math/rand"
 )
 
 type Mining struct {
 	event.Base `bson:"base"`
 }
 
-func (c *Mining) DefaultStats() {
-	if c == nil {
+func (m *Mining) DefaultStats() {
+	if m == nil {
 		return
 	}
-	c.Base.MaxPlayCount = 1
-	c.Base.PercentagePower = 1.0
-	c.Base.BasePlayPower = 1000
-}
-
-type PlayOpts struct {
-	Log   *zap.Logger
-	Bot   *telego.Bot
-	Query telego.CallbackQuery
+	m.Base.MaxPlayCount = 1
+	m.Base.PercentagePower = 1.0
+	m.Base.BasePlayPower = 500_000
 }
 
 type PlayResponse struct {
-	Score uint64
+	Score int64
 	Text  string
 	IsWin bool
-	Path  string
+}
+
+func (m *Mining) Play() *PlayResponse {
+	chance := rand.Intn(101) + m.Luck
+	score := int64(float64(m.BasePlayPower)*m.PercentagePower) + 1
+	switch {
+	case chance <= 4:
+		score = score / 5
+		return &PlayResponse{
+			Score: score,
+			Text:  fmt.Sprintf("сгорела ферма, нужно тех обсл. -%d", score),
+			IsWin: false,
+		}
+	case chance <= 50:
+		return &PlayResponse{
+			Score: score,
+			Text:  fmt.Sprintf("Нашёл хилькоин, продано за %d хинкалей!", score),
+			IsWin: false,
+		}
+	case chance >= 90:
+		return &PlayResponse{
+			Score: score,
+			Text:  fmt.Sprintf("Сегодня даёт, сорвал %d хинкалей!", score),
+			IsWin: true,
+		}
+	default:
+		return &PlayResponse{
+			Score: 0,
+			Text:  fmt.Sprintf("Ферма без успехов."),
+			IsWin: false,
+		}
+	}
 }

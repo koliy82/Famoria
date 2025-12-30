@@ -44,7 +44,6 @@ func New() Config {
 	envPath := filepath.Join(wd, ".env")
 
 	_ = godotenv.Load(envPath)
-
 	if err := envconfig.Process("", &cfg); err != nil {
 		panic(err)
 	}

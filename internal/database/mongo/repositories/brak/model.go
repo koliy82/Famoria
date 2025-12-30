@@ -37,7 +37,7 @@ func (b *Brak) ApplyBuffs(manager *item.Manager) {
 	if b.IsSub() {
 		if !ok {
 			si = inventory.Item{
-				Name:         items.Subscribe,
+				Id:           items.Subscribe,
 				CurrentLevel: 0,
 			}
 			b.Inventory.Items[items.Subscribe] = si
@@ -168,10 +168,10 @@ func (b *Brak) GetAvailableItems(manager *item.Manager) []*inventory.ShopItem {
 		if mi.MaxLevel == 0 {
 			continue
 		}
-		current, ok := b.Inventory.Items[mi.Name]
+		current, ok := b.Inventory.Items[mi.ItemId]
 		if ok == false {
 			si := &inventory.ShopItem{
-				Name:        mi.Name,
+				Name:        mi.ItemId,
 				Emoji:       mi.Emoji,
 				BuyLevel:    1,
 				MaxLevel:    mi.MaxLevel,
@@ -186,11 +186,10 @@ func (b *Brak) GetAvailableItems(manager *item.Manager) []*inventory.ShopItem {
 			continue
 		}
 		if current.CurrentLevel >= mi.MaxLevel {
-			println("current.CurrentLevel >= mi.MaxLevel")
 			continue
 		}
 		si := &inventory.ShopItem{
-			Name:        mi.Name,
+			Name:        mi.ItemId,
 			Emoji:       mi.Emoji,
 			BuyLevel:    current.CurrentLevel + 1,
 			MaxLevel:    mi.MaxLevel,

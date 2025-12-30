@@ -10,7 +10,7 @@ import (
 )
 
 type ShowItem struct {
-	Name         items.Name
+	ItemId       items.ItemId `bson:"name"`
 	Emoji        string
 	CurrentLevel int
 	MaxLevel     int
@@ -19,7 +19,7 @@ type ShowItem struct {
 }
 
 func (si *ShowItem) FullDescription() string {
-	header := html.Bold(si.Emoji+" "+si.Name.String()) + " (" + strconv.Itoa(si.CurrentLevel) + "/" + strconv.Itoa(si.MaxLevel) + " ур.)" + "\n"
+	header := html.Bold(si.Emoji+" "+si.ItemId.String()) + " (" + strconv.Itoa(si.CurrentLevel) + "/" + strconv.Itoa(si.MaxLevel) + " ур.)" + "\n"
 	body := si.Description + "\n"
 	bDesc := ""
 	for _, buff := range si.Buffs {
@@ -29,11 +29,11 @@ func (si *ShowItem) FullDescription() string {
 }
 
 func (si *ShowItem) SmallDescription() string {
-	return fmt.Sprintf("%s - %s [%d/%d ур.]", si.Emoji, si.Name.String(), si.CurrentLevel, si.MaxLevel)
+	return fmt.Sprintf("%s - %s [%d/%d ур.]", si.Emoji, si.ItemId.String(), si.CurrentLevel, si.MaxLevel)
 }
 
 type ShopItem struct {
-	Name        items.Name
+	Name        items.ItemId
 	Emoji       string
 	BuyLevel    int
 	MaxLevel    int

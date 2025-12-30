@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ Repository = (*Mongo)(nil)
+
 type Mongo struct {
 	coll *mongo.Collection
 	log  *zap.Logger

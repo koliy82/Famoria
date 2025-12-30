@@ -15,10 +15,10 @@ import (
 
 type Manager struct {
 	Log   *zap.Logger
-	Items map[items.Name]*Item
+	Items map[items.ItemId]*Item
 }
 
-func (m *Manager) GetItem(name items.Name) *Item {
+func (m *Manager) GetItem(name items.ItemId) *Item {
 	item := m.Items[name]
 	if item == nil {
 		m.Log.Sugar().Error("Item not found", name)
@@ -27,7 +27,7 @@ func (m *Manager) GetItem(name items.Name) *Item {
 }
 
 type Item struct {
-	Name        items.Name
+	ItemId      items.ItemId `bson:"name"`
 	Emoji       string
 	MaxLevel    int
 	Buffs       map[int][]event.Buff
@@ -36,13 +36,30 @@ type Item struct {
 }
 
 func New(log *zap.Logger) *Manager {
-	return &Manager{
+	//wd, err := os.Getwd()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//path := filepath.Join(wd, "shop-items.json")
+	//jsonFile, err := os.ReadFile(path)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//manager := &Manager{
+	//	Log:   log,
+	//	Items: map[items.ItemId]*Item{},
+	//}
+	//err = json.Unmarshal(jsonFile, &manager.Items)
+	//if err != nil {
+	//	panic(err)
+	//}
+	mngr := &Manager{
 		Log: log,
-		Items: map[items.Name]*Item{
+		Items: map[items.ItemId]*Item{
 			// Donate items
 			items.Subscribe: {
 				Emoji:       "💎",
-				Name:        items.Subscribe,
+				ItemId:      items.Subscribe,
 				MaxLevel:    0,
 				Description: "Древний артефакт, испускающий мощную магическую ауру. Этот кристалл дарует владельцу невероятное везение и усиливает все его способности. Легенда гласит, что тот, кто овладеет кристаллом, сможет изменить судьбу своего рода.",
 				Buffs: map[int][]event.Buff{
@@ -62,7 +79,7 @@ func New(log *zap.Logger) *Manager {
 			// Hamster items
 			items.MegaTap: {
 				Emoji:       "💪",
-				Name:        items.MegaTap,
+				ItemId:      items.MegaTap,
 				MaxLevel:    5,
 				Description: "Священная перчатка, усиливающая силу вашего тапа.",
 				Buffs: map[int][]event.Buff{
@@ -94,7 +111,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.TapCount: {
 				Emoji:       "🐹",
-				Name:        items.TapCount,
+				ItemId:      items.TapCount,
 				MaxLevel:    5,
 				Description: "Коробка с милыми хомяками.",
 				Buffs: map[int][]event.Buff{
@@ -130,7 +147,7 @@ func New(log *zap.Logger) *Manager {
 				},
 			},
 			items.TapPower: {
-				Name:        items.TapPower,
+				ItemId:      items.TapPower,
 				Emoji:       "🏋️",
 				MaxLevel:    5,
 				Description: "Тренажер для хомяков, увеличивающий их силу.",
@@ -168,7 +185,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.HamsterWheel: {
 				Emoji:       "🏃‍♂️",
-				Name:        items.HamsterWheel,
+				ItemId:      items.HamsterWheel,
 				MaxLevel:    5,
 				Description: "Колесо хомяка, которое увеличивает скорость и силу их тренировок.",
 				Buffs: map[int][]event.Buff{
@@ -203,7 +220,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.HamsterCape: {
 				Emoji:       "🦸‍♂️",
-				Name:        items.HamsterCape,
+				ItemId:      items.HamsterCape,
 				MaxLevel:    5,
 				Description: "Плащ супергероя для хомяков, который придаёт невероятную силу каждому действию.",
 				Buffs: map[int][]event.Buff{
@@ -239,7 +256,7 @@ func New(log *zap.Logger) *Manager {
 			// Casino items
 			items.GoldenDice: {
 				Emoji:       "🎲",
-				Name:        items.GoldenDice,
+				ItemId:      items.GoldenDice,
 				MaxLevel:    5,
 				Description: "Эти золотые кости, выкованные богами удачи, увеличивают твой выигрыш на каждом броске.",
 				Buffs: map[int][]event.Buff{
@@ -273,7 +290,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.InfiniteSpins: {
 				Emoji:       "🔄",
-				Name:        items.InfiniteSpins,
+				ItemId:      items.InfiniteSpins,
 				MaxLevel:    5,
 				Description: "Эти магические барабаны могут вращаться вечно, увеличивая количество твоих попыток.",
 				Buffs: map[int][]event.Buff{
@@ -310,7 +327,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.LuckyClover: {
 				Emoji:       "🍀",
-				Name:        items.LuckyClover,
+				ItemId:      items.LuckyClover,
 				MaxLevel:    5,
 				Description: "Легендарный клевер находит счастливчика среди всех и делает его ещё удачливее!",
 				Buffs: map[int][]event.Buff{
@@ -347,7 +364,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.LuckyCharm: {
 				Emoji:       "🧲",
-				Name:        items.LuckyCharm,
+				ItemId:      items.LuckyCharm,
 				MaxLevel:    5,
 				Description: "Амулет удачи, притягивающий счастливые моменты и увеличивающий шанс на выигрыш.",
 				Buffs: map[int][]event.Buff{
@@ -385,7 +402,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.FortuneTalisman: {
 				Emoji:       "🧿",
-				Name:        items.FortuneTalisman,
+				ItemId:      items.FortuneTalisman,
 				MaxLevel:    5,
 				Description: "Талисман удачи, который притягивает богатство и усиливает все действия в казино.",
 				Buffs: map[int][]event.Buff{
@@ -425,7 +442,7 @@ func New(log *zap.Logger) *Manager {
 			// Grow items
 			items.MagicSpoon: {
 				Emoji:       "🥄",
-				Name:        items.MagicSpoon,
+				ItemId:      items.MagicSpoon,
 				MaxLevel:    5,
 				Description: "Эта ложка, выкованная из звёздного света, увеличивает эффект каждого кормления.",
 				Buffs: map[int][]event.Buff{
@@ -457,7 +474,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.GrowthPotion: {
 				Emoji:       "🧪",
-				Name:        items.GrowthPotion,
+				ItemId:      items.GrowthPotion,
 				MaxLevel:    5,
 				Description: "Эликсир, сваренный древним алхимиком, ускоряет рост ребёнка.",
 				Buffs: map[int][]event.Buff{
@@ -491,7 +508,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.EndlessMilk: {
 				Emoji:       "🍼",
-				Name:        items.EndlessMilk,
+				ItemId:      items.EndlessMilk,
 				MaxLevel:    5,
 				Description: "Бутылочка молока, которое никогда не заканчивается, увеличивая количество кормлений.",
 				Buffs: map[int][]event.Buff{
@@ -526,7 +543,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.FertilityRing: {
 				Emoji:       "💍",
-				Name:        items.FertilityRing,
+				ItemId:      items.FertilityRing,
 				MaxLevel:    5,
 				Description: "Магическое кольцо, которое ускоряет рост ребенка и улучшает его состояние.",
 				Buffs: map[int][]event.Buff{
@@ -561,7 +578,7 @@ func New(log *zap.Logger) *Manager {
 			},
 			items.MagicSunflower: {
 				Emoji:       "🌻",
-				Name:        items.MagicSunflower,
+				ItemId:      items.MagicSunflower,
 				MaxLevel:    5,
 				Description: "Волшебный подсолнух, излучающий свет, который ускоряет рост ребёнка и увеличивает эффективность тренировок.",
 				Buffs: map[int][]event.Buff{
@@ -597,4 +614,13 @@ func New(log *zap.Logger) *Manager {
 			},
 		},
 	}
+	//marshal, err := json.Marshal(mngr.Items)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//err = os.WriteFile(path, marshal, 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
+	return mngr
 }

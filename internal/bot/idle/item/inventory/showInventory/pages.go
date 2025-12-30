@@ -37,7 +37,7 @@ type Opts struct {
 	Manager        *item.Manager
 	Log            *zap.Logger
 	Cm             *callback.CallbacksManager
-	InventoryItems map[items.Name]inventory.Item
+	InventoryItems map[items.ItemId]inventory.Item
 }
 
 func New(opts *Opts) *Inventory {
@@ -49,12 +49,10 @@ func New(opts *Opts) *Inventory {
 		Opts:        opts,
 	}
 	for _, i := range opts.InventoryItems {
-		mi := opts.Manager.Items[i.Name]
-		println(i.Name.String())
-		println(i.CurrentLevel)
+		mi := opts.Manager.Items[i.Id]
 		p.Items = append(p.Items, &inventory.ShowItem{
 			Emoji:        mi.Emoji,
-			Name:         mi.Name,
+			ItemId:       mi.ItemId,
 			CurrentLevel: i.CurrentLevel,
 			MaxLevel:     mi.MaxLevel,
 			Description:  mi.Description,
@@ -99,12 +97,12 @@ func (p *Inventory) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 			si := p.Items[i*p.MaxCells+j]
 			//p.Label += si.SmallDescription() + "\n"
 			iCallback := p.Opts.Cm.DynamicCallback(callback.DynamicOpts{
-				Label:    si.Name.String(),
+				Label:    si.ItemId.String(),
 				CtxType:  callback.Temporary,
 				OwnerIDs: []int64{p.Opts.B.FirstUserID, p.Opts.B.SecondUserID},
 				Time:     time.Duration(30) * time.Minute,
 				Callback: func(query telego.CallbackQuery) {
-					if p.SelectedItem != nil && p.SelectedItem.Name == si.Name {
+					if p.SelectedItem != nil && p.SelectedItem.ItemId == si.ItemId {
 						_ = p.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 							CallbackQueryID: query.ID,
 						})

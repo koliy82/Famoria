@@ -13,15 +13,18 @@ import (
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/config"
 	"famoria/internal/pkg/common"
+	"math"
+	"strconv"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"math"
-	"strconv"
-	"time"
 )
+
+var _ Repository = (*Mongo)(nil)
 
 type Mongo struct {
 	coll *mongo.Collection
@@ -171,6 +174,22 @@ func (c *Mongo) Count(filter interface{}) (int64, error) {
 	return count, nil
 }
 
+func (c *Mongo) FindAllMining() ([]*Brak, error) {
+	var braks []*Brak
+	filter := bson.M{"events.mining": bson.M{"$exists": true}}
+	cursor, err := c.coll.Find(context.TODO(), filter)
+	if err != nil {
+		c.log.Sugar().Error(err)
+		return nil, err
+	}
+	err = cursor.All(context.TODO(), &braks)
+	if err != nil {
+		c.log.Sugar().Error(err)
+		return nil, err
+	}
+	return braks, nil
+}
+
 func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Mongo {
 	coll := client.Database(cfg.MongoDatabase).Collection("braks")
 	_, err := coll.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
@@ -253,7 +272,7 @@ func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
 			BabyUserID:     transferBraks[i].BabyUserID,
 			BabyCreateDate: transferBraks[i].BabyCreateDate,
 			Score:          &common.Score{Mantissa: transferBraks[i].Score},
-			Inventory:      &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
+			Inventory:      &inventory.Inventory{Items: make(map[items.ItemId]inventory.Item)},
 			Events: &events.Events{
 				Hamster: &hamster.Hamster{
 					Base: event.Base{

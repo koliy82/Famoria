@@ -30,7 +30,7 @@ type PlayOpts struct {
 }
 
 type PlayResponse struct {
-	Score uint64
+	Score int64
 	Text  string
 }
 
@@ -49,7 +49,7 @@ func (g *GrowKid) Play(opts *PlayOpts) *PlayResponse {
 		return nil
 	}
 
-	score := uint64((float64(rand.Int63n(50))+float64(g.BasePlayPower))*g.PercentagePower) + 1
+	score := int64((float64(rand.Int63n(50))+float64(g.BasePlayPower))*g.PercentagePower) + 1
 	g.PlayCount--
 	return &PlayResponse{
 		Score: score,

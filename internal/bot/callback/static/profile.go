@@ -7,12 +7,15 @@ import (
 	"famoria/internal/bot/idle/event/casino"
 	"famoria/internal/bot/idle/event/growkid"
 	"famoria/internal/bot/idle/event/hamster"
+	"famoria/internal/bot/idle/event/mining"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -215,7 +218,7 @@ func ProfileCallbacks(opts Opts) {
 
 		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: query.ID,
-			Text:            "Успешный тап по хомяку +" + strconv.FormatUint(response.Score, 10),
+			Text:            "Успешный тап по хомяку +" + strconv.FormatInt(response.Score, 10),
 		})
 		if err != nil {
 			opts.Log.Sugar().Error(err)
@@ -313,8 +316,15 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
+		qParams := &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: query.ID,
+		}
 		if err != nil {
 			opts.Log.Sugar().Error(err)
+			_ = opts.Bot.AnswerCallbackQuery(context.Background(), qParams.
+				WithText(err.Error()),
+			)
+			return
 		}
 		params := &telego.SendPhotoParams{
 			ChatID:    tu.ID(query.Message.GetChat().ID),
@@ -322,6 +332,7 @@ func ProfileCallbacks(opts Opts) {
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: query.Message.GetMessageID(),
 			},
+			DisableNotification: true,
 		}
 		if b.Events.Mining == nil {
 			photo, err := os.Open("resources/images/mining-cat.png")
@@ -329,23 +340,54 @@ func ProfileCallbacks(opts Opts) {
 				opts.Log.Sugar().Error(err)
 				return
 			}
-
+			buyCallback := opts.Cm.DynamicCallback(callback.DynamicOpts{
+				Label:    "КУПИТЬ ВСЕГО ЗА 5 000 000",
+				CtxType:  callback.OneClick,
+				OwnerIDs: []int64{query.From.ID},
+				Time:     time.Minute * 45,
+				Callback: func(query telego.CallbackQuery) {
+					if !b.Score.IsBiggerOrEquals(&common.Score{Mantissa: 5_000_000, Exponent: 0}) {
+						_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+							Text:            "У вас недостаточно средств для майнинг фермы.",
+							CallbackQueryID: query.ID,
+						})
+						return
+					}
+					b.Score.Decrease(5_000_000)
+					err = opts.BrakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{
+						"score":         b.Score,
+						"events.mining": &mining.Mining{},
+					}})
+					if err != nil {
+						opts.Log.Sugar().Error(err)
+						return
+					}
+					bPhoto, err := os.Open("resources/images/mining.jpg")
+					_, err = opts.Bot.SendPhoto(context.Background(), &telego.SendPhotoParams{
+						ChatID:              tu.ID(query.Message.GetChat().ID),
+						Photo:               tu.File(bPhoto),
+						Caption:             html.Bold("Поздравляем! Теперь вы владелец майнинг фермы и каждый час у вас есть шанс добыть биткоин который автоматически продаётся по выгодному курсу хинкалей!"),
+						ParseMode:           telego.ModeHTML,
+						DisableNotification: true,
+					})
+					if err != nil {
+						opts.Log.Sugar().Error(err)
+					}
+				},
+			})
 			_, err = opts.Bot.SendPhoto(context.Background(), params.
 				WithPhoto(tu.File(photo)).
-				WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(tu.InlineKeyboardButton("КУПИТЬ ВСЕГО ЗА 5 000 000").WithCallbackData(MiningData)))).
+				WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(buyCallback.Inline()))).
 				WithCaption(html.Bold("Есть пару лишних хинкалей, но для счастья твоей второй половинки всё равно не хватает? Купи брутальную майнинг ферму для своей семьи всего за 5 000 000 хинкалей и начинай майнить хинкали по крупному!\n")+"(Каждый час есть шанс добыть биткоин который автоматически продаётся по выгодному курсу хинкалей)"))
 			err = photo.Close()
 			if err != nil {
 				opts.Log.Sugar().Error(err)
 			}
 		}
-
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}
-		err = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
-			CallbackQueryID: query.ID,
-		})
+		err = opts.Bot.AnswerCallbackQuery(context.Background(), qParams)
 		if err != nil {
 			opts.Log.Sugar().Error(err)
 		}

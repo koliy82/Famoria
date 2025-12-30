@@ -3,10 +3,13 @@ package admin
 import (
 	"context"
 	"famoria/internal/config"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
+
+var _ Repository = (*Mongo)(nil)
 
 type Mongo struct {
 	coll   *mongo.Collection

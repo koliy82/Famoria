@@ -97,11 +97,11 @@ func Register(opts Opts) {
 			}
 			fUser, err := opts.UserRepo.FindByID(m.From.ID)
 			if err != nil {
-				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
+				opts.Log.Error("#Subscribe Payment Error (get first user), user_id: " + strconv.FormatInt(m.From.ID, 10) + err.Error())
 			}
 			sUser, err := opts.UserRepo.FindByID(b.PartnerID(m.From.ID))
 			if err != nil {
-				_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText("Вы успешно приобрели подписку на 30 дней для брака."))
+				opts.Log.Error("#Subscribe Payment Error (get second user), user_id: " + strconv.FormatInt(b.PartnerID(m.From.ID), 10) + err.Error())
 			}
 			_, _ = ctx.Bot().SendMessage(context.Background(), params.WithText(fmt.Sprintf(
 				"%s, вы успешно приобрели подписку на 30 дней для брака с %s.",

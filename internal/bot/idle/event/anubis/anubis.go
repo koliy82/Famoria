@@ -33,7 +33,7 @@ type PlayOpts struct {
 }
 
 type PlayResponse struct {
-	Score uint64
+	Score int64
 	Text  string
 	IsWin bool
 	Path  string
@@ -57,7 +57,7 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 	a.PlayCount--
 
 	if !opts.IsSub {
-		score := uint64(rand.Intn(100) + 1)
+		score := int64(rand.Intn(100) + 1)
 
 		return &PlayResponse{
 			Score: score,
@@ -67,10 +67,10 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 	}
 
 	chance := rand.Intn(101) + a.Luck
-	score := uint64(float64(uint64(rand.Int31n(200))+a.BasePlayPower)*a.PercentagePower) + 1
+	score := int64(float64(uint64(rand.Int31n(200))+a.BasePlayPower)*a.PercentagePower) + 1
 	switch {
 	case chance == 1:
-		score *= 3
+		score *= 2
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s не прошёл испытание Анубиса и потерял %d хинкалей.", html.UserMention(&opts.Query.From), score),
@@ -89,21 +89,21 @@ func (a *Anubis) Play(opts *PlayOpts) *PlayResponse {
 			IsWin: false,
 		}
 	case chance <= 70:
-		score *= 2
+		score *= 5
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s прошёл испытание и заработал %d хинкалей.", html.UserMention(&opts.Query.From), score),
 			IsWin: true,
 		}
 	case chance <= 85:
-		score *= 5
+		score *= 10
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s победил Анубиса и обнаружил скрытый клад в %d хинкалей!", html.UserMention(&opts.Query.From), score),
 			IsWin: true,
 		}
 	case chance <= 99:
-		score *= 20
+		score *= 50
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("Анубис сегодня даёт, %s сорвал огромный куш в %d хинкалей!", html.UserMention(&opts.Query.From), score),

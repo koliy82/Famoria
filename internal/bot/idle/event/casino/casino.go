@@ -30,7 +30,7 @@ type PlayOpts struct {
 }
 
 type PlayResponse struct {
-	Score uint64
+	Score int64
 	Text  string
 	IsWin bool
 	Path  string
@@ -52,7 +52,7 @@ func (c *Casino) Play(opts *PlayOpts) *PlayResponse {
 	}
 
 	chance := rand.Intn(100) + c.Luck
-	score := uint64(float64(uint64(rand.Int31n(100))+c.BasePlayPower)*c.PercentagePower) + 1
+	score := int64(float64(uint64(rand.Int31n(100))+c.BasePlayPower)*c.PercentagePower) + 1
 	c.PlayCount--
 	switch {
 	case chance == 1:
@@ -68,7 +68,7 @@ func (c *Casino) Play(opts *PlayOpts) *PlayResponse {
 			Text:  fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&opts.Query.From), score),
 			IsWin: false,
 		}
-	case chance <= 55:
+	case chance <= 45:
 		return &PlayResponse{
 			Score: 0,
 			Text:  fmt.Sprintf("%s играл сегодня в казино, но остался в нуле.", html.UserMention(&opts.Query.From)),

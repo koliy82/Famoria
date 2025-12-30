@@ -57,7 +57,6 @@ func formatSmallNumber(n int64) string {
 		sign = "-"
 		n = -n
 	}
-
 	mod := math.Abs(float64(n))
 	switch {
 	case mod >= 1e15:
@@ -84,13 +83,13 @@ func int64Pow(base, exp int) int64 {
 	return result
 }
 
-func (u *Score) Increase(increment uint64) {
-	u.Mantissa += int64(increment)
+func (u *Score) Increase(increment int64) {
+	u.Mantissa += increment
 	u.normalize()
 }
 
-func (u *Score) Decrease(decrement uint64) {
-	u.Mantissa -= int64(decrement)
+func (u *Score) Decrease(decrement int64) {
+	u.Mantissa -= decrement
 	u.normalize()
 }
 

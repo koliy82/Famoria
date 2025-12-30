@@ -27,7 +27,7 @@ type PlayOpts struct {
 }
 
 type PlayResponse struct {
-	Score uint64
+	Score int64
 }
 
 func (h *Hamster) Play(opts *PlayOpts) *PlayResponse {
@@ -45,7 +45,7 @@ func (h *Hamster) Play(opts *PlayOpts) *PlayResponse {
 		return nil
 	}
 
-	score := uint64(float64(h.BasePlayPower) * h.PercentagePower)
+	score := int64(float64(h.BasePlayPower) * h.PercentagePower)
 	h.PlayCount--
 
 	return &PlayResponse{Score: score}

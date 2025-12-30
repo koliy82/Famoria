@@ -2,10 +2,11 @@ package bot
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"strconv"
 	"strings"
 	"unicode/utf8"
+
+	"go.uber.org/zap"
 )
 
 type Me struct {

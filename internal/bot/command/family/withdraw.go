@@ -44,7 +44,7 @@ func (c withdrawCmd) Handle(ctx *th.Context, update telego.Update) error {
 		return err
 	}
 
-	amount, err := strconv.ParseUint(args[1], 10, 64)
+	amount, err := strconv.ParseInt(args[1], 10, 64)
 	if err != nil {
 		// TODO parse exponential (3e3)
 		c.log.Sugar().Error(err)

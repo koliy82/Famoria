@@ -116,7 +116,7 @@ func (c goFamilyCmd) Handle(ctx *th.Context, update telego.Update) error {
 				FirstUserID:  fUser.ID,
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
-				Inventory:    &inventory.Inventory{Items: make(map[items.Name]inventory.Item)},
+				Inventory:    &inventory.Inventory{Items: make(map[items.ItemId]inventory.Item)},
 				Score: &common.Score{
 					Mantissa: 0,
 					Exponent: 0,
