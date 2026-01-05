@@ -15,5 +15,4 @@ type Repository interface {
 	FindBraksByPage(page int64, limit int64, filter interface{}) ([]*UsersBrak, int64, error)
 	Count(filter interface{}) (int64, error)
 	FindAllMining() ([]*Brak, error)
-	// TODO IncScore
 }

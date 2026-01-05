@@ -97,13 +97,15 @@ func (cm *CallbacksManager) HandleCallback(ctx *th.Context, query telego.Callbac
 	callback, exists := cm.Callbacks[query.Data]
 	cm.mu.Unlock()
 
+	params := &telego.AnswerCallbackQueryParams{
+		CallbackQueryID: query.ID,
+		Text:            "У кнопки истёк срок действия.",
+	}
+
 	if !exists {
 		err := ctx.Bot().AnswerCallbackQuery(
 			context.Background(),
-			&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            "У кнопки истёк срок действия.",
-			},
+			params.WithText("У кнопки истёк срок действия."),
 		)
 		if err != nil {
 			cm.log.Sugar().Error(err)
@@ -127,23 +129,10 @@ func (cm *CallbacksManager) HandleCallback(ctx *th.Context, query telego.Callbac
 
 	callback.Callback(query)
 
-	if callback.AnswerText != "" {
+	if callback.Type != Static {
 		err := ctx.Bot().AnswerCallbackQuery(
 			context.Background(),
-			&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-				Text:            callback.AnswerText,
-			},
-		)
-		if err != nil {
-			cm.log.Sugar().Error(err)
-		}
-	} else if callback.Type != Static {
-		err := ctx.Bot().AnswerCallbackQuery(
-			context.Background(),
-			&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: query.ID,
-			},
+			params.WithText(callback.AnswerText),
 		)
 		if err != nil {
 			cm.log.Sugar().Error(err)

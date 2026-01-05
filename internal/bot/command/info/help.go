@@ -22,7 +22,7 @@ func (c helpCmd) Handle(ctx *th.Context, update telego.Update) error {
 		c.log.Sugar().Error(err)
 		return err
 	}
-	text := ""
+	text := "Основная концепция бота заключается в создании семей между пользователями поэтому основной функционал бота становится доступен после вступления в брак с другим пользователем.\n\nДоступные команды:\n"
 	for _, command := range commands {
 		text += "/" + command.Command + " - " + command.Description + "\n"
 	}
