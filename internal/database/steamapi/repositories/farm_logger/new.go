@@ -141,6 +141,8 @@ func (l *FarmLogger) handleFarmLog(fl FarmLog) {
 		params.WithReplyMarkup(tu.InlineKeyboard(tu.InlineKeyboardRow(Callback.Inline())))
 	case UserDelete:
 		params.WithText("Аккаунт " + fl.SteamUsername() + " успешно удалён из бота.")
+	case AuthError, ConnectionError, UnknownError, TryAnotherCM:
+		params.WithText("Фарм для аккаунта " + fl.SteamUsername() + " остановлен из-за ошибки.\nПричина: " + fl.Reason.String())
 	default:
 		panic("unhandled default case")
 	}

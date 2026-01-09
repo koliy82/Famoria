@@ -31,7 +31,7 @@ const (
 	NeedAuth
 	Stopped
 	Deleted
-	TryAnotherCM
+	TryAnotherCMS
 )
 
 func (s SessionState) String() string {
@@ -48,8 +48,9 @@ const (
 	ConnectionError
 	UnknownError
 	LoggedInElsewhere
+	TryAnotherCM
 )
 
 func (s LogReason) String() string {
-	return [...]string{"Запуск игр", "Остановка пользователем", "Удаление аккаунта", "Ошибка авторизации", "Ошибка подключения", "Неизвестная ощибка", "Игра пользователя"}[s]
+	return [...]string{"Запуск игр", "Остановка пользователем", "Удаление аккаунта", "Ошибка авторизации", "Ошибка подключения", "Неизвестная ощибка", "Игра пользователя", "Отключение от сервера Steam"}[s]
 }
