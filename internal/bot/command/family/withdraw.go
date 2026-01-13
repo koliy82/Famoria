@@ -44,10 +44,10 @@ func (c withdrawCmd) Handle(ctx *th.Context, update telego.Update) error {
 		return err
 	}
 
-	amount, err := strconv.ParseInt(args[1], 10, 64)
+	amount, err := strconv.ParseUint(args[1], 10, 64)
 	if err != nil {
 		// TODO parse exponential (3e3)
-		c.log.Sugar().Error(err)
+		c.log.Sugar().Warn(err)
 		return err
 	}
 
@@ -75,9 +75,8 @@ func (c withdrawCmd) Handle(ctx *th.Context, update telego.Update) error {
 		}
 		return err
 	}
-
-	u.Score.Increase(amount)
-	b.Score.Decrease(amount)
+	u.Score.Increase(int64(amount))
+	b.Score.Decrease(int64(amount))
 	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"score": b.Score}})
 	if err != nil {
 		c.log.Sugar().Error(err)

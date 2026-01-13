@@ -36,24 +36,7 @@ type Item struct {
 }
 
 func New(log *zap.Logger) *Manager {
-	//wd, err := os.Getwd()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//path := filepath.Join(wd, "shop-items.json")
-	//jsonFile, err := os.ReadFile(path)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//manager := &Manager{
-	//	Log:   log,
-	//	Items: map[items.ItemId]*Item{},
-	//}
-	//err = json.Unmarshal(jsonFile, &manager.Items)
-	//if err != nil {
-	//	panic(err)
-	//}
-	mngr := &Manager{
+	return &Manager{
 		Log: log,
 		Items: map[items.ItemId]*Item{
 			// Donate items
@@ -614,13 +597,4 @@ func New(log *zap.Logger) *Manager {
 			},
 		},
 	}
-	//marshal, err := json.Marshal(mngr.Items)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//err = os.WriteFile(path, marshal, 0644)
-	//if err != nil {
-	//	panic(err)
-	//}
-	return mngr
 }
