@@ -8,7 +8,7 @@ import (
 	"famoria/internal/bot/idle/event/hamster"
 	"famoria/internal/bot/idle/event/subscribe"
 	"famoria/internal/bot/idle/item/items"
-	"famoria/internal/pkg/common"
+	"math"
 
 	"go.uber.org/zap"
 )
@@ -32,7 +32,7 @@ type Item struct {
 	MaxLevel    int
 	Buffs       map[int][]event.Buff
 	Description string
-	Prices      map[int]*common.Score
+	Prices      map[int]int64
 }
 
 func New(log *zap.Logger) *Manager {
@@ -55,9 +55,7 @@ func New(log *zap.Logger) *Manager {
 						&anubis.AccessBuff{},
 					},
 				},
-				Prices: map[int]*common.Score{
-					0: {Mantissa: 1000000, Exponent: 100},
-				},
+				Prices: map[int]int64{0: math.MaxInt64},
 			},
 			// Hamster items
 			items.MegaTap: {
@@ -84,12 +82,12 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PercentagePowerBuff{Percentage: 0.5},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 250},
-					2: {Mantissa: 500},
-					3: {Mantissa: 2000},
-					4: {Mantissa: 5000},
-					5: {Mantissa: 10000},
+				Prices: map[int]int64{
+					1: 250,
+					2: 500,
+					3: 2000,
+					4: 5000,
+					5: 10000,
 				},
 			},
 			items.TapCount: {
@@ -121,12 +119,12 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PlayPowerBuff{Power: 5},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 1000},
-					2: {Mantissa: 2500},
-					3: {Mantissa: 5000},
-					4: {Mantissa: 10000},
-					5: {Mantissa: 25000},
+				Prices: map[int]int64{
+					1: 1000,
+					2: 2500,
+					3: 5000,
+					4: 10000,
+					5: 25000,
 				},
 			},
 			items.TapPower: {
@@ -158,12 +156,12 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PlayCountBuff{Count: 5},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 2_000},
-					2: {Mantissa: 5_000},
-					3: {Mantissa: 10_000},
-					4: {Mantissa: 20_000},
-					5: {Mantissa: 50_000},
+				Prices: map[int]int64{
+					1: 2000,
+					2: 5000,
+					3: 10000,
+					4: 20000,
+					5: 50000,
 				},
 			},
 			items.HamsterWheel: {
@@ -193,12 +191,12 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PercentagePowerBuff{Percentage: 0.4},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 500},
-					2: {Mantissa: 1000},
-					3: {Mantissa: 2000},
-					4: {Mantissa: 5000},
-					5: {Mantissa: 10_000},
+				Prices: map[int]int64{
+					1: 500,
+					2: 1000,
+					3: 2000,
+					4: 5000,
+					5: 10000,
 				},
 			},
 			items.HamsterCape: {
@@ -227,12 +225,12 @@ func New(log *zap.Logger) *Manager {
 						&hamster.PlayPowerBuff{Power: 50},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 50_000},
-					2: {Mantissa: 100_500},
-					3: {Mantissa: 150_000},
-					4: {Mantissa: 200_000},
-					5: {Mantissa: 500_000},
+				Prices: map[int]int64{
+					1: 50000,
+					2: 100500,
+					3: 150000,
+					4: 200000,
+					5: 500000,
 				},
 			},
 
@@ -263,12 +261,12 @@ func New(log *zap.Logger) *Manager {
 						&casino.PercentagePowerBuff{Percentage: 1.0},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 2_500},
-					2: {Mantissa: 5_000},
-					3: {Mantissa: 10_000},
-					4: {Mantissa: 25_000},
-					5: {Mantissa: 100_000},
+				Prices: map[int]int64{
+					1: 2500,
+					2: 5000,
+					3: 10000,
+					4: 25000,
+					5: 100000,
 				},
 			},
 			items.InfiniteSpins: {
@@ -300,12 +298,12 @@ func New(log *zap.Logger) *Manager {
 						&casino.LuckBuff{Luck: 5},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 50_000},
-					2: {Mantissa: 100_000},
-					3: {Mantissa: 250_000},
-					4: {Mantissa: 500_000},
-					5: {Mantissa: 1_000_000},
+				Prices: map[int]int64{
+					1: 50000,
+					2: 100000,
+					3: 250000,
+					4: 500000,
+					5: 1000000,
 				},
 			},
 			items.LuckyClover: {
@@ -337,12 +335,12 @@ func New(log *zap.Logger) *Manager {
 						&casino.PlayCountBuff{Count: 1},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 100_000},
-					2: {Mantissa: 250_000},
-					3: {Mantissa: 500_000},
-					4: {Mantissa: 1_000_000},
-					5: {Mantissa: 2_500_000},
+				Prices: map[int]int64{
+					1: 100000,
+					2: 250000,
+					3: 500000,
+					4: 1000000,
+					5: 2500000,
 				},
 			},
 			items.LuckyCharm: {
@@ -375,12 +373,12 @@ func New(log *zap.Logger) *Manager {
 						&casino.PlayCountBuff{Count: 1},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 10_000},
-					2: {Mantissa: 25_000},
-					3: {Mantissa: 50_000},
-					4: {Mantissa: 200_000},
-					5: {Mantissa: 500_000},
+				Prices: map[int]int64{
+					1: 10000,
+					2: 25000,
+					3: 50000,
+					4: 200000,
+					5: 500000,
 				},
 			},
 			items.FortuneTalisman: {
@@ -413,12 +411,12 @@ func New(log *zap.Logger) *Manager {
 						&casino.PlayCountBuff{Count: 1},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 1_000_000},
-					2: {Mantissa: 2_000_000},
-					3: {Mantissa: 5_000_000},
-					4: {Mantissa: 10_000_000},
-					5: {Mantissa: 25_000_000},
+				Prices: map[int]int64{
+					1: 1000000,
+					2: 2000000,
+					3: 5000000,
+					4: 10000000,
+					5: 25000000,
 				},
 			},
 
@@ -447,12 +445,12 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PercentagePowerBuff{Percentage: 0.25},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 100},
-					2: {Mantissa: 2500},
-					3: {Mantissa: 5000},
-					4: {Mantissa: 10000},
-					5: {Mantissa: 50000},
+				Prices: map[int]int64{
+					1: 100,
+					2: 2500,
+					3: 5000,
+					4: 10000,
+					5: 50000,
 				},
 			},
 			items.GrowthPotion: {
@@ -481,12 +479,12 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PlayPowerBuff{Power: 250},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 1000},
-					2: {Mantissa: 2500},
-					3: {Mantissa: 5000},
-					4: {Mantissa: 10000},
-					5: {Mantissa: 15000},
+				Prices: map[int]int64{
+					1: 1000,
+					2: 2500,
+					3: 5000,
+					4: 10000,
+					5: 15000,
 				},
 			},
 			items.EndlessMilk: {
@@ -516,12 +514,12 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PlayPowerBuff{Power: 100},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 5_000},
-					2: {Mantissa: 15_000},
-					3: {Mantissa: 35_000},
-					4: {Mantissa: 100_000},
-					5: {Mantissa: 500_000},
+				Prices: map[int]int64{
+					1: 5000,
+					2: 15000,
+					3: 35000,
+					4: 100000,
+					5: 500000,
 				},
 			},
 			items.FertilityRing: {
@@ -551,12 +549,12 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PercentagePowerBuff{Percentage: 1.0},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 2000},
-					2: {Mantissa: 5000},
-					3: {Mantissa: 10_000},
-					4: {Mantissa: 20_000},
-					5: {Mantissa: 50_000},
+				Prices: map[int]int64{
+					1: 2000,
+					2: 5000,
+					3: 10000,
+					4: 20000,
+					5: 50000,
 				},
 			},
 			items.MagicSunflower: {
@@ -587,12 +585,12 @@ func New(log *zap.Logger) *Manager {
 						&growkid.PlayCountBuff{Count: 1},
 					},
 				},
-				Prices: map[int]*common.Score{
-					1: {Mantissa: 300_000},
-					2: {Mantissa: 1_200_000},
-					3: {Mantissa: 3_500_000},
-					4: {Mantissa: 5_000_000},
-					5: {Mantissa: 10_000_000},
+				Prices: map[int]int64{
+					1: 300000,
+					2: 1200000,
+					3: 3500000,
+					4: 5000000,
+					5: 10000000,
 				},
 			},
 		},

@@ -32,7 +32,6 @@ type PlayOpts struct {
 type PlayResponse struct {
 	Score int64
 	Text  string
-	IsWin bool
 	Path  string
 }
 
@@ -57,49 +56,44 @@ func (c *Casino) Play(opts *PlayOpts) *PlayResponse {
 	switch {
 	case chance == 1:
 		score *= 3
+		score = -score
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s сегодня не везёт, он проиграл %d хинкалей.", html.UserMention(&opts.Query.From), score),
-			IsWin: false,
 		}
 	case chance <= 35:
+		score = -score
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s заигрался в казино и влез в кредит на %d хинкалей!", html.UserMention(&opts.Query.From), score),
-			IsWin: false,
 		}
 	case chance <= 45:
 		return &PlayResponse{
 			Score: 0,
 			Text:  fmt.Sprintf("%s играл сегодня в казино, но остался в нуле.", html.UserMention(&opts.Query.From)),
-			IsWin: false,
 		}
 	case chance <= 70:
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s выйграл в казино %d хинкалей!", html.UserMention(&opts.Query.From), score),
-			IsWin: true,
 		}
 	case chance <= 85:
 		score *= 2
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s выйграл в казино %d хинкалей, весьма неплохо!", html.UserMention(&opts.Query.From), score),
-			IsWin: true,
 		}
-	case chance <= 100:
+	case chance >= 90:
 		score *= 6
 		return &PlayResponse{
 			Score: score,
 			Text:  fmt.Sprintf("%s сорвал куш на %d хинкалей.", html.UserMention(&opts.Query.From), score),
-			IsWin: true,
 			Path:  "resources/gifs/papich_win.gif.mp4",
 		}
 	default:
 		return &PlayResponse{
 			Score: 0,
 			Text:  fmt.Sprintf("%s играл сегодня в казино, но остался в нуле.", html.UserMention(&opts.Query.From)),
-			IsWin: false,
 		}
 	}
 }

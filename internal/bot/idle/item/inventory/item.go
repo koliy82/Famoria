@@ -38,8 +38,8 @@ type ShopItem struct {
 	BuyLevel    int
 	MaxLevel    int
 	Description string
-	Price       *common.Score
-	SalePrice   *common.Score
+	Price       int64
+	SalePrice   *int64
 	Buffs       []event.Buff
 }
 
@@ -48,9 +48,9 @@ func (si *ShopItem) FullDescription() string {
 
 	price := "Цена: "
 	if si.SalePrice != nil {
-		price += html.Strike(si.Price.GetFormattedScore()) + " " + si.SalePrice.GetFormattedScore()
+		price += html.Strike(common.FormattedScore(si.Price)) + " " + common.FormattedScore(*si.SalePrice)
 	} else {
-		price += si.Price.GetFormattedScore()
+		price += common.FormattedScore(si.Price)
 	}
 	price += " 💰 \n"
 	body := si.Description + "\n"
@@ -63,7 +63,7 @@ func (si *ShopItem) FullDescription() string {
 
 func (si *ShopItem) SmallDescription() string {
 	if si.SalePrice != nil {
-		return fmt.Sprintf("%s - %s [%d/%d ур.] - %s %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, html.Strike(si.Price.GetFormattedScore()), si.SalePrice.GetFormattedScore())
+		return fmt.Sprintf("%s - %s [%d/%d ур.] - %s %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, html.Strike(common.FormattedScore(si.Price)), common.FormattedScore(*si.SalePrice))
 	}
-	return fmt.Sprintf("%s - %s [%d/%d ур.] - %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, si.Price.GetFormattedScore())
+	return fmt.Sprintf("%s - %s [%d/%d ур.] - %s", si.Emoji, si.Name.String(), si.BuyLevel, si.MaxLevel, common.FormattedScore(si.Price))
 }

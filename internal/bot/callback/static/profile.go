@@ -11,7 +11,6 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
-	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"os"
 	"strconv"
@@ -63,23 +62,19 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 
-		if response.IsWin {
-			b.Score.Increase(response.Score)
-		} else if response.Score != 0 {
-			b.Score.Decrease(response.Score)
-		}
-
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
+				"$inc": bson.M{
+					"score": response.Score,
+				},
 				"$set": bson.M{
-					"score":         b.Score,
 					"events.casino": b.Events.Casino,
 				},
 			},
 		)
 		if err != nil {
-			opts.Log.Sugar().Error("Ошибка при обновлении счёта #casino (", response.Score, response.IsWin, ") пользователя ", query.From.ID, ":", err)
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #casino (", response.Score, ") пользователя ", query.From.ID, ":", err)
 			return
 		}
 
@@ -154,13 +149,14 @@ func ProfileCallbacks(opts Opts) {
 		if response == nil {
 			return
 		}
-		b.Score.Increase(response.Score)
 
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
+				"$inc": bson.M{
+					"score": response.Score,
+				},
 				"$set": bson.M{
-					"score":           b.Score,
 					"events.grow_kid": b.Events.GrowKid,
 				},
 			},
@@ -201,12 +197,13 @@ func ProfileCallbacks(opts Opts) {
 		if response == nil {
 			return
 		}
-		b.Score.Increase(response.Score)
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
+				"$inc": bson.M{
+					"score": response.Score,
+				},
 				"$set": bson.M{
-					"score":          b.Score,
 					"events.hamster": b.Events.Hamster,
 				},
 			},
@@ -236,33 +233,28 @@ func ProfileCallbacks(opts Opts) {
 			return
 		}
 		response := b.Events.Anubis.Play(&anubis.PlayOpts{
-			Log:      opts.Log,
-			Bot:      opts.Bot,
-			Query:    query,
-			IsSub:    b.IsSub(),
-			OldScore: b.Score,
+			Log:   opts.Log,
+			Bot:   opts.Bot,
+			Query: query,
+			IsSub: b.IsSub(),
 		})
 		if response == nil {
 			return
 		}
 
-		if response.IsWin {
-			b.Score.Increase(response.Score)
-		} else if response.Score != 0 {
-			b.Score.Decrease(response.Score)
-		}
-
 		err = opts.BrakRepo.Update(
 			bson.M{"_id": b.OID},
 			bson.M{
+				"$inc": bson.M{
+					"score": response.Score,
+				},
 				"$set": bson.M{
-					"score":         b.Score,
 					"events.anubis": b.Events.Anubis,
 				},
 			},
 		)
 		if err != nil {
-			opts.Log.Sugar().Error("Ошибка при обновлении счёта #anubis (", response.Score, response.IsWin, ") пользователя ", query.From.ID, ":", err)
+			opts.Log.Sugar().Error("Ошибка при обновлении счёта #anubis (", response.Score, ") пользователя ", query.From.ID, ":", err)
 			return
 		}
 
@@ -346,18 +338,21 @@ func ProfileCallbacks(opts Opts) {
 				OwnerIDs: []int64{query.From.ID},
 				Time:     time.Minute * 45,
 				Callback: func(query telego.CallbackQuery) {
-					if !b.Score.IsBiggerOrEquals(&common.Score{Mantissa: 5_000_000, Exponent: 0}) {
+					if b.Score < 5_000_000 {
 						_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 							Text:            "У вас недостаточно средств для майнинг фермы.",
 							CallbackQueryID: query.ID,
 						})
 						return
 					}
-					b.Score.Decrease(5_000_000)
-					err = opts.BrakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{
-						"score":         b.Score,
-						"events.mining": &mining.Mining{},
-					}})
+					err = opts.BrakRepo.Update(bson.M{"_id": b.OID}, bson.M{
+						"$inc": bson.M{
+							"score": -5_000_000,
+						},
+						"$set": bson.M{
+							"events.mining": &mining.Mining{},
+						},
+					})
 					if err != nil {
 						opts.Log.Sugar().Error(err)
 						return

@@ -7,9 +7,9 @@ import (
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/database/mongo/repositories/brak"
-	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/mymmrac/telego"
@@ -40,11 +40,21 @@ func (c goFamilyCmd) Handle(ctx *th.Context, update telego.Update) error {
 	}
 
 	if reply == nil {
-		_, err := ctx.Bot().SendMessage(context.Background(), params.
-			WithText(fmt.Sprintf(
-				"%s, ответь на любое сообщение партнёра. 😘💬",
-				html.UserMention(fUser),
-			)))
+		img, err := os.Open("resources/images/help/gofamily.jpg")
+		_, err = ctx.Bot().SendPhoto(context.Background(),
+			&telego.SendPhotoParams{
+				ChatID:    tu.ID(update.Message.Chat.ID),
+				ParseMode: telego.ModeHTML,
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID:                update.Message.GetMessageID(),
+					AllowSendingWithoutReply: true,
+				},
+				Photo: tu.File(img),
+				Caption: fmt.Sprintf(
+					"%s, тебе нужно ответить на любое сообщение партнёра как на примере. 😘💬",
+					html.UserMention(fUser),
+				),
+			})
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
@@ -117,11 +127,8 @@ func (c goFamilyCmd) Handle(ctx *th.Context, update telego.Update) error {
 				SecondUserID: tUser.ID,
 				CreateDate:   time.Now(),
 				Inventory:    &inventory.Inventory{Items: make(map[items.ItemId]inventory.Item)},
-				Score: &common.Score{
-					Mantissa: 0,
-					Exponent: 0,
-				},
-				Events: events.New(),
+				Score:        0,
+				Events:       events.New(),
 			})
 
 			_, err := ctx.Bot().SendMessage(context.Background(), &telego.SendMessageParams{

@@ -1,7 +1,6 @@
 package user
 
 import (
-	"famoria/internal/pkg/common"
 	"reflect"
 	"strings"
 
@@ -15,7 +14,8 @@ type User struct {
 	LastName     *string            `bson:"last_name"`
 	Username     *string            `bson:"username"`
 	LanguageCode string             `bson:"language_code"`
-	Score        common.Score       `bson:"score"`
+	Score        int64              `bson:"score"`
+	Temp         int64              `bson:"temp"`
 }
 
 func (u *User) IsEquals(other *User) bool {

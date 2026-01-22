@@ -2,20 +2,8 @@ package brak
 
 import (
 	"context"
-	"famoria/internal/bot/idle/event"
-	"famoria/internal/bot/idle/event/anubis"
-	"famoria/internal/bot/idle/event/casino"
-	"famoria/internal/bot/idle/event/events"
-	"famoria/internal/bot/idle/event/growkid"
-	"famoria/internal/bot/idle/event/hamster"
 	"famoria/internal/bot/idle/item"
-	"famoria/internal/bot/idle/item/inventory"
-	"famoria/internal/bot/idle/item/items"
 	"famoria/internal/config"
-	"famoria/internal/pkg/common"
-	"math"
-	"strconv"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -94,8 +82,7 @@ func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]
 	pipeline := mongo.Pipeline{
 		{{"$match", filter}},
 		{{"$sort", bson.M{
-			"score.exponent": -1,
-			"score.mantissa": -1,
+			"score": -1,
 		}}},
 		{{"$skip", skip}},
 		{{"$limit", limit}},
@@ -213,106 +200,41 @@ func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Mongo {
 		coll: coll,
 		log:  log,
 	}
-	if cfg.TransferMongoDatabase != nil {
-		err = TransferBraks(client, m, cfg)
-		if err != nil {
-			log.Sugar().Error(err)
-			panic(err)
-		}
-	}
+
+	//var list []Brak
+	//cursor, err := client.Database(cfg.MongoDatabase).Collection("braks").Find(context.Background(), bson.M{})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//for cursor.Next(context.TODO()) {
+	//	var b Brak
+	//	err := cursor.Decode(&b)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	b.Temp = b.Score.Mantissa
+	//	b.Score = nil
+	//	list = append(list, b)
+	//}
+	//newValue := make([]interface{}, len(list))
+	//for i := range list {
+	//	newValue[i] = list[i]
+	//}
+	//newcoll := client.Database(cfg.MongoDatabase).Collection("newbraks")
+	//_, err = newcoll.InsertMany(context.Background(), newValue)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//update := bson.M{"$unset": bson.M{"score": ""}}
+	//_, err = newcoll.UpdateMany(context.TODO(), bson.M{}, update)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//update2 := bson.D{{"$rename", bson.D{{"temp", "score"}}}}
+	//_, err = newcoll.UpdateMany(context.TODO(), bson.M{}, update2)
+	//if err != nil {
+	//	panic(err)
+	//}
+
 	return m
-}
-
-type TransferBrak struct {
-	OID               primitive.ObjectID `bson:"_id"`
-	FirstUserID       int64              `bson:"first_user_id"`
-	SecondUserID      int64              `bson:"second_user_id"`
-	ChatID            int64              `bson:"chat_id,omitempty"`
-	CreateDate        time.Time          `bson:"create_date"`
-	BabyUserID        *int64             `bson:"baby_user_id"`
-	BabyCreateDate    *time.Time         `bson:"baby_create_date"`
-	Score             int64              `bson:"score"`
-	LastCasinoPlay    time.Time          `bson:"last_casino_play"`
-	LastGrowKid       time.Time          `bson:"last_grow_kid"`
-	LastHamsterUpdate time.Time          `bson:"last_hamster_update"`
-	TapCount          int                `bson:"tap_count"`
-}
-
-func TransferBraks(client *mongo.Client, m *Mongo, cfg config.Config) error {
-	transferColl := client.Database(*cfg.TransferMongoDatabase).Collection("braks")
-	braksCount, err := m.coll.CountDocuments(context.TODO(), bson.D{})
-	if err != nil {
-		return err
-	}
-	if braksCount != 0 {
-		m.log.Warn("transfer brak collection in new db is not empty, skip transfer")
-		return nil
-	}
-
-	var transferBraks []TransferBrak
-	cursor, err := transferColl.Find(context.TODO(), bson.D{})
-	if err != nil {
-		return err
-	}
-
-	err = cursor.All(context.TODO(), &transferBraks)
-	if err != nil {
-		return err
-	}
-
-	newBraks := make([]interface{}, len(transferBraks))
-	m.log.Sugar().Info("Transfer braks count: ", strconv.Itoa(len(transferBraks)))
-	for i := range transferBraks {
-		brak := Brak{
-			OID:            transferBraks[i].OID,
-			FirstUserID:    transferBraks[i].FirstUserID,
-			SecondUserID:   transferBraks[i].SecondUserID,
-			ChatID:         transferBraks[i].ChatID,
-			CreateDate:     transferBraks[i].CreateDate,
-			BabyUserID:     transferBraks[i].BabyUserID,
-			BabyCreateDate: transferBraks[i].BabyCreateDate,
-			Score:          &common.Score{Mantissa: transferBraks[i].Score},
-			Inventory:      &inventory.Inventory{Items: make(map[items.ItemId]inventory.Item)},
-			Events: &events.Events{
-				Hamster: &hamster.Hamster{
-					Base: event.Base{
-						LastPlay:  transferBraks[i].LastHamsterUpdate,
-						PlayCount: uint16(transferBraks[i].TapCount),
-					},
-				},
-				Casino: &casino.Casino{
-					Base: event.Base{
-						LastPlay:  transferBraks[i].LastCasinoPlay,
-						PlayCount: 1,
-					},
-				},
-				GrowKid: &growkid.GrowKid{
-					Base: event.Base{
-						LastPlay:  transferBraks[i].LastGrowKid,
-						PlayCount: 1,
-					},
-				},
-				Anubis: &anubis.Anubis{
-					Base: event.Base{
-						LastPlay:  time.Time{},
-						PlayCount: 0,
-					},
-				},
-			},
-			SubscribeEnd: nil,
-		}
-		if brak.Score.Mantissa < 0 {
-			brak.Score.Mantissa = int64(math.Abs(float64(brak.Score.Mantissa)))
-		}
-
-		m.log.Sugar().Debug("transfer brak: ", zap.Any("brak", transferBraks[i]))
-		newBraks[i] = brak
-	}
-
-	_, err = m.coll.InsertMany(context.TODO(), newBraks)
-	if err != nil && len(transferBraks) != 0 {
-		return err
-	}
-	m.log.Sugar().Info(strconv.Itoa(len(newBraks)), " braks successfully transferred")
-	return nil
 }

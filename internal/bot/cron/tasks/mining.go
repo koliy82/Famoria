@@ -31,12 +31,10 @@ func StartMining(opts MiningOpts) {
 				for _, b := range braks {
 					b.ApplyBuffs(opts.Manager)
 					resp := b.Events.Mining.Play()
-					if resp.IsWin {
-						b.Score.Increase(resp.Score)
+					if resp.Score > 0 {
 						b.Events.Mining.LastPlay = time.Now()
 						opts.Log.Info("[CRON] brak id: " + b.OID.Hex() + "luck mining")
 					} else if resp.Score != 0 {
-						b.Score.Decrease(resp.Score)
 						opts.Log.Info("[CRON] brak id: " + b.OID.Hex() + "unluck sgorel mining")
 					} else {
 						opts.Log.Info("[CRON] brak id: " + b.OID.Hex() + "unluck mining")
@@ -45,14 +43,16 @@ func StartMining(opts MiningOpts) {
 					err = opts.BrakRepo.Update(
 						bson.M{"_id": b.OID},
 						bson.M{
+							"$inc": bson.M{
+								"score": resp.Score,
+							},
 							"$set": bson.M{
-								"score":         b.Score,
 								"events.mining": b.Events.Mining,
 							},
 						},
 					)
 					if err != nil {
-						opts.Log.Sugar().Error("Ошибка при обновлении счёта #mining (", resp.Score, resp.IsWin, ") брака ", b.OID, ":", err)
+						opts.Log.Sugar().Error("Ошибка при обновлении счёта #mining (", resp.Score, ") брака ", b.OID, ":", err)
 						continue
 					}
 				}

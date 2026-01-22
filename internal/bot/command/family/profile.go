@@ -7,6 +7,7 @@ import (
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/common/buttons"
 	"famoria/internal/pkg/html"
 	"famoria/internal/pkg/plural"
@@ -36,7 +37,7 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 
 	text := fmt.Sprintf("🍞🍞 %s 🍞🍞\n", html.Bold("Профиль"))
 	text += fmt.Sprintf("👤 %s\n", html.CodeInline(fUser.UsernameOrFull()))
-	text += fmt.Sprintf("💰 %s\n", fUser.Score.GetFormattedScore())
+	text += fmt.Sprintf("💰 %s\n", common.FormattedScore(fUser.Score))
 
 	messageCount, err := c.messageRepo.MessageCount(from.ID, update.Message.Chat.ID)
 	if err == nil {
@@ -86,7 +87,7 @@ func (c profileCmd) Handle(ctx *th.Context, update telego.Update) error {
 
 		keyboard.Add(tu.InlineKeyboardButton("💸⛏️👷").WithCallbackData(static.MiningData))
 
-		text += fmt.Sprintf("💰 %v\n", b.Score.GetFormattedScore())
+		text += fmt.Sprintf("💰 %v\n", common.FormattedScore(b.Score))
 	}
 
 	params := &telego.SendMessageParams{

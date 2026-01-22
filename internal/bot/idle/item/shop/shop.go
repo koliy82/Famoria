@@ -7,6 +7,7 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/inventory"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/pkg/common"
 	"fmt"
 	"sort"
 	"strconv"
@@ -112,7 +113,7 @@ func (s *Shop) CurrentButtonsPage() [][]telego.InlineKeyboardButton {
 			s.ShopCallbacks[i] = append(s.ShopCallbacks[i], dCallback.Inline())
 		}
 	}
-	s.Label += fmt.Sprintf("Доступные средства - %s 💰", s.Opts.B.Score.GetFormattedScore())
+	s.Label += fmt.Sprintf("Доступные средства - %s 💰", common.FormattedScore(s.Opts.B.Score))
 
 	if s.MaxPages > 1 {
 		s.ShopCallbacks = append(s.ShopCallbacks, []telego.InlineKeyboardButton{s.NavigateBack.Inline(), s.NavigateNext.Inline()})
@@ -190,10 +191,19 @@ func (s *Shop) SetNavigateButtons() {
 func (s *Shop) UpdateShop() error {
 	s.Items = s.Opts.B.GetAvailableItems(s.Opts.Manager)
 	sort.Slice(s.Items, func(i, j int) bool {
-		if s.Items[i].Price.Exponent == s.Items[j].Price.Exponent {
-			return s.Items[i].Price.Mantissa < s.Items[j].Price.Mantissa
+		// compare effective price (sale if present) or base price
+		iPrice := s.Items[i].Price
+		jPrice := s.Items[j].Price
+		if s.Items[i].SalePrice != nil {
+			iPrice = *s.Items[i].SalePrice
 		}
-		return s.Items[i].Price.Exponent < s.Items[j].Price.Exponent
+		if s.Items[j].SalePrice != nil {
+			jPrice = *s.Items[j].SalePrice
+		}
+		if iPrice == jPrice {
+			return s.Items[i].Name.String() < s.Items[j].Name.String()
+		}
+		return iPrice < jPrice
 	})
 	if len(s.Items) == 0 {
 		_, err := s.Opts.BotCtx.Bot().SendMessage(context.Background(), s.Opts.Params.
@@ -253,10 +263,17 @@ func (s *Shop) SetItemCallbacks() {
 			}
 			si := s.SelectedItem
 			actualBrak, err := s.Opts.BrakRepo.FindByUserID(s.Opts.B.FirstUserID, s.Opts.Manager)
-			if actualBrak.Events.Shop.Sale > 0 {
-				si.Price = si.Price.GetSaleScore(actualBrak.Events.Shop.Sale)
+			if err != nil {
+				s.Opts.Log.Sugar().Error(err)
+				return
 			}
-			if !actualBrak.Score.IsBiggerOrEquals(si.Price) {
+			if actualBrak.Events.Shop.Sale > 0 {
+				si.SalePrice = common.GetSaleScore(si.Price, actualBrak.Events.Shop.Sale)
+			}
+			if si.SalePrice != nil {
+				si.Price = *si.SalePrice
+			}
+			if actualBrak.Score < si.Price {
 				_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams.
 					WithText("У вас недостаточно средств для покупки/улучшения предмета."),
 				)
@@ -276,13 +293,18 @@ func (s *Shop) SetItemCallbacks() {
 				)
 				return
 			}
-			actualBrak.Score.Minus(si.Price)
+			// subtract price
+			actualBrak.Score -= si.Price
 			ii.CurrentLevel++
 			actualBrak.Inventory.Items[si.Name] = ii
 			err = s.Opts.BrakRepo.Update(bson.M{"_id": actualBrak.OID},
-				bson.M{"$set": bson.M{
-					"score":     actualBrak.Score,
-					"inventory": actualBrak.Inventory},
+				bson.M{
+					"$inc": bson.M{
+						"score": -si.Price,
+					},
+					"$set": bson.M{
+						"inventory": actualBrak.Inventory,
+					},
 				})
 			if err != nil {
 				s.Opts.Log.Sugar().Error(err)
@@ -308,7 +330,7 @@ func (s *Shop) SetItemCallbacks() {
 				),
 			})
 			if err != nil {
-				s.Opts.Log.Sugar().Error(err)
+				s.Opts.Log.Sugar().Warn(err)
 			}
 			s.SelectedItem = nil
 			_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams)

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"famoria/internal/config"
-	"famoria/internal/pkg/common"
-	"strconv"
 
 	"github.com/mymmrac/telego"
 	"go.mongodb.org/mongo-driver/bson"
@@ -67,10 +65,7 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 		LastName:     &user.LastName,
 		Username:     &user.Username,
 		LanguageCode: user.LanguageCode,
-		Score: common.Score{
-			Mantissa: 0,
-			Exponent: 0,
-		},
+		Score:        0,
 	}
 	if errors.Is(err, mongo.ErrNoDocuments) && actual == nil {
 		model.OID = primitive.NewObjectID()
@@ -82,7 +77,6 @@ func (c *Mongo) FindOrUpdate(user *telego.User) (*User, error) {
 		c.log.Sugar().Debug("Insert new user:", model)
 		return model, nil
 	}
-
 	filter := bson.M{"id": actual.ID}
 	if !model.IsEquals(actual) {
 		_, err := c.coll.UpdateOne(context.TODO(), filter,
@@ -119,76 +113,40 @@ func New(client *mongo.Client, log *zap.Logger, cfg config.Config) *Mongo {
 		coll: coll,
 		log:  log,
 	}
-	if cfg.TransferMongoDatabase != nil {
-		err = TransferUsers(client, m, cfg)
-		if err != nil {
-			log.Sugar().Error(err)
-			panic(err)
-		}
-	}
+
+	//var list []User
+	//cursor, err := client.Database(cfg.MongoDatabase).Collection("users").Find(context.Background(), bson.M{})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//for cursor.Next(context.TODO()) {
+	//	var b User
+	//	err := cursor.Decode(&b)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	b.Temp = b.Score.Mantissa
+	//	list = append(list, b)
+	//}
+	//newValue := make([]interface{}, len(list))
+	//for i := range list {
+	//	newValue[i] = list[i]
+	//}
+	//newcoll := client.Database(cfg.MongoDatabase).Collection("newusers")
+	//_, err = newcoll.InsertMany(context.Background(), newValue)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//update := bson.M{"$unset": bson.M{"score": ""}}
+	//_, err = newcoll.UpdateMany(context.TODO(), bson.M{}, update)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//update2 := bson.D{{"$rename", bson.D{{"temp", "score"}}}}
+	//_, err = newcoll.UpdateMany(context.TODO(), bson.M{}, update2)
+	//if err != nil {
+	//	panic(err)
+	//}
+
 	return m
-}
-
-type TransferUser struct {
-	OID          primitive.ObjectID `bson:"_id"`
-	ID           int64              `bson:"id"`
-	FirstName    string             `bson:"first_name"`
-	LastName     *string            `bson:"last_name"`
-	Username     *string            `bson:"username"`
-	LanguageCode string             `bson:"language_code"`
-	IsAdmin      *bool              `bson:"is_admin"`
-}
-
-func TransferUsers(client *mongo.Client, m *Mongo, cfg config.Config) error {
-	transferColl := client.Database(*cfg.TransferMongoDatabase).Collection("users")
-	usersCount, err := m.coll.CountDocuments(context.TODO(), bson.D{})
-	if err != nil {
-		return err
-	}
-	if usersCount != 0 {
-		m.log.Warn("transfer user collection in new db is not empty, skip transfer")
-		return nil
-	}
-
-	var transferUsers []TransferUser
-	cursor, err := transferColl.Find(context.TODO(), bson.D{})
-	if err != nil {
-		return err
-	}
-
-	err = cursor.All(context.Background(), &transferUsers)
-	if err != nil {
-		return err
-	}
-
-	newUsers := make([]interface{}, len(transferUsers))
-	m.log.Sugar().Info("Transfer users count: ", strconv.Itoa(len(transferUsers)))
-	for i := range transferUsers {
-		user := User{
-			OID:          transferUsers[i].OID,
-			ID:           transferUsers[i].ID,
-			FirstName:    transferUsers[i].FirstName,
-			LastName:     transferUsers[i].LastName,
-			Username:     transferUsers[i].Username,
-			LanguageCode: transferUsers[i].LanguageCode,
-			Score: common.Score{
-				Mantissa: 0,
-				Exponent: 0,
-			},
-		}
-
-		if user.Score.Mantissa < 0 {
-			user.Score.Mantissa = 0
-		}
-
-		m.log.Sugar().Debug("Transfer user: ", zap.Any("user", user))
-		newUsers[i] = user
-	}
-
-	_, err = m.coll.InsertMany(context.TODO(), newUsers)
-	if err != nil {
-		return err
-	}
-	m.log.Sugar().Info(strconv.Itoa(len(newUsers)), " users successfully transferred")
-	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"famoria/internal/bot/callback"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"famoria/internal/pkg/plural"
 	"fmt"
@@ -198,7 +199,7 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 		}
 
 		text += fmt.Sprintf("\n   ⏳ %s", m.Brak.Duration())
-		text += fmt.Sprintf(" - %s 💰\n", m.Brak.Score.GetFormattedScore())
+		text += fmt.Sprintf(" - %s 💰\n", common.FormattedScore(m.Brak.Score))
 	}
 	return text
 }

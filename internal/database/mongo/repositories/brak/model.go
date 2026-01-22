@@ -23,7 +23,7 @@ type Brak struct {
 	CreateDate     time.Time            `bson:"create_date"`
 	BabyUserID     *int64               `bson:"baby_user_id"`
 	BabyCreateDate *time.Time           `bson:"baby_create_date"`
-	Score          *common.Score        `bson:"score"`
+	Score          int64                `bson:"score"`
 	SubscribeEnd   *time.Time           `bson:"subscribe_end"`
 	Inventory      *inventory.Inventory `bson:"inventory"`
 	Events         *events.Events       `bson:"events"`
@@ -180,7 +180,7 @@ func (b *Brak) GetAvailableItems(manager *item.Manager) []*inventory.ShopItem {
 				Buffs:       mi.Buffs[1],
 			}
 			if b.Events.Shop.Sale > 0 {
-				si.SalePrice = si.Price.GetSaleScore(b.Events.Shop.Sale)
+				si.SalePrice = common.GetSaleScore(si.Price, b.Events.Shop.Sale)
 			}
 			list = append(list, si)
 			continue
@@ -198,7 +198,7 @@ func (b *Brak) GetAvailableItems(manager *item.Manager) []*inventory.ShopItem {
 			Buffs:       mi.Buffs[current.CurrentLevel+1],
 		}
 		if b.Events.Shop.Sale > 0 {
-			si.SalePrice = si.Price.GetSaleScore(b.Events.Shop.Sale)
+			si.SalePrice = common.GetSaleScore(si.Price, b.Events.Shop.Sale)
 		}
 		list = append(list, si)
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
-	"famoria/internal/pkg/common"
 	"famoria/internal/pkg/html"
 	"fmt"
 	"strconv"
@@ -42,13 +41,11 @@ func (c depositCmd) Handle(ctx *th.Context, update telego.Update) error {
 		return err
 	}
 
-	amount, err := strconv.ParseUint(args[1], 10, 64)
+	amount, err := strconv.ParseInt(args[1], 10, 64)
 	if err != nil {
-		// TODO parse exponential (3e3)
-		c.log.Sugar().Warn(err)
+		c.log.Sugar().Warn("Parse deposit error from user: ", from.ID, " err:", err)
 		return err
 	}
-
 	b, _ := c.brakRepo.FindByUserID(from.ID, nil)
 	if b == nil {
 		_, err := ctx.Bot().SendMessage(context.Background(), params.
@@ -64,7 +61,7 @@ func (c depositCmd) Handle(ctx *th.Context, update telego.Update) error {
 	if u == nil {
 		return errors.New("user not found")
 	}
-	if !u.Score.IsBiggerOrEquals(&common.Score{Mantissa: int64(amount)}) {
+	if amount <= 0 || u.Score < amount {
 		_, err := ctx.Bot().SendMessage(context.Background(), params.
 			WithText(fmt.Sprintf("%s, вы ввели сликом большое число для депозита", html.UserMention(from))),
 		)
@@ -74,14 +71,12 @@ func (c depositCmd) Handle(ctx *th.Context, update telego.Update) error {
 		return err
 	}
 
-	u.Score.Decrease(int64(amount))
-	b.Score.Increase(int64(amount))
-	err = c.userRepo.Update(bson.M{"_id": u.OID}, bson.M{"$set": bson.M{"score": u.Score}})
+	err = c.userRepo.Update(bson.M{"_id": u.OID}, bson.M{"$inc": bson.M{"score": -amount}})
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return err
 	}
-	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$set": bson.M{"score": b.Score}})
+	err = c.brakRepo.Update(bson.M{"_id": b.OID}, bson.M{"$inc": bson.M{"score": amount}})
 	if err != nil {
 		c.log.Sugar().Error(err)
 		return err
