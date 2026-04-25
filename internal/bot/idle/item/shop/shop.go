@@ -287,7 +287,7 @@ func (s *Shop) SetItemCallbacks() {
 				}
 			}
 			buyItem := ii.GetItem(s.Opts.Manager)
-			if si.BuyLevel >= si.MaxLevel || ii.CurrentLevel >= buyItem.MaxLevel {
+			if si.BuyLevel > si.MaxLevel || ii.CurrentLevel > buyItem.MaxLevel {
 				_ = s.Opts.BotCtx.Bot().AnswerCallbackQuery(context.Background(), answerParams.
 					WithText("Предмет уже максимального уровня."),
 				)
