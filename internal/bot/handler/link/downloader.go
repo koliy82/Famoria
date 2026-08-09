@@ -39,14 +39,26 @@ func isYouTube(rawURL string) bool {
 		host == "youtu.be" || strings.HasSuffix(host, ".youtube.com")
 }
 
-// applyCookies attaches a cookies file to the yt-dlp command when the URL is a
-// YouTube link and a cookies file is configured. Returns the command unchanged
-// otherwise.
-func applyCookies(cmd *ytdlp.Command, rawURL, cookiesFile string) *ytdlp.Command {
-	if cookiesFile == "" || !isYouTube(rawURL) {
+// applyYouTubeParams configures the yt-dlp command for YouTube links:
+//
+//   - Cookies from the configured file, if any. YouTube blocks
+//     unauthenticated (bot) access, especially from datacenter IPs, so cookies
+//     are effectively mandatory on a server.
+//   - player_client=web,mweb,android via --extractor-args. These clients honor
+//     cookies; the iOS client (yt-dlp's default in some cases) silently ignores
+//     them, causing "Sign in to confirm you're not a bot" even with valid
+//     cookies. See https://github.com/yt-dlp/yt-dlp/issues/11053.
+//
+// Returns the command unchanged for non-YouTube URLs.
+func applyYouTubeParams(cmd *ytdlp.Command, rawURL, cookiesFile string) *ytdlp.Command {
+	if !isYouTube(rawURL) {
 		return cmd
 	}
-	return cmd.Cookies(cookiesFile)
+	cmd = cmd.ExtractorArgs("youtube:player_client=web,mweb,android")
+	if cookiesFile != "" {
+		cmd = cmd.Cookies(cookiesFile)
+	}
+	return cmd
 }
 
 // extractInfo queries yt-dlp for metadata about the URL without downloading the
@@ -60,7 +72,7 @@ func extractInfo(ctx context.Context, rawURL, cookiesFile string) (*ytdlp.Extrac
 		NoWarnings().
 		Quiet().
 		NoColors()
-	cmd = applyCookies(cmd, rawURL, cookiesFile)
+	cmd = applyYouTubeParams(cmd, rawURL, cookiesFile)
 
 	r, err := cmd.Run(ctx, rawURL)
 	if err != nil {
@@ -112,7 +124,7 @@ func downloadVideo(ctx context.Context, rawURL, dir string, height int, cookiesF
 		NoWarnings().
 		NoColors().
 		Output(filepath.Join(dir, "video.%(ext)s"))
-	cmd = applyCookies(cmd, rawURL, cookiesFile)
+	cmd = applyYouTubeParams(cmd, rawURL, cookiesFile)
 
 	if _, err := cmd.Run(ctx, rawURL); err != nil {
 		return "", err
