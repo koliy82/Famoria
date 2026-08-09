@@ -12,6 +12,7 @@ import (
 	"famoria/internal/bot/command/steam"
 	"famoria/internal/bot/cron"
 	"famoria/internal/bot/handler"
+	"famoria/internal/bot/handler/link"
 	"famoria/internal/bot/handler/logger"
 	"famoria/internal/bot/handler/payments"
 	"famoria/internal/bot/handler/waiter"
@@ -20,6 +21,7 @@ import (
 	"famoria/internal/database/mongo"
 	admin2 "famoria/internal/database/mongo/repositories/admin"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/database/mongo/repositories/checkout"
 	"famoria/internal/database/mongo/repositories/message"
 	"famoria/internal/database/mongo/repositories/payment"
@@ -42,6 +44,7 @@ var App = fx.Options(
 		fx.Annotate(brak.New, fx.As(new(brak.Repository))),
 		fx.Annotate(admin2.New, fx.As(new(admin2.Repository))),
 		fx.Annotate(checkout.New, fx.As(new(checkout.Repository))),
+		fx.Annotate(chat_settings.New, fx.As(new(chat_settings.Repository))),
 		fx.Annotate(payment.New, fx.As(new(payment.Repository))),
 		item.New,
 		steamapi.New,
@@ -63,6 +66,7 @@ var App = fx.Options(
 		donate.Register,
 		steam.Register,
 		callback.Register,
+		link.Register,
 		logger.Register,
 		farm_logger.New,
 		bot.PrintMe,

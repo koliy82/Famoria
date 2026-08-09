@@ -61,6 +61,7 @@ type Opts struct {
 }
 
 func Register(opts Opts) {
+
 	opts.Bh.Handle(MessageLogger{
 		messageRepo: opts.MessageRepo,
 		userRepo:    opts.UserRepo,

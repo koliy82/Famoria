@@ -35,3 +35,10 @@ go.work.sum
 database-compose/mongo/data
 database-compose/clickhouse/data
 qodana.yaml
+
+# yt-dlp cookies (contains YouTube auth — never commit)
+cookies.txt
+*.cookies.txt
+
+# ZCode local data
+.zcode/
