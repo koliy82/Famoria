@@ -87,7 +87,17 @@ type Opts struct {
 }
 
 func Register(opts Opts) {
-	ytdlp.MustInstall(context.TODO(), nil)
+	// Ensure yt-dlp is available. Prefer a system-installed yt-dlp (e.g. via
+	// apk/yum in the Docker image) at any version; only download from GitHub
+	// as a fallback (local dev without yt-dlp on PATH). This avoids re-downloading
+	// ~30MB on every container start and survives environments without outbound
+	// network at runtime.
+	if _, err := ytdlp.Install(context.TODO(), &ytdlp.InstallOptions{
+		AllowVersionMismatch: true,
+	}); err != nil {
+		opts.Log.Warn("ytdlp: system binary not found, downloading", zap.Error(err))
+		ytdlp.MustInstall(context.TODO(), nil)
+	}
 
 	var cookiesFile string
 	if opts.Cfg.YtdlpCookiesFile != nil {
