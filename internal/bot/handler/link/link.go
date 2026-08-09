@@ -6,6 +6,7 @@ import (
 	"famoria/internal/config"
 	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/pkg/common/extractor"
+	"os"
 	"time"
 
 	"github.com/lrstanley/go-ytdlp"
@@ -102,6 +103,20 @@ func Register(opts Opts) {
 	var cookiesFile string
 	if opts.Cfg.YtdlpCookiesFile != nil {
 		cookiesFile = *opts.Cfg.YtdlpCookiesFile
+	}
+
+	// Log the cookies configuration so misconfigurations (wrong path, missing
+	// file) are visible at startup rather than surfacing as opaque "Sign in to
+	// confirm you're not a bot" errors at runtime.
+	if cookiesFile == "" {
+		opts.Log.Warn("ytdlp: no cookies file configured (YTDLP_COOKIES_FILE empty) — YouTube will block downloads")
+	} else {
+		if _, err := os.Stat(cookiesFile); err != nil {
+			opts.Log.Error("ytdlp: cookies file not accessible — YouTube will block downloads",
+				zap.String("path", cookiesFile), zap.Error(err))
+		} else {
+			opts.Log.Info("ytdlp: cookies file loaded", zap.String("path", cookiesFile))
+		}
 	}
 
 	dl := AnyLinkDownloader{
