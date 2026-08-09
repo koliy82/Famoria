@@ -36,8 +36,12 @@ database-compose/mongo/data
 database-compose/clickhouse/data
 qodana.yaml
 
-# yt-dlp cookies (contains YouTube auth — never commit)
-cookies.txt
+# yt-dlp cookies (contains YouTube auth — never commit).
+# The cookies/ folder is mounted into the container; keep the folder + docs but
+# ignore the actual cookie file.
+cookies/*
+!cookies/.gitkeep
+!cookies/README.md
 *.cookies.txt
 
 # ZCode local data
