@@ -44,5 +44,8 @@ cookies/*
 !cookies/README.md
 *.cookies.txt
 
+# Proxy lists (generated for testing — don't commit)
+proxies.txt
+
 # ZCode local data
 .zcode/

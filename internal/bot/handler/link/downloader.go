@@ -39,24 +39,68 @@ func isYouTube(rawURL string) bool {
 		host == "youtu.be" || strings.HasSuffix(host, ".youtube.com")
 }
 
-// applyYouTubeParams configures the yt-dlp command for YouTube links:
+// maskProxyCreds redacts user:password@ from a proxy URL so it can be safely
+// logged. Returns the URL unchanged if it has no userinfo.
+func maskProxyCreds(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.User == nil {
+		return rawURL
+	}
+	cp := *u
+	cp.User = url.User(u.User.Username())
+	return cp.String()
+}
+
+// Proxy mode constants, matching the PROXY_ENABLE config values.
+const (
+	proxyModeFalse   = "false"   // proxy disabled (default)
+	proxyModeYouTube = "youtube" // proxy only for YouTube URLs
+	proxyModeAll     = "true"    // proxy for all URLs
+)
+
+// ytConfig bundles the optional yt-dlp authentication/network parameters that
+// the bot is configured with.
+type ytConfig struct {
+	cookiesFile string // Netscape cookies file, applied to YouTube only.
+	proxy       string // HTTP/SOCKS proxy URL.
+	proxyMode   string // when to apply proxy: false/youtube/true.
+}
+
+// useProxy reports whether the proxy should be applied for the given URL,
+// according to the configured mode.
+func (c ytConfig) useProxy(rawURL string) bool {
+	if c.proxy == "" {
+		return false
+	}
+	switch c.proxyMode {
+	case proxyModeAll:
+		return true
+	case proxyModeYouTube:
+		return isYouTube(rawURL)
+	default: // proxyModeFalse or anything else
+		return false
+	}
+}
+
+// applyParams configures the yt-dlp command with cookies, extractor-args and
+// proxy as appropriate for the URL:
 //
-//   - Cookies from the configured file, if any. YouTube blocks
-//     unauthenticated (bot) access, especially from datacenter IPs, so cookies
-//     are effectively mandatory on a server.
-//   - player_client=web,mweb,android via --extractor-args. These clients honor
+//   - For YouTube URLs: cookies from the configured file (if any) and
+//     player_client=web,mweb,android via --extractor-args. These clients honor
 //     cookies; the iOS client (yt-dlp's default in some cases) silently ignores
 //     them, causing "Sign in to confirm you're not a bot" even with valid
 //     cookies. See https://github.com/yt-dlp/yt-dlp/issues/11053.
-//
-// Returns the command unchanged for non-YouTube URLs.
-func applyYouTubeParams(cmd *ytdlp.Command, rawURL, cookiesFile string) *ytdlp.Command {
-	if !isYouTube(rawURL) {
-		return cmd
+//   - Proxy, if configured and enabled for this URL (per useProxy). Useful to
+//     bypass datacenter-IP blocking.
+func applyParams(cmd *ytdlp.Command, rawURL string, cfg ytConfig) *ytdlp.Command {
+	if isYouTube(rawURL) {
+		cmd = cmd.ExtractorArgs("youtube:player_client=web,mweb,android")
+		if cfg.cookiesFile != "" {
+			cmd = cmd.Cookies(cfg.cookiesFile)
+		}
 	}
-	cmd = cmd.ExtractorArgs("youtube:player_client=web,mweb,android")
-	if cookiesFile != "" {
-		cmd = cmd.Cookies(cookiesFile)
+	if cfg.useProxy(rawURL) {
+		cmd = cmd.Proxy(cfg.proxy)
 	}
 	return cmd
 }
@@ -64,7 +108,7 @@ func applyYouTubeParams(cmd *ytdlp.Command, rawURL, cookiesFile string) *ytdlp.C
 // extractInfo queries yt-dlp for metadata about the URL without downloading the
 // media. Returns the first extracted info entry, or an error if the URL is not
 // a supported video.
-func extractInfo(ctx context.Context, rawURL, cookiesFile string) (*ytdlp.ExtractedInfo, error) {
+func extractInfo(ctx context.Context, rawURL string, cfg ytConfig) (*ytdlp.ExtractedInfo, error) {
 	cmd := ytdlp.New().
 		DumpJSON().
 		Simulate().
@@ -72,7 +116,7 @@ func extractInfo(ctx context.Context, rawURL, cookiesFile string) (*ytdlp.Extrac
 		NoWarnings().
 		Quiet().
 		NoColors()
-	cmd = applyYouTubeParams(cmd, rawURL, cookiesFile)
+	cmd = applyParams(cmd, rawURL, cfg)
 
 	r, err := cmd.Run(ctx, rawURL)
 	if err != nil {
@@ -106,7 +150,7 @@ func extractInfo(ctx context.Context, rawURL, cookiesFile string) (*ytdlp.Extrac
 //
 // RecodeVideo must NOT be used: it re-encodes the whole file and was reliably
 // stripping the audio on already-combined streams (e.g. TikTok).
-func downloadVideo(ctx context.Context, rawURL, dir string, height int, cookiesFile string) (string, error) {
+func downloadVideo(ctx context.Context, rawURL, dir string, height int, cfg ytConfig) (string, error) {
 	cmd := ytdlp.New().
 		Format("best[vcodec^=h264][acodec^=aac]/" +
 			"bestvideo[vcodec^=h264]+bestaudio[acodec^=aac]/" +
@@ -124,7 +168,7 @@ func downloadVideo(ctx context.Context, rawURL, dir string, height int, cookiesF
 		NoWarnings().
 		NoColors().
 		Output(filepath.Join(dir, "video.%(ext)s"))
-	cmd = applyYouTubeParams(cmd, rawURL, cookiesFile)
+	cmd = applyParams(cmd, rawURL, cfg)
 
 	if _, err := cmd.Run(ctx, rawURL); err != nil {
 		return "", err
@@ -196,8 +240,8 @@ func sendVideo(ctx context.Context, bot *telego.Bot, chatID int64, replyTo int, 
 // processVideo runs the full pipeline for one link: metadata check, quality
 // cascade download, and send. Returns true if the video was sent successfully
 // (so the caller can delete the original message).
-func processVideo(ctx context.Context, bot *telego.Bot, log *zap.Logger, chatID int64, replyTo int, originalURL, cookiesFile string) bool {
-	info, err := extractInfo(ctx, originalURL, cookiesFile)
+func processVideo(ctx context.Context, bot *telego.Bot, log *zap.Logger, chatID int64, replyTo int, originalURL string, cfg ytConfig) bool {
+	info, err := extractInfo(ctx, originalURL, cfg)
 	if err != nil {
 		log.Info("video: not a supported video or extract failed",
 			zap.String("url", originalURL), zap.Error(err))
@@ -218,7 +262,7 @@ func processVideo(ctx context.Context, bot *telego.Bot, log *zap.Logger, chatID 
 	defer os.RemoveAll(dir)
 
 	for _, height := range qualityCascade {
-		path, err := downloadVideo(ctx, originalURL, dir, height, cookiesFile)
+		path, err := downloadVideo(ctx, originalURL, dir, height, cfg)
 		if err != nil {
 			log.Info("video: download failed at resolution",
 				zap.Int("height", height), zap.String("url", originalURL), zap.Error(err))

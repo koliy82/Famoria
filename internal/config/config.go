@@ -36,6 +36,18 @@ type Config struct {
 	// used by yt-dlp. Required for YouTube, which now blocks unauthenticated
 	// (bot) access. Only applied to YouTube URLs.
 	YtdlpCookiesFile *string `envconfig:"YTDLP_COOKIES_FILE"`
+
+	// ProxyEnable controls when ProxyURL is applied to yt-dlp requests:
+	//   "false"   (default) — proxy is not used at all.
+	//   "youtube"           — proxy is used only for YouTube URLs.
+	//   "true"              — proxy is used for all URLs.
+	ProxyEnable string `envconfig:"PROXY_ENABLE" default:"false"`
+
+	// ProxyURL is an optional HTTP/HTTPS/SOCKS proxy URL used by yt-dlp, when
+	// enabled by ProxyEnable. Useful when the server's datacenter IP is blocked
+	// by YouTube ("Sign in to confirm you're not a bot"). A residential proxy is
+	// typically required. Format: http://user:pass@host:port
+	ProxyURL *string `envconfig:"PROXY_URL"`
 }
 
 func New() Config {

@@ -7,6 +7,7 @@ import (
 	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/pkg/common/extractor"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/lrstanley/go-ytdlp"
@@ -21,7 +22,7 @@ type AnyLinkDownloader struct {
 	log          *zap.Logger
 	bot          *telego.Bot
 	chatSettings chat_settings.Repository
-	cookiesFile  string
+	ytcfg        ytConfig
 	queue        *queueManager
 }
 
@@ -62,7 +63,7 @@ func (l AnyLinkDownloader) processJob(j job) {
 	ctx, cancel := context.WithTimeout(context.Background(), perVideoTimeout*time.Second)
 	defer cancel()
 
-	sent := processVideo(ctx, l.bot, l.log, chatID, msg.MessageID, originalURL, l.cookiesFile)
+	sent := processVideo(ctx, l.bot, l.log, chatID, msg.MessageID, originalURL, l.ytcfg)
 	if !sent {
 		return
 	}
@@ -100,30 +101,51 @@ func Register(opts Opts) {
 		ytdlp.MustInstall(context.TODO(), nil)
 	}
 
-	var cookiesFile string
+	var ytcfg ytConfig
 	if opts.Cfg.YtdlpCookiesFile != nil {
-		cookiesFile = *opts.Cfg.YtdlpCookiesFile
+		ytcfg.cookiesFile = *opts.Cfg.YtdlpCookiesFile
+	}
+	if opts.Cfg.ProxyURL != nil {
+		ytcfg.proxy = *opts.Cfg.ProxyURL
+	}
+	// Normalize the proxy mode; anything outside the known values means "off".
+	switch strings.ToLower(strings.TrimSpace(opts.Cfg.ProxyEnable)) {
+	case proxyModeAll, "1":
+		ytcfg.proxyMode = proxyModeAll
+	case proxyModeYouTube, "yt":
+		ytcfg.proxyMode = proxyModeYouTube
+	default:
+		ytcfg.proxyMode = proxyModeFalse
 	}
 
 	// Log the cookies configuration so misconfigurations (wrong path, missing
 	// file) are visible at startup rather than surfacing as opaque "Sign in to
 	// confirm you're not a bot" errors at runtime.
-	if cookiesFile == "" {
+	if ytcfg.cookiesFile == "" {
 		opts.Log.Warn("ytdlp: no cookies file configured (YTDLP_COOKIES_FILE empty) — YouTube will block downloads")
 	} else {
-		if _, err := os.Stat(cookiesFile); err != nil {
+		if _, err := os.Stat(ytcfg.cookiesFile); err != nil {
 			opts.Log.Error("ytdlp: cookies file not accessible — YouTube will block downloads",
-				zap.String("path", cookiesFile), zap.Error(err))
+				zap.String("path", ytcfg.cookiesFile), zap.Error(err))
 		} else {
-			opts.Log.Info("ytdlp: cookies file loaded", zap.String("path", cookiesFile))
+			opts.Log.Info("ytdlp: cookies file loaded", zap.String("path", ytcfg.cookiesFile))
 		}
+	}
+
+	// Log the proxy configuration. Mask credentials in the URL so the password
+	// isn't leaked into shared logs.
+	if ytcfg.proxy == "" {
+		opts.Log.Info("ytdlp: proxy disabled (PROXY_URL empty)")
+	} else {
+		opts.Log.Info("ytdlp: proxy configured",
+			zap.String("mode", ytcfg.proxyMode), zap.String("proxy", maskProxyCreds(ytcfg.proxy)))
 	}
 
 	dl := AnyLinkDownloader{
 		log:          opts.Log,
 		bot:          opts.Bot,
 		chatSettings: opts.ChatSettings,
-		cookiesFile:  cookiesFile,
+		ytcfg:        ytcfg,
 	}
 	dl.queue = newQueueManager(dl.processJob)
 
