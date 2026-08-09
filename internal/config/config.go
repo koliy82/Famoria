@@ -31,6 +31,11 @@ type Config struct {
 
 	SteamURI string `envconfig:"STEAM_URL"`
 	SteamKEY string `envconfig:"STEAM_KEY"`
+
+	// YtdlpCookiesFile is an optional path to a Netscape-format cookies file
+	// used by yt-dlp. Required for YouTube, which now blocks unauthenticated
+	// (bot) access. Only applied to YouTube URLs.
+	YtdlpCookiesFile *string `envconfig:"YTDLP_COOKIES_FILE"`
 }
 
 func New() Config {

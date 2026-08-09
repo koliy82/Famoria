@@ -2,9 +2,11 @@ package link
 
 import (
 	"context"
-	"encoding/json"
+	"famoria/internal/bot/callback"
+	"famoria/internal/config"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/pkg/common/extractor"
-	"os"
+	"time"
 
 	"github.com/lrstanley/go-ytdlp"
 	"github.com/mymmrac/telego"
@@ -15,59 +17,99 @@ import (
 )
 
 type AnyLinkDownloader struct {
-	log  *zap.Logger
-	ytdl *ytdlp.Command
+	log          *zap.Logger
+	bot          *telego.Bot
+	chatSettings chat_settings.Repository
+	cookiesFile  string
+	queue        *queueManager
 }
 
 func (l AnyLinkDownloader) Handle(ctx *th.Context, update telego.Update) error {
-	params := &telego.SendMessageParams{
-		ChatID: tu.ID(update.Message.Chat.ID),
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID:                update.Message.GetMessageID(),
-			AllowSendingWithoutReply: true,
-		},
-		DisableNotification: true,
+	msg := update.Message
+	if msg == nil || msg.From == nil {
+		return nil
 	}
-	var userUrl, userUrlErr = extractor.ExtractLink(update.Message.Text)
-	if userUrlErr != nil {
-		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText("failed to extract link"))
-		l.log.Sugar().Error("failed to extract link: "+userUrl.String(), zap.Error(userUrlErr))
-		return err
-	}
-	l.log.Sugar().Info("extracted link: " + userUrl.String())
-	r, err := l.ytdl.Run(context.TODO(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-	if err != nil {
-		panic(err)
-	}
-	f, err := os.Create("results.json")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
 
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "    ")
-
-	if err = enc.Encode(r); err != nil {
-		panic(err)
+	// Only process in chats where the converter is enabled.
+	if !l.chatSettings.IsVideoConverterEnabled(msg.Chat.ID) {
+		return nil
 	}
-	l.log.Info("wrote results to results.json")
+
+	userURL, err := extractor.ExtractLink(msg.Text)
+	if err != nil {
+		l.log.Info("link: failed to extract link", zap.String("text", msg.Text), zap.Error(err))
+		return nil
+	}
+	l.log.Info("link: extracted", zap.String("url", userURL.String()))
+
+	// Enqueue and return immediately; the worker processes the job off the
+	// handler goroutine so long polling is never blocked.
+	l.queue.submit(msg.Chat.ID, job{
+		update: update,
+		url:    userURL,
+	})
 	return nil
+}
+
+// processJob is the per-chat worker callback. It performs the heavy work:
+// metadata check, download cascade, send, and deletion of the original message.
+func (l AnyLinkDownloader) processJob(j job) {
+	msg := j.update.Message
+	chatID := msg.Chat.ID
+	originalURL := j.url.String()
+
+	ctx, cancel := context.WithTimeout(context.Background(), perVideoTimeout*time.Second)
+	defer cancel()
+
+	sent := processVideo(ctx, l.bot, l.log, chatID, msg.MessageID, originalURL, l.cookiesFile)
+	if !sent {
+		return
+	}
+
+	// Video was sent successfully — remove the original link message.
+	if err := l.bot.DeleteMessage(context.Background(), &telego.DeleteMessageParams{
+		ChatID:    tu.ID(chatID),
+		MessageID: msg.MessageID,
+	}); err != nil {
+		l.log.Info("link: failed to delete original message",
+			zap.Int64("chat_id", chatID), zap.Int("message_id", msg.MessageID), zap.Error(err))
+	}
 }
 
 type Opts struct {
 	fx.In
-	Bh  *th.BotHandler
-	Log *zap.Logger
+	Bh           *th.BotHandler
+	Log          *zap.Logger
+	Bot          *telego.Bot
+	Cm           *callback.CallbacksManager
+	Cfg          config.Config
+	ChatSettings chat_settings.Repository
 }
 
 func Register(opts Opts) {
 	ytdlp.MustInstall(context.TODO(), nil)
-	opts.Bh.Handle(AnyLinkDownloader{
-		log: opts.Log,
-		ytdl: ytdlp.New().
-			FormatSort("res,ext:mp4:m4a").
-			RecodeVideo("mp4").
-			Output("%(extractor)s - %(title)s.%(ext)s"),
-	}.Handle, th.TextMatches(extractor.LinkRegex))
+
+	var cookiesFile string
+	if opts.Cfg.YtdlpCookiesFile != nil {
+		cookiesFile = *opts.Cfg.YtdlpCookiesFile
+	}
+
+	dl := AnyLinkDownloader{
+		log:          opts.Log,
+		bot:          opts.Bot,
+		chatSettings: opts.ChatSettings,
+		cookiesFile:  cookiesFile,
+	}
+	dl.queue = newQueueManager(dl.processJob)
+
+	// /settings command for chat admins.
+	opts.Bh.Handle(settingsCmd{
+		bot:          opts.Bot,
+		log:          opts.Log,
+		chatSettings: opts.ChatSettings,
+		cm:           opts.Cm,
+	}.Handle, th.CommandEqual("settings"))
+
+	// Link handler — matches any text containing a link.
+	opts.Bh.Handle(dl.Handle, th.TextMatches(extractor.LinkRegex))
 }
