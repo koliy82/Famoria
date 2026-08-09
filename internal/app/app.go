@@ -12,6 +12,7 @@ import (
 	"famoria/internal/bot/command/steam"
 	"famoria/internal/bot/cron"
 	"famoria/internal/bot/handler"
+	"famoria/internal/bot/handler/link"
 	"famoria/internal/bot/handler/logger"
 	"famoria/internal/bot/handler/payments"
 	"famoria/internal/bot/handler/waiter"
@@ -63,6 +64,7 @@ var App = fx.Options(
 		donate.Register,
 		steam.Register,
 		callback.Register,
+		link.Register,
 		logger.Register,
 		farm_logger.New,
 		bot.PrintMe,
