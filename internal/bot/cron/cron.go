@@ -4,6 +4,7 @@ import (
 	"famoria/internal/bot/cron/tasks"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 
 	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/fx"
@@ -12,18 +13,20 @@ import (
 
 type Opts struct {
 	fx.In
-	Log      *zap.Logger
-	BrakRepo brak.Repository
-	Manager  *item.Manager
-	S        gocron.Scheduler
+	Log          *zap.Logger
+	BrakRepo     brak.Repository
+	ChatSettings chat_settings.Repository
+	Manager      *item.Manager
+	S            gocron.Scheduler
 }
 
 func Start(opts Opts) {
 	tasks.StartMining(tasks.MiningOpts{
-		Log:      opts.Log,
-		BrakRepo: opts.BrakRepo,
-		Manager:  opts.Manager,
-		S:        opts.S,
+		Log:          opts.Log,
+		BrakRepo:     opts.BrakRepo,
+		ChatSettings: opts.ChatSettings,
+		Manager:      opts.Manager,
+		S:            opts.S,
 	})
 	opts.S.Start()
 	opts.Log.Info("Cron scheduler is started.")

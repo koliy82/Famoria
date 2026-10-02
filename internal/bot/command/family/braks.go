@@ -2,15 +2,17 @@ package family
 
 import (
 	"context"
-	"famoria/internal/bot/callback"
-	"famoria/internal/database/mongo/repositories/brak"
-	"famoria/internal/pkg/common"
-	"famoria/internal/pkg/html"
-	"famoria/internal/pkg/plural"
 	"fmt"
 	"math"
 	"strconv"
 	"time"
+
+	"famoria/internal/bot/callback"
+	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
+	"famoria/internal/pkg/common"
+	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/i18n"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -20,10 +22,11 @@ import (
 )
 
 type pagesCmd struct {
-	cm       *callback.CallbacksManager
-	brakRepo brak.Repository
-	isLocal  bool
-	log      *zap.Logger
+	cm           *callback.CallbacksManager
+	brakRepo     brak.Repository
+	chatSettings chat_settings.Repository
+	isLocal      bool
+	log          *zap.Logger
 }
 
 func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
@@ -34,8 +37,19 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 	var filter bson.M
 	var pages int64
 
+	chatID := update.Message.Chat.ID
+	lang := c.chatSettings.Lang(chatID)
+
+	// In chats with earnings turned off, a score ranking is meaningless (no score
+	// is accumulated or shown), so the list falls back to creation date.
+	earnings := c.chatSettings.IsFeatureEnabled(chatID, chat_settings.FeatEarnings)
+	sort := brak.BrakSortByScore
+	if !earnings {
+		sort = brak.BrakSortByCreateDate
+	}
+
 	params := &telego.SendMessageParams{
-		ChatID:    tu.ID(update.Message.Chat.ID),
+		ChatID:    tu.ID(chatID),
 		ParseMode: telego.ModeHTML,
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID:                update.Message.GetMessageID(),
@@ -45,31 +59,28 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 	}
 
 	if c.isLocal {
-		filter = bson.M{"chat_id": update.Message.Chat.ID}
+		filter = bson.M{"chat_id": chatID}
 	} else {
 		filter = bson.M{}
 	}
 
-	braks, count, err := c.brakRepo.FindBraksByPage(page, limit, filter)
-
-	pages = int64(math.Ceil(float64(count) / float64(limit)))
-
+	braks, count, err := c.brakRepo.FindBraksByPage(page, limit, filter, sort)
 	if err != nil {
-		_, err = ctx.Bot().SendMessage(context.Background(), params.WithText("Произошла ошибка при получении списка браков"))
+		_, err = ctx.Bot().SendMessage(context.Background(), params.WithText(i18n.T(lang, i18n.KeyBraksError)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}
 		return err
 	}
 
-	if c.isLocal {
-		header = fmt.Sprintf("💍 %d %s В ГРУППЕ 💍\n",
-			count, plural.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
-		)
-	} else {
-		header = fmt.Sprintf("💍 %d %s В ЧАТАХ 💍\n",
-			count, plural.Declension(count, "БРАК", "БРАКА", "БРАКОВ"),
-		)
+	pages = int64(math.Ceil(float64(count) / float64(limit)))
+
+	header = i18n.Marriages(lang, count, !c.isLocal)
+
+	// renderPage rebuilds the page body for the current data. It is shared by the
+	// first render and by both paging buttons.
+	renderPage := func() string {
+		return header + fillPage(braks, page, limit, lang, earnings)
 	}
 
 	backCallback := c.cm.DynamicCallback(callback.DynamicOpts{
@@ -84,17 +95,18 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 				page--
 			}
 
-			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter)
+			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter, sort)
 			if err != nil {
 				return
 			}
+			header = i18n.Marriages(lang, count, !c.isLocal)
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
 			_, err = ctx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
-				ChatID:      tu.ID(update.Message.Chat.ID),
+				ChatID:      tu.ID(chatID),
 				ParseMode:   telego.ModeHTML,
-				Text:        header + fillPage(braks, page, limit),
+				Text:        renderPage(),
 				ReplyMarkup: keyboard,
 			})
 			if err != nil {
@@ -111,7 +123,7 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 		Callback: func(query telego.CallbackQuery) {
 			_ = ctx.Bot().AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 				CallbackQueryID: query.ID,
-				Text:            fmt.Sprintf("Страница №%d (На ней же не написано? =/)", page),
+				Text:            i18n.T(lang, i18n.KeyBraksPageHint, page),
 			})
 		},
 	})
@@ -128,17 +140,18 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 				page++
 			}
 
-			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter)
+			braks, count, err = c.brakRepo.FindBraksByPage(page, limit, filter, sort)
 			if err != nil {
 				return
 			}
+			header = i18n.Marriages(lang, count, !c.isLocal)
 
 			keyboard.InlineKeyboard[0][1].Text = strconv.FormatInt(page, 10)
 			_, err = ctx.Bot().EditMessageText(context.Background(), &telego.EditMessageTextParams{
 				MessageID:   query.Message.GetMessageID(),
-				ChatID:      tu.ID(update.Message.Chat.ID),
+				ChatID:      tu.ID(chatID),
 				ParseMode:   telego.ModeHTML,
-				Text:        header + fillPage(braks, page, limit),
+				Text:        renderPage(),
 				ReplyMarkup: keyboard,
 			})
 			if err != nil {
@@ -156,7 +169,7 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 	)
 
 	_, err = ctx.Bot().SendMessage(context.Background(), params.
-		WithText(header+fillPage(braks, page, limit)).
+		WithText(renderPage()).
 		WithReplyMarkup(keyboard).
 		WithDisableNotification(),
 	)
@@ -166,10 +179,12 @@ func (c pagesCmd) Handle(ctx *th.Context, update telego.Update) error {
 	return err
 }
 
-func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
+// fillPage renders one page of the marriage list. Balances are omitted when the
+// chat has earnings disabled, matching the profile behaviour.
+func fillPage(braks []*brak.UsersBrak, page int64, limit int64, lang i18n.Lang, earnings bool) string {
 	var text string
 	if len(braks) == 0 {
-		return "В этом чате нет браков"
+		return i18n.T(lang, i18n.KeyBraksEmpty)
 	}
 	for index, m := range braks {
 		text += fmt.Sprintf("%d. ", index+1+(int(page)-1)*int(limit))
@@ -183,7 +198,7 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 		if m.Brak.IsSub() {
 			text += " ❤️‍🔥 "
 		} else {
-			text += " и "
+			text += i18n.T(lang, i18n.KeyBraksAnd)
 		}
 
 		if m.Second == nil {
@@ -198,8 +213,12 @@ func fillPage(braks []*brak.UsersBrak, page int64, limit int64) string {
 			)
 		}
 
-		text += fmt.Sprintf("\n   ⏳ %s", m.Brak.Duration())
-		text += fmt.Sprintf(" - %s 💰\n", common.FormattedScore(m.Brak.Score))
+		text += "\n   " + i18n.T(lang, i18n.KeyBraksDuration, m.Brak.Duration())
+		if earnings {
+			text += fmt.Sprintf(" - %s 💰\n", common.FormattedScore(m.Brak.Score))
+		} else {
+			text += "\n"
+		}
 	}
 	return text
 }

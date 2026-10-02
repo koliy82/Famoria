@@ -3,7 +3,9 @@ package steam
 import (
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/handler/waiter"
+	"famoria/internal/bot/predicate"
 	"famoria/internal/database/steamapi/repositories/steam_accounts"
+	"famoria/internal/pkg/i18n"
 
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/fx"
@@ -25,5 +27,5 @@ func Register(opts Opts) {
 		log: opts.Log,
 		cm:  opts.Cm,
 		mw:  opts.Mw,
-	}.Handle, th.Or(th.CommandEqual("steam"), th.TextEqual("🎮 Steam аккаунты")))
+	}.Handle, th.Or(th.CommandEqual("steam"), predicate.TextEqualKey(i18n.KeyBtnSteam)))
 }

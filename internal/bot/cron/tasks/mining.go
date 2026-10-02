@@ -3,6 +3,7 @@ package tasks
 import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -11,10 +12,11 @@ import (
 )
 
 type MiningOpts struct {
-	Log      *zap.Logger
-	BrakRepo brak.Repository
-	Manager  *item.Manager
-	S        gocron.Scheduler
+	Log          *zap.Logger
+	BrakRepo     brak.Repository
+	ChatSettings chat_settings.Repository
+	Manager      *item.Manager
+	S            gocron.Scheduler
 }
 
 func StartMining(opts MiningOpts) {
@@ -29,6 +31,14 @@ func StartMining(opts MiningOpts) {
 					return
 				}
 				for _, b := range braks {
+					// A chat that switched earnings off must stop accumulating
+					// score, including from this scheduled job. Braks without a
+					// recorded chat keep mining, as before: there is no chat
+					// setting to honour.
+					if b.ChatID != 0 && !opts.ChatSettings.IsFeatureEnabled(b.ChatID, chat_settings.FeatEarnings) {
+						opts.Log.Info("[CRON] brak id: " + b.OID.Hex() + " skipped, earnings disabled in chat")
+						continue
+					}
 					b.ApplyBuffs(opts.Manager)
 					resp := b.Events.Mining.Play()
 					if resp.Score > 0 {

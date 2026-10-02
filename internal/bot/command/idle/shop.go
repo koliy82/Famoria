@@ -6,7 +6,9 @@ import (
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/bot/idle/item/shop"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/i18n"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -15,11 +17,12 @@ import (
 )
 
 type shopCmd struct {
-	brakRepo brak.Repository
-	userRepo user.Repository
-	cm       *callback.CallbacksManager
-	log      *zap.Logger
-	manager  *item.Manager
+	brakRepo     brak.Repository
+	userRepo     user.Repository
+	chatSettings chat_settings.Repository
+	cm           *callback.CallbacksManager
+	log          *zap.Logger
+	manager      *item.Manager
 }
 
 func (c shopCmd) Handle(ctx *th.Context, update telego.Update) error {
@@ -34,7 +37,8 @@ func (c shopCmd) Handle(ctx *th.Context, update telego.Update) error {
 		},
 	}
 	if b == nil {
-		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText("Для просмотра инвентаря брака, вам нужно быть в браке."))
+		lang := c.chatSettings.Lang(update.Message.Chat.ID)
+		_, err := ctx.Bot().SendMessage(context.Background(), params.WithText(i18n.T(lang, i18n.KeyShopNeedMarriage)))
 		if err != nil {
 			c.log.Sugar().Error(err)
 		}

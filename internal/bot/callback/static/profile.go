@@ -10,8 +10,10 @@ import (
 	"famoria/internal/bot/idle/event/mining"
 	"famoria/internal/bot/idle/item"
 	"famoria/internal/database/mongo/repositories/brak"
+	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/database/mongo/repositories/user"
 	"famoria/internal/pkg/html"
+	"famoria/internal/pkg/i18n"
 	"os"
 	"strconv"
 	"time"
@@ -33,16 +35,58 @@ const (
 
 type Opts struct {
 	fx.In
-	Log      *zap.Logger
-	BrakRepo brak.Repository
-	UserRepo user.Repository
-	Cm       *callback.CallbacksManager
-	Bot      *telego.Bot
-	M        *item.Manager
+	Log          *zap.Logger
+	BrakRepo     brak.Repository
+	UserRepo     user.Repository
+	ChatSettings chat_settings.Repository
+	Cm           *callback.CallbacksManager
+	Bot          *telego.Bot
+	M            *item.Manager
+}
+
+// chatOf safely resolves the chat a callback belongs to. query.Message is an
+// interface that may be nil for inline-mode buttons, and dereferencing it
+// blindly would panic inside the callback goroutine.
+func chatOf(query telego.CallbackQuery) (int64, bool) {
+	if query.Message == nil {
+		return 0, false
+	}
+	return query.Message.GetChat().ID, true
+}
+
+// earningsEnabled reports whether score-awarding jobs are allowed in the chat
+// the callback came from. When a chat turns earnings off the profile stops
+// rendering the job buttons, but buttons on messages sent earlier are still
+// clickable — without this gate those stale buttons would keep awarding score.
+func (opts Opts) earningsEnabled(query telego.CallbackQuery) bool {
+	chatID, ok := chatOf(query)
+	if !ok {
+		return false
+	}
+	return opts.ChatSettings.IsFeatureEnabled(chatID, chat_settings.FeatEarnings)
+}
+
+// denyEarnings tells the user why nothing happened when they press a job button
+// that their chat has switched off.
+func (opts Opts) denyEarnings(query telego.CallbackQuery) {
+	chatID, ok := chatOf(query)
+	if !ok {
+		return
+	}
+	lang := opts.ChatSettings.Lang(chatID)
+	_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+		CallbackQueryID: query.ID,
+		Text:            i18n.T(lang, i18n.KeyFeatureDisabled),
+		ShowAlert:       true,
+	})
 }
 
 func ProfileCallbacks(opts Opts) {
 	opts.Cm.StaticCallback(CasinoData, func(query telego.CallbackQuery) {
+		if !opts.earningsEnabled(query) {
+			opts.denyEarnings(query)
+			return
+		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
@@ -123,6 +167,10 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(GrowKidData, func(query telego.CallbackQuery) {
+		if !opts.earningsEnabled(query) {
+			opts.denyEarnings(query)
+			return
+		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
@@ -179,6 +227,10 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(HamsterData, func(query telego.CallbackQuery) {
+		if !opts.earningsEnabled(query) {
+			opts.denyEarnings(query)
+			return
+		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
@@ -223,6 +275,10 @@ func ProfileCallbacks(opts Opts) {
 	})
 
 	opts.Cm.StaticCallback(AnubisData, func(query telego.CallbackQuery) {
+		if !opts.earningsEnabled(query) {
+			opts.denyEarnings(query)
+			return
+		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)
 		if err != nil {
 			_ = opts.Bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
@@ -305,6 +361,10 @@ func ProfileCallbacks(opts Opts) {
 				CallbackQueryID: query.ID,
 				Text:            "В разработке",
 			})
+			return
+		}
+		if !opts.earningsEnabled(query) {
+			opts.denyEarnings(query)
 			return
 		}
 		b, err := opts.BrakRepo.FindByUserID(query.From.ID, opts.M)

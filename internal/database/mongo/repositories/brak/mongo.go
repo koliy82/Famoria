@@ -71,7 +71,7 @@ func (c *Mongo) Delete(id primitive.ObjectID) error {
 	return nil
 }
 
-func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]*UsersBrak, int64, error) {
+func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}, sort BrakSort) ([]*UsersBrak, int64, error) {
 	var braks []*UsersBrak
 	skip := (page - 1) * limit
 	brakCount, err := c.coll.CountDocuments(context.TODO(), filter)
@@ -81,9 +81,7 @@ func (c *Mongo) FindBraksByPage(page int64, limit int64, filter interface{}) ([]
 	}
 	pipeline := mongo.Pipeline{
 		{{"$match", filter}},
-		{{"$sort", bson.M{
-			"score": -1,
-		}}},
+		{{"$sort", sort.bsonSort()}},
 		{{"$skip", skip}},
 		{{"$limit", limit}},
 		{{"$lookup", bson.M{

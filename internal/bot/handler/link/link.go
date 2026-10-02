@@ -2,7 +2,6 @@ package link
 
 import (
 	"context"
-	"famoria/internal/bot/callback"
 	"famoria/internal/config"
 	"famoria/internal/database/mongo/repositories/chat_settings"
 	"famoria/internal/pkg/common/extractor"
@@ -54,7 +53,8 @@ func (l AnyLinkDownloader) Handle(ctx *th.Context, update telego.Update) error {
 }
 
 // processJob is the per-chat worker callback. It performs the heavy work:
-// metadata check, download cascade, send, and deletion of the original message.
+// metadata check, download cascade, send, and — when the chat asks for it —
+// deletion of the original link message.
 func (l AnyLinkDownloader) processJob(j job) {
 	msg := j.update.Message
 	chatID := msg.Chat.ID
@@ -68,7 +68,14 @@ func (l AnyLinkDownloader) processJob(j job) {
 		return
 	}
 
-	// Video was sent successfully — remove the original link message.
+	// Whether to drop the source link is a per-chat preference; read it now so a
+	// change made while the download was running still applies.
+	if !l.chatSettings.DeleteOriginalLink(chatID) {
+		l.log.Info("link: keeping original message per chat settings",
+			zap.Int64("chat_id", chatID), zap.Int("message_id", msg.MessageID))
+		return
+	}
+
 	if err := l.bot.DeleteMessage(context.Background(), &telego.DeleteMessageParams{
 		ChatID:    tu.ID(chatID),
 		MessageID: msg.MessageID,
@@ -83,7 +90,6 @@ type Opts struct {
 	Bh           *th.BotHandler
 	Log          *zap.Logger
 	Bot          *telego.Bot
-	Cm           *callback.CallbacksManager
 	Cfg          config.Config
 	ChatSettings chat_settings.Repository
 }
@@ -149,14 +155,7 @@ func Register(opts Opts) {
 	}
 	dl.queue = newQueueManager(dl.processJob)
 
-	// /settings command for chat admins.
-	opts.Bh.Handle(settingsCmd{
-		bot:          opts.Bot,
-		log:          opts.Log,
-		chatSettings: opts.ChatSettings,
-		cm:           opts.Cm,
-	}.Handle, th.CommandEqual("settings"))
-
-	// Link handler — matches any text containing a link.
+	// Link handler — matches any text containing a link. The /settings menu lives
+	// in internal/bot/command/settings.
 	opts.Bh.Handle(dl.Handle, th.TextMatches(extractor.LinkRegex))
 }

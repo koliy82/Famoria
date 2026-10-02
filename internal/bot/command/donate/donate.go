@@ -3,9 +3,12 @@ package donate
 import (
 	"famoria/internal/bot/callback"
 	"famoria/internal/bot/idle/item"
+	"famoria/internal/bot/predicate"
 	"famoria/internal/config"
 	"famoria/internal/database/mongo/repositories/brak"
 	"famoria/internal/database/mongo/repositories/user"
+	"famoria/internal/pkg/i18n"
+
 	th "github.com/mymmrac/telego/telegohandler"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -30,5 +33,5 @@ func Register(opts Opts) {
 		cm:          opts.Cm,
 		m:           opts.M,
 		yKassaToken: opts.Cfg.YKassaToken,
-	}.Handle, th.Or(th.CommandEqual("subscribe"), th.TextEqual("💳 Подписка")))
+	}.Handle, th.Or(th.CommandEqual("subscribe"), predicate.TextEqualKey(i18n.KeyBtnSubscribe)))
 }

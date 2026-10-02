@@ -9,6 +9,7 @@ import (
 	"famoria/internal/bot/command/family"
 	"famoria/internal/bot/command/idle"
 	"famoria/internal/bot/command/info"
+	"famoria/internal/bot/command/settings"
 	"famoria/internal/bot/command/steam"
 	"famoria/internal/bot/cron"
 	"famoria/internal/bot/handler"
@@ -63,6 +64,7 @@ var App = fx.Options(
 		family.Register,
 		idle.Register,
 		info.Register,
+		settings.Register,
 		donate.Register,
 		steam.Register,
 		callback.Register,
