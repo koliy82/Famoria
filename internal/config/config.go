@@ -1,9 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+
+	"famoria/internal/pkg/proxy"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -48,6 +52,67 @@ type Config struct {
 	// by YouTube ("Sign in to confirm you're not a bot"). A residential proxy is
 	// typically required. Format: http://user:pass@host:port
 	ProxyURL *string `envconfig:"PROXY_URL"`
+
+	// BotProxy routes all Telegram Bot API traffic through BotProxyURL when true.
+	// Needed where api.telegram.org is blocked at the host level.
+	BotProxy bool `envconfig:"BOT_PROXY" default:"false"`
+
+	// BotProxyURL is the HTTP(S) CONNECT proxy for the Telegram API, in
+	// "user:pass@host:port" form. Required when BotProxy is true.
+	BotProxyURL *string `envconfig:"BOT_PROXY_URL"`
+
+	// DBProxy routes all MongoDB traffic through DBProxyURL when true. Needed
+	// where the database host is blocked at the host level.
+	DBProxy bool `envconfig:"DB_PROXY" default:"false"`
+
+	// DBProxyURL is the HTTP(S) CONNECT proxy for MongoDB, in
+	// "user:pass@host:port" form. Required when DBProxy is true.
+	//
+	// MongoDB's wire protocol is not HTTP, so this is a raw CONNECT tunnel rather
+	// than an HTTP proxy setting; the driver still negotiates its own TLS inside
+	// the tunnel.
+	DBProxyURL *string `envconfig:"DB_PROXY_URL"`
+}
+
+// lowercaseEnvKeys are names that may appear in .env in lower case.
+//
+// envconfig only ever looks up upper-case names, and godotenv preserves the
+// spelling exactly as written in .env. On Windows environment variables are
+// case-insensitive so either spelling works, but in Linux containers they are
+// case-sensitive: a lower-case "bot_proxy=true" would be silently ignored and
+// the bot would connect direct. Promoting the known keys here makes both
+// spellings work everywhere.
+var lowercaseEnvKeys = []string{
+	"bot_proxy", "bot_proxy_url",
+	"db_proxy", "db_proxy_url",
+}
+
+// normalizeEnvKeys promotes the lower-case spellings of known keys to the
+// upper-case form envconfig looks up, without overwriting a value that was
+// already set explicitly.
+func normalizeEnvKeys() {
+	promoteKeys(lowercaseEnvKeys, os.LookupEnv, func(key, value string) {
+		_ = os.Setenv(key, value)
+	})
+}
+
+// promoteKeys copies each lower-case key's value to its upper-case name when the
+// upper-case name is unset.
+//
+// The lookup and set functions are injected rather than calling os directly:
+// environment variables are case-insensitive on Windows but case-sensitive on
+// Linux, so testing this through the real environment would pass trivially on one
+// platform and fail on the other regardless of whether the logic is correct.
+func promoteKeys(keys []string, lookup func(string) (string, bool), set func(key, value string)) {
+	for _, key := range keys {
+		upper := strings.ToUpper(key)
+		if _, exists := lookup(upper); exists {
+			continue
+		}
+		if v, ok := lookup(key); ok {
+			set(upper, v)
+		}
+	}
 }
 
 func New() Config {
@@ -61,6 +126,7 @@ func New() Config {
 	envPath := filepath.Join(wd, ".env")
 
 	_ = godotenv.Load(envPath)
+	normalizeEnvKeys()
 	if err := envconfig.Process("", &cfg); err != nil {
 		panic(err)
 	}
@@ -71,5 +137,36 @@ func New() Config {
 	}
 	time.Local = loc
 
+	if err := cfg.validateProxies(); err != nil {
+		panic(err)
+	}
+
 	return cfg
+}
+
+// validateProxies rejects a half-configured proxy.
+//
+// Without this, a missing or malformed URL would fall back to a direct
+// connection, which on a network where the destination is blocked surfaces as an
+// opaque timeout rather than a clear startup error.
+func (c Config) validateProxies() error {
+	for _, p := range []struct {
+		name    string
+		enabled bool
+		url     *string
+	}{
+		{"BOT_PROXY", c.BotProxy, c.BotProxyURL},
+		{"DB_PROXY", c.DBProxy, c.DBProxyURL},
+	} {
+		if !p.enabled {
+			continue
+		}
+		if p.url == nil || strings.TrimSpace(*p.url) == "" {
+			return fmt.Errorf("config: %s is true but %s_URL is empty", p.name, p.name)
+		}
+		if _, err := proxy.Parse(*p.url); err != nil {
+			return fmt.Errorf("config: invalid %s_URL: %w", p.name, err)
+		}
+	}
+	return nil
 }

@@ -73,6 +73,11 @@ var ru = map[string]string{
 	KeyInventoryNeedMarriage: "Для просмотра инвентаря брака вам нужно быть в браке.",
 	KeyInventoryChoose:       "Выберите предмет для просмотра.\n",
 
+	// Link converter output.
+	KeyVideoCaption:        "<b>%s</b>\n\n%s · converted by Famoria",
+	KeyVideoCaptionNoTitle: "%s · converted by Famoria",
+	KeyVideoOriginal:       "Источник",
+
 	// Reply keyboard.
 	KeyBtnProfile:    "👤 Профиль",
 	KeyBtnDivorce:    "💔 Развод",

@@ -1,3 +1,47 @@
+# Keep the build context small and, more importantly, keep secrets out of the
+# image. `COPY . .` bakes everything not listed here into a layer, and image
+# layers are readable by anyone who can pull the image — .env and the YouTube
+# cookies are both mounted as volumes at runtime (see docker-compose.yml), so
+# they must never be copied in.
+
+# Secrets and runtime-mounted configuration
+.env
+.env.*
+!.env.example
+cookies/
+
+# VCS / IDE / tooling
 .git/
+.gitignore
+.gitattributes
+.github/
 .idea/
+.zcode/
+.vscode/
+*.iml
+*.ipr
+*.iws
+qodana.yaml
+
+# Build artifacts and local scratch files — the image compiles its own binary
+# and runs on Linux, so the Windows binary is dead weight.
+bot
+bot.exe
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+results.json
+proxies.txt
+tmp/
+
+# Not needed to build or run the bot
 database-compose/
+docker-compose.yml
+Dockerfile
+.dockerignore
+README.md
+LICENSE
+docs/

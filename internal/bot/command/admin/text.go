@@ -30,7 +30,10 @@ func (c sendTextCmd) Handle(ctx *th.Context, update telego.Update) error {
 	}
 	_, err = ctx.Bot().SendMessage(
 		context.Background(),
-		tu.Messagef(
+		// Message, not Messagef: the text comes from an administrator verbatim.
+		// Passing it as a format string mangles anything containing a percent
+		// sign — "100% готово" would render as "100%!d(MISSING) готово".
+		tu.Message(
 			chatID,
 			strings.Join(args[1:], " "),
 		),

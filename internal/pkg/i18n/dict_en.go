@@ -73,6 +73,11 @@ var en = map[string]string{
 	KeyInventoryNeedMarriage: "You need to be married to view the marriage inventory.",
 	KeyInventoryChoose:       "Choose an item to view.\n",
 
+	// Link converter output.
+	KeyVideoCaption:        "<b>%s</b>\n\n%s · converted by Famoria",
+	KeyVideoCaptionNoTitle: "%s · converted by Famoria",
+	KeyVideoOriginal:       "Source",
+
 	// Reply keyboard.
 	KeyBtnProfile:    "👤 Profile",
 	KeyBtnDivorce:    "💔 Divorce",

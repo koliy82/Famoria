@@ -90,6 +90,18 @@ const (
 	KeyInventoryChoose       = "inventory.choose"
 )
 
+// Link converter output.
+const (
+	// KeyVideoCaption is the caption under converted media: the source title,
+	// then the attribution with a link back to where it was posted. The first
+	// placeholder is the title, which callers must HTML-escape.
+	KeyVideoCaption = "video.caption"
+	// KeyVideoCaptionNoTitle is used when the source exposes no title.
+	KeyVideoCaptionNoTitle = "video.caption_no_title"
+	// KeyVideoOriginal is the clickable label of the source link.
+	KeyVideoOriginal = "video.original"
+)
+
 // Reply-keyboard button labels. Handlers match every supported language, so
 // these labels may change per language without breaking dispatch.
 const (
